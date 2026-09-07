@@ -1,0 +1,23 @@
+<Solution>
+    <Configurations>
+        <Platform Name="Any CPU" />
+    </Configurations>
+    <Folder Name="/src/">
+        <Project Path="src/Helpdesk.Domain/Helpdesk.Domain.csproj" />
+        <Project Path="src/Helpdesk.Application/Helpdesk.Application.csproj" />
+        <Project Path="src/Helpdesk.EntityFrameworkCore/Helpdesk.EntityFrameworkCore.csproj" />
+        <Project Path="src/Helpdesk.Domain.Shared/Helpdesk.Domain.Shared.csproj" />
+        <Project Path="src/Helpdesk.Application.Contracts/Helpdesk.Application.Contracts.csproj" />
+        <Project Path="src/Helpdesk.HttpApi/Helpdesk.HttpApi.csproj" />
+        <Project Path="src/Helpdesk.HttpApi.Client/Helpdesk.HttpApi.Client.csproj" />
+        <Project Path="src/Helpdesk.HttpApi.Host/Helpdesk.HttpApi.Host.csproj" />
+        <Project Path="src/Helpdesk.DbMigrator/Helpdesk.DbMigrator.csproj" />
+    </Folder>
+    <Folder Name="/test/">
+        <Project Path="test/Helpdesk.Application.Tests/Helpdesk.Application.Tests.csproj" />
+        <Project Path="test/Helpdesk.EntityFrameworkCore.Tests/Helpdesk.EntityFrameworkCore.Tests.csproj" />
+        <Project Path="test/Helpdesk.TestBase/Helpdesk.TestBase.csproj" />
+        <Project Path="test/Helpdesk.Domain.Tests/Helpdesk.Domain.Tests.csproj" />
+        <Project Path="test/Helpdesk.HttpApi.Client.ConsoleTestApp/Helpdesk.HttpApi.Client.ConsoleTestApp.csproj" />
+    </Folder>
+</Solution>

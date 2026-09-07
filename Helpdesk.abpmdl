@@ -1,0 +1,114 @@
+{
+  "template": "app",
+  "imports": {
+    "Volo.Abp.LeptonXLiteTheme": {
+      "version": "5.6.0",
+      "isInstalled": true,
+      "creationTime": "09/07/2026 08:48:08 +00:00"
+    },
+    "Volo.Abp.Account": {
+      "version": "10.6.0",
+      "isInstalled": true,
+      "creationTime": "09/07/2026 08:48:08 +00:00"
+    },
+    "Volo.Abp.OpenIddict": {
+      "version": "10.6.0",
+      "isInstalled": true,
+      "creationTime": "09/07/2026 08:48:08 +00:00"
+    },
+    "Volo.Abp.Identity": {
+      "version": "10.6.0",
+      "isInstalled": true,
+      "creationTime": "09/07/2026 08:48:08 +00:00"
+    },
+    "Volo.Abp.TenantManagement": {
+      "version": "10.6.0",
+      "isInstalled": true,
+      "creationTime": "09/07/2026 08:48:08 +00:00"
+    },
+    "Volo.Abp.SettingManagement": {
+      "version": "10.6.0",
+      "isInstalled": true,
+      "creationTime": "09/07/2026 08:48:08 +00:00"
+    },
+    "Volo.Abp.PermissionManagement": {
+      "version": "10.6.0",
+      "isInstalled": true,
+      "creationTime": "09/07/2026 08:48:08 +00:00"
+    },
+    "Volo.Abp.FeatureManagement": {
+      "version": "10.6.0",
+      "isInstalled": true,
+      "creationTime": "09/07/2026 08:48:08 +00:00"
+    },
+    "Volo.Abp.BlobStoring.Database": {
+      "version": "10.6.0",
+      "isInstalled": true,
+      "creationTime": "09/07/2026 08:48:08 +00:00"
+    }
+  },
+  "folders": {
+    "items": {
+      "src": {},
+      "test": {}
+    }
+  },
+  "packages": {
+    "Helpdesk.Application": {
+      "path": "src/Helpdesk.Application/Helpdesk.Application.abppkg",
+      "folder": "src"
+    },
+    "Helpdesk.Application.Tests": {
+      "path": "test/Helpdesk.Application.Tests/Helpdesk.Application.Tests.abppkg",
+      "folder": "test"
+    },
+    "Helpdesk.Domain.Shared": {
+      "path": "src/Helpdesk.Domain.Shared/Helpdesk.Domain.Shared.abppkg",
+      "folder": "src"
+    },
+    "Helpdesk.Application.Contracts": {
+      "path": "src/Helpdesk.Application.Contracts/Helpdesk.Application.Contracts.abppkg",
+      "folder": "src"
+    },
+    "Helpdesk.HttpApi": {
+      "path": "src/Helpdesk.HttpApi/Helpdesk.HttpApi.abppkg",
+      "folder": "src"
+    },
+    "Helpdesk.HttpApi.Client": {
+      "path": "src/Helpdesk.HttpApi.Client/Helpdesk.HttpApi.Client.abppkg",
+      "folder": "src"
+    },
+    "Helpdesk.EntityFrameworkCore.Tests": {
+      "path": "test/Helpdesk.EntityFrameworkCore.Tests/Helpdesk.EntityFrameworkCore.Tests.abppkg",
+      "folder": "test"
+    },
+    "Helpdesk.EntityFrameworkCore": {
+      "path": "src/Helpdesk.EntityFrameworkCore/Helpdesk.EntityFrameworkCore.abppkg",
+      "folder": "src"
+    },
+    "Helpdesk.TestBase": {
+      "path": "test/Helpdesk.TestBase/Helpdesk.TestBase.abppkg",
+      "folder": "test"
+    },
+    "Helpdesk.Domain.Tests": {
+      "path": "test/Helpdesk.Domain.Tests/Helpdesk.Domain.Tests.abppkg",
+      "folder": "test"
+    },
+    "Helpdesk.HttpApi.Client.ConsoleTestApp": {
+      "path": "test/Helpdesk.HttpApi.Client.ConsoleTestApp/Helpdesk.HttpApi.Client.ConsoleTestApp.abppkg",
+      "folder": "test"
+    },
+    "Helpdesk.DbMigrator": {
+      "path": "src/Helpdesk.DbMigrator/Helpdesk.DbMigrator.abppkg",
+      "folder": "src"
+    },
+    "Helpdesk.HttpApi.Host": {
+      "path": "src/Helpdesk.HttpApi.Host/Helpdesk.HttpApi.Host.abppkg",
+      "folder": "src"
+    },
+    "Helpdesk.Domain": {
+      "path": "src/Helpdesk.Domain/Helpdesk.Domain.abppkg",
+      "folder": "src"
+    }
+  }
+}
