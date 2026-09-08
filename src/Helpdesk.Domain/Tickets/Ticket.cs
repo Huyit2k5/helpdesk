@@ -59,6 +59,16 @@ public class Ticket : FullAuditedAggregateRoot<Guid>, IMultiTenant
 
     public DateTime? ClosedAt { get; set; }
 
+    public Guid? SlaPolicyId { get; set; }
+
+    public DateTime? FirstResponseDueDate { get; set; }
+
+    public DateTime? FirstRespondedAt { get; set; }
+
+    public bool IsFirstResponseBreached { get; set; }
+
+    public bool IsResolutionBreached { get; set; }
+
     public string? Tags { get; set; }
 
     protected Ticket()

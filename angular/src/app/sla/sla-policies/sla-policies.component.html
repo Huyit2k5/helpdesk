@@ -1,0 +1,273 @@
+<div class="container-fluid py-4">
+  <!-- Page Header -->
+  <div class="row mb-4 align-items-center">
+    <div class="col">
+      <h2 class="mb-1 fw-bold text-dark">
+        <i class="fas fa-handshake-angle me-2 text-primary"></i>
+        Chính sách SLA (Cam kết dịch vụ)
+      </h2>
+      <p class="text-muted mb-0">Quản lý và thiết lập quy định thời gian phản hồi & giải quyết ticket</p>
+    </div>
+    <div class="col-auto">
+      <button class="btn btn-primary" (click)="openCreateModal()" id="btn-create-sla-policy">
+        <i class="fas fa-plus me-2"></i>Thêm chính sách SLA
+      </button>
+    </div>
+  </div>
+
+  <!-- Filter Bar -->
+  <div class="card mb-4 border-0 shadow-sm">
+    <div class="card-body py-3">
+      <div class="row g-3 align-items-center">
+        <div class="col-md-6">
+          <div class="input-group">
+            <span class="input-group-text bg-white border-end-0">
+              <i class="fas fa-search text-muted"></i>
+            </span>
+            <input
+              type="text"
+              class="form-control border-start-0"
+              placeholder="Tìm kiếm chính sách SLA..."
+              [(ngModel)]="filterText"
+              (keyup.enter)="search()"
+              id="input-sla-policy-search"
+            />
+            <button class="btn btn-outline-secondary" (click)="search()">Tìm</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Policies Table -->
+  <div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th style="width: 250px">Tên chính sách</th>
+              <th>Mô tả</th>
+              <th style="width: 140px" class="text-center">Số quy tắc</th>
+              <th style="width: 130px" class="text-center">Mặc định</th>
+              <th style="width: 130px" class="text-center">Trạng thái</th>
+              <th style="width: 120px" class="text-center">Thao tác</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of items; track item.id) {
+              <tr>
+                <td>
+                  <span class="fw-bold text-dark">{{ item.name }}</span>
+                </td>
+                <td>
+                  <span class="text-muted">{{ item.description || '—' }}</span>
+                </td>
+                <td class="text-center">
+                  <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1">
+                    {{ item.rules?.length || 0 }} quy tắc
+                  </span>
+                </td>
+                <td class="text-center">
+                  @if (item.isDefault) {
+                    <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">
+                      <i class="fas fa-check-circle me-1"></i>Mặc định
+                    </span>
+                  } @else {
+                    <span class="text-muted small">—</span>
+                  }
+                </td>
+                <td class="text-center">
+                  @if (item.isActive) {
+                    <span class="badge bg-success">Hoạt động</span>
+                  } @else {
+                    <span class="badge bg-secondary">Tạm dừng</span>
+                  }
+                </td>
+                <td class="text-center">
+                  <button
+                    class="btn btn-sm btn-outline-primary me-1"
+                    (click)="openEditModal(item)"
+                    title="Chỉnh sửa"
+                  >
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button
+                    class="btn btn-sm btn-outline-danger"
+                    [disabled]="item.isDefault"
+                    (click)="deletePolicy(item)"
+                    title="Xóa"
+                  >
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="6" class="text-center py-5 text-muted">
+                  <i class="fas fa-inbox fa-3x mb-3 text-secondary d-block"></i>
+                  Chưa có chính sách SLA nào
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+    @if (totalCount > 0) {
+      <div class="card-footer bg-white border-0 py-3">
+        <div class="d-flex justify-content-between align-items-center">
+          <span class="text-muted small">Tổng số: {{ totalCount }} chính sách</span>
+          <ngb-pagination
+            [collectionSize]="totalCount"
+            [(page)]="list.page"
+            [pageSize]="list.maxResultCount"
+            (pageChange)="list.get()"
+            [maxSize]="5"
+            [boundaryLinks]="true"
+          ></ngb-pagination>
+        </div>
+      </div>
+    }
+  </div>
+</div>
+
+<!-- Modal Create/Edit Policy -->
+@if (isModalOpen) {
+  <div class="modal show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);" (click)="closeModal()">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable" (click)="$event.stopPropagation()">
+      <div class="modal-content border-0 shadow">
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold">
+            <i class="fas fa-handshake me-2 text-primary"></i>
+            {{ isEditing ? 'Chỉnh sửa chính sách SLA' : 'Thêm mới chính sách SLA' }}
+          </h5>
+          <button type="button" class="btn-close" (click)="closeModal()"></button>
+        </div>
+        <div class="modal-body p-4">
+          <form [formGroup]="form">
+            <!-- General Info -->
+            <div class="row g-3 mb-4">
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Tên chính sách <span class="text-danger">*</span></label>
+                <input
+                  type="text"
+                  class="form-control"
+                  formControlName="name"
+                  placeholder="Ví dụ: SLA Tiêu chuẩn Doanh Nghiệp"
+                  [class.is-invalid]="form.get('name')?.invalid && form.get('name')?.touched"
+                />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Mô tả</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  formControlName="description"
+                  placeholder="Mô tả phạm vi áp dụng..."
+                />
+              </div>
+              <div class="col-md-6">
+                <div class="form-check form-switch mt-2">
+                  <input class="form-check-input" type="checkbox" formControlName="isDefault" id="switchDefault">
+                  <label class="form-check-label fw-semibold" for="switchDefault">
+                    Đặt làm chính sách mặc định
+                  </label>
+                  <small class="text-muted d-block">Tự động áp dụng cho các ticket mới tạo nếu không có cấu hình riêng.</small>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-check form-switch mt-2">
+                  <input class="form-check-input" type="checkbox" formControlName="isActive" id="switchActive">
+                  <label class="form-check-label fw-semibold" for="switchActive">Kích hoạt chính sách</label>
+                </div>
+              </div>
+            </div>
+
+            <hr class="my-4" />
+
+            <!-- Rules Matrix Section -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div>
+                <h6 class="fw-bold mb-1 text-dark">
+                  <i class="fas fa-list-check me-2 text-primary"></i>
+                  Danh sách quy tắc SLA (Rules)
+                </h6>
+                <small class="text-muted">Cấu hình thời gian phản hồi đầu tiên và thời gian xử lý sự vụ theo Mức ưu tiên & Danh mục</small>
+              </div>
+              <button type="button" class="btn btn-sm btn-outline-primary" (click)="addRule()">
+                <i class="fas fa-plus me-1"></i>Thêm quy tắc
+              </button>
+            </div>
+
+            <div class="table-responsive border rounded mb-3">
+              <table class="table align-middle mb-0">
+                <thead class="table-light small">
+                  <tr>
+                    <th style="width: 25%">Mức ưu tiên <span class="text-danger">*</span></th>
+                    <th style="width: 25%">Danh mục áp dụng</th>
+                    <th style="width: 22%">Hạn phản hồi (phút)</th>
+                    <th style="width: 22%">Hạn giải quyết (phút)</th>
+                    <th style="width: 6%" class="text-center">Xóa</th>
+                  </tr>
+                </thead>
+                <tbody formArrayName="rules">
+                  @for (ruleCtrl of rulesArray.controls; track $index; let i = $index) {
+                    <tr [formGroupName]="i">
+                      <td>
+                        <select class="form-select form-select-sm" formControlName="priorityId">
+                          @for (p of priorities; track p.id) {
+                            <option [value]="p.id">{{ p.name }}</option>
+                          }
+                        </select>
+                      </td>
+                      <td>
+                        <select class="form-select form-select-sm" formControlName="categoryId">
+                          <option [ngValue]="null">-- Tất cả danh mục --</option>
+                          @for (c of categories; track c.id) {
+                            <option [value]="c.id">{{ c.name }}</option>
+                          }
+                        </select>
+                      </td>
+                      <td>
+                        <div class="input-group input-group-sm">
+                          <input type="number" class="form-control" formControlName="responseTimeMinutes" min="1" />
+                          <span class="input-group-text">phút</span>
+                        </div>
+                        <small class="text-muted">{{ formatMinutes(ruleCtrl.get('responseTimeMinutes')?.value) }}</small>
+                      </td>
+                      <td>
+                        <div class="input-group input-group-sm">
+                          <input type="number" class="form-control" formControlName="resolutionTimeMinutes" min="1" />
+                          <span class="input-group-text">phút</span>
+                        </div>
+                        <small class="text-muted">{{ formatMinutes(ruleCtrl.get('resolutionTimeMinutes')?.value) }}</small>
+                      </td>
+                      <td class="text-center">
+                        <button type="button" class="btn btn-sm btn-link text-danger p-0" (click)="removeRule(i)">
+                          <i class="fas fa-times fa-lg"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  } @empty {
+                    <tr>
+                      <td colspan="5" class="text-center text-muted py-3">
+                        Chưa có quy tắc nào. Vui lòng bấm "Thêm quy tắc".
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" (click)="closeModal()">Đóng</button>
+          <button type="button" class="btn btn-primary" (click)="save()">
+            <i class="fas fa-save me-1"></i>Lưu chính sách
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

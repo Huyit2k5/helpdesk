@@ -11,6 +11,7 @@ using Helpdesk.Priorities;
 using Helpdesk.Tickets.Dtos;
 using Helpdesk.TicketSources;
 using Helpdesk.TicketStatuses;
+using Helpdesk.Sla;
 using Microsoft.AspNetCore.Authorization;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
@@ -33,7 +34,9 @@ public class TicketAppService : ApplicationService, ITicketAppService
     private readonly IRepository<TicketSource, Guid> _sourceRepository;
     private readonly IRepository<Department, Guid> _departmentRepository;
     private readonly IRepository<IdentityUser, Guid> _userRepository;
+    private readonly IRepository<SlaPolicy, Guid> _slaPolicyRepository;
     private readonly TicketManager _ticketManager;
+    private readonly SlaManager _slaManager;
 
     public TicketAppService(
         IRepository<Ticket, Guid> ticketRepository,
@@ -45,7 +48,9 @@ public class TicketAppService : ApplicationService, ITicketAppService
         IRepository<TicketSource, Guid> sourceRepository,
         IRepository<Department, Guid> departmentRepository,
         IRepository<IdentityUser, Guid> userRepository,
-        TicketManager ticketManager)
+        IRepository<SlaPolicy, Guid> slaPolicyRepository,
+        TicketManager ticketManager,
+        SlaManager slaManager)
     {
         _ticketRepository = ticketRepository;
         _commentRepository = commentRepository;
@@ -56,7 +61,9 @@ public class TicketAppService : ApplicationService, ITicketAppService
         _sourceRepository = sourceRepository;
         _departmentRepository = departmentRepository;
         _userRepository = userRepository;
+        _slaPolicyRepository = slaPolicyRepository;
         _ticketManager = ticketManager;
+        _slaManager = slaManager;
     }
 
     public async Task<PagedResultDto<TicketListDto>> GetListAsync(GetTicketListInput input)
@@ -156,6 +163,11 @@ public class TicketAppService : ApplicationService, ITicketAppService
         var userList = await AsyncExecuter.ToListAsync(userQuery.Where(u => assigneeIds.Contains(u.Id)));
         var assignees = userList.ToDictionary(u => u.Id, u => u.UserName);
 
+        var slaPolicyQuery = await _slaPolicyRepository.GetQueryableAsync();
+        var slaPolicyIds = rawList.Where(t => t.SlaPolicyId.HasValue).Select(t => t.SlaPolicyId!.Value).Distinct().ToList();
+        var slaList = await AsyncExecuter.ToListAsync(slaPolicyQuery.Where(s => slaPolicyIds.Contains(s.Id)));
+        var slaPolicies = slaList.ToDictionary(s => s.Id, s => s.Name);
+
         var commentItems = await AsyncExecuter.ToListAsync(commentQuery.Where(c => ticketIds.Contains(c.TicketId)));
         var commentCounts = commentItems
             .GroupBy(c => c.TicketId)
@@ -195,6 +207,12 @@ public class TicketAppService : ApplicationService, ITicketAppService
                 DueDate = t.DueDate,
                 ResolvedAt = t.ResolvedAt,
                 ClosedAt = t.ClosedAt,
+                SlaPolicyId = t.SlaPolicyId,
+                SlaPolicyName = t.SlaPolicyId.HasValue ? slaPolicies.GetValueOrDefault(t.SlaPolicyId.Value) : null,
+                FirstResponseDueDate = t.FirstResponseDueDate,
+                FirstRespondedAt = t.FirstRespondedAt,
+                IsFirstResponseBreached = t.IsFirstResponseBreached,
+                IsResolutionBreached = t.IsResolutionBreached,
                 Tags = t.Tags,
                 CommentCount = commentCounts.GetValueOrDefault(t.Id, 0)
             };
@@ -213,6 +231,7 @@ public class TicketAppService : ApplicationService, ITicketAppService
         var source = await _sourceRepository.FindAsync(ticket.SourceId);
         var department = ticket.DepartmentId.HasValue ? await _departmentRepository.FindAsync(ticket.DepartmentId.Value) : null;
         var assignee = ticket.AssigneeId.HasValue ? await _userRepository.FindAsync(ticket.AssigneeId.Value) : null;
+        var slaPolicy = ticket.SlaPolicyId.HasValue ? await _slaPolicyRepository.FindAsync(ticket.SlaPolicyId.Value) : null;
 
         var comments = await _commentRepository.GetListAsync(c => c.TicketId == id);
         var activities = await _activityRepository.GetListAsync(a => a.TicketId == id);
@@ -257,6 +276,12 @@ public class TicketAppService : ApplicationService, ITicketAppService
             DueDate = ticket.DueDate,
             ResolvedAt = ticket.ResolvedAt,
             ClosedAt = ticket.ClosedAt,
+            SlaPolicyId = ticket.SlaPolicyId,
+            SlaPolicyName = slaPolicy?.Name,
+            FirstResponseDueDate = ticket.FirstResponseDueDate,
+            FirstRespondedAt = ticket.FirstRespondedAt,
+            IsFirstResponseBreached = ticket.IsFirstResponseBreached,
+            IsResolutionBreached = ticket.IsResolutionBreached,
             Tags = ticket.Tags,
             Comments = comments.OrderBy(c => c.CreationTime).Select(c => new TicketCommentDto
             {
@@ -304,6 +329,7 @@ public class TicketAppService : ApplicationService, ITicketAppService
             input.Tags
         );
 
+        await _slaManager.CalculateSlaDatesAsync(ticket);
         await _ticketRepository.InsertAsync(ticket);
 
         return await GetAsync(ticket.Id);
@@ -372,6 +398,12 @@ public class TicketAppService : ApplicationService, ITicketAppService
         var newStatus = await _statusRepository.GetAsync(input.StatusId);
 
         await _ticketManager.ChangeStatusAsync(ticket, oldStatus, newStatus);
+        
+        if (newStatus.IsFinal || newStatus.StatusGroup == StatusGroup.Closed)
+        {
+            await _slaManager.OnTicketResolvedAsync(ticket);
+        }
+
         await _ticketRepository.UpdateAsync(ticket);
 
         if (!string.IsNullOrWhiteSpace(input.Comment))
@@ -410,6 +442,9 @@ public class TicketAppService : ApplicationService, ITicketAppService
         );
 
         await _activityRepository.InsertAsync(activity);
+
+        await _slaManager.OnCommentAddedAsync(ticket, input.IsInternal);
+        await _ticketRepository.UpdateAsync(ticket);
 
         return new TicketCommentDto
         {

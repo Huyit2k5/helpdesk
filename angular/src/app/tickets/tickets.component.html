@@ -182,8 +182,17 @@
                     </span>
                   </td>
                   <td>
-                    @if (item.dueDate) {
-                      <small class="text-dark">{{ item.dueDate | date:'dd/MM/yyyy' }}</small>
+                    @if (item.dueDate || item.slaPolicyId) {
+                      @let sla = getSlaStatus(item);
+                      <span class="badge {{ sla.cssClass }} px-2 py-1">
+                        @if (sla.icon) { <i class="{{ sla.icon }} me-1"></i> }
+                        {{ sla.text }}
+                      </span>
+                      @if (item.dueDate) {
+                        <small class="text-muted d-block font-monospace" style="font-size: 0.75rem;">
+                          {{ item.dueDate | date:'dd/MM HH:mm' }}
+                        </small>
+                      }
                     } @else {
                       <span class="text-muted small">—</span>
                     }

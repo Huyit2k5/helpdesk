@@ -47,6 +47,13 @@ public class HelpdeskDbContext :
     public DbSet<Helpdesk.Tickets.TicketAttachment> TicketAttachments { get; set; }
     public DbSet<Helpdesk.Tickets.TicketActivity> TicketActivities { get; set; }
 
+    // SLA
+    public DbSet<Helpdesk.Sla.SlaPolicy> SlaPolicies { get; set; }
+    public DbSet<Helpdesk.Sla.SlaPolicyRule> SlaPolicyRules { get; set; }
+    public DbSet<Helpdesk.Sla.BusinessHour> BusinessHours { get; set; }
+    public DbSet<Helpdesk.Sla.Holiday> Holidays { get; set; }
+    public DbSet<Helpdesk.Sla.SlaBreachLog> SlaBreachLogs { get; set; }
+
     #region Entities from the modules
 
     /* Notice: We only implemented IIdentityProDbContext and ISaasDbContext

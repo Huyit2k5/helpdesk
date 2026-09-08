@@ -89,6 +89,12 @@ export interface TicketDetailDto extends FullAuditedEntityDto<string> {
   dueDate?: string | null;
   resolvedAt?: string | null;
   closedAt?: string | null;
+  slaPolicyId?: string | null;
+  slaPolicyName?: string | null;
+  firstResponseDueDate?: string | null;
+  firstRespondedAt?: string | null;
+  isFirstResponseBreached?: boolean;
+  isResolutionBreached?: boolean;
   tags?: string | null;
   comments?: TicketCommentDto[];
   activities?: TicketActivityDto[];
@@ -117,6 +123,12 @@ export interface TicketListDto extends FullAuditedEntityDto<string> {
   dueDate?: string | null;
   resolvedAt?: string | null;
   closedAt?: string | null;
+  slaPolicyId?: string | null;
+  slaPolicyName?: string | null;
+  firstResponseDueDate?: string | null;
+  firstRespondedAt?: string | null;
+  isFirstResponseBreached?: boolean;
+  isResolutionBreached?: boolean;
   tags?: string | null;
   commentCount?: number;
 }

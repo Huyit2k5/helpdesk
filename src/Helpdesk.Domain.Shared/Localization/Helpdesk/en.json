@@ -158,6 +158,49 @@
     "Permission:Tickets.ChangeStatus": "Change Status",
     "Permission:Tickets.AddComment": "Add Comment / Note",
 
+    "Menu:Sla": "SLA & Operations",
+    "Menu:SlaPolicies": "SLA Policies",
+    "Menu:BusinessHours": "Business Hours & Holidays",
+    "Menu:SlaCompliance": "SLA Compliance Report",
+
+    "SlaPolicies": "SLA Policies",
+    "SlaPolicy": "SLA Policy",
+    "SlaPolicy:Name": "Policy Name",
+    "SlaPolicy:Description": "Description",
+    "SlaPolicy:IsDefault": "Default Policy",
+    "SlaPolicy:IsActive": "Active",
+    "SlaPolicy:Rules": "SLA Rules",
+    "SlaPolicy:CreateNew": "Create SLA Policy",
+    "SlaPolicy:Edit": "Edit SLA Policy",
+
+    "SlaRule:Priority": "Priority",
+    "SlaRule:Category": "Category",
+    "SlaRule:ResponseTimeMinutes": "First Response Time (Mins)",
+    "SlaRule:ResolutionTimeMinutes": "Resolution Time (Mins)",
+    "SlaRule:Escalation": "Auto Escalation",
+
+    "BusinessHours": "Business Hours",
+    "BusinessHours:Day": "Day of Week",
+    "BusinessHours:StartTime": "Start Time",
+    "BusinessHours:EndTime": "End Time",
+    "BusinessHours:IsWorkDay": "Work Day",
+
+    "Holidays": "Holidays",
+    "Holiday:Name": "Holiday Name",
+    "Holiday:Date": "Date",
+    "Holiday:IsRecurring": "Annual Recurring",
+
+    "SlaCompliance": "SLA Compliance",
+    "SlaCompliance:Rate": "Compliance Rate",
+    "SlaCompliance:Total": "Total Evaluated Tickets",
+    "SlaCompliance:OnTime": "Within SLA",
+    "SlaCompliance:Breached": "SLA Breached",
+
+    "Permission:Sla": "SLA Management",
+    "Permission:Sla.Policies": "Manage Policies",
+    "Permission:Sla.BusinessHours": "Manage Business Hours",
+    "Permission:Sla.Reports": "View Reports",
+
     "Search": "Search",
     "AreYouSure": "Are you sure?",
     "AreYouSureToDelete": "Are you sure you want to delete {0}?"

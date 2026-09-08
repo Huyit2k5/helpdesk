@@ -18,6 +18,7 @@ import { APP_ROUTES } from './app.routes';
 import { APP_ROUTE_PROVIDER } from './route.provider';
 import { FOOTER_PROVIDER } from './footer/footer.config';
 import { MASTER_DATA_ROUTE_PROVIDER } from './master-data/master-data-route.provider';
+import { SLA_ROUTE_PROVIDER } from './sla/sla-route.provider';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -25,6 +26,7 @@ export const appConfig: ApplicationConfig = {
     APP_ROUTE_PROVIDER,
     FOOTER_PROVIDER,
     MASTER_DATA_ROUTE_PROVIDER,
+    SLA_ROUTE_PROVIDER,
     provideAnimations(),
     provideAbpCore(
       withOptions({

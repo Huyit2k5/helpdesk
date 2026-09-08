@@ -62,4 +62,12 @@ public static class HelpdeskPermissions
         public const string ChangeStatus = Default + ".ChangeStatus";
         public const string AddComment = Default + ".AddComment";
     }
+
+    public static class Sla
+    {
+        public const string Default = GroupName + ".Sla";
+        public const string Policies = Default + ".Policies";
+        public const string BusinessHours = Default + ".BusinessHours";
+        public const string Reports = Default + ".Reports";
+    }
 }

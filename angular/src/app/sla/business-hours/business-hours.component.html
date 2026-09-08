@@ -1,0 +1,232 @@
+<div class="container-fluid py-4">
+  <!-- Page Header -->
+  <div class="row mb-4 align-items-center">
+    <div class="col">
+      <h2 class="mb-1 fw-bold text-dark">
+        <i class="fas fa-calendar-alt me-2 text-primary"></i>
+        Giờ làm việc & Ngày nghỉ lễ
+      </h2>
+      <p class="text-muted mb-0">Thiết lập thời gian làm việc để hệ thống tính toán hạn SLA chính xác, trừ thứ Bảy, Chủ Nhật và ngày nghỉ</p>
+    </div>
+  </div>
+
+  <!-- Navigation Tabs -->
+  <ul class="nav nav-pills mb-4">
+    <li class="nav-item">
+      <button
+        class="nav-link fw-semibold px-4"
+        [class.active]="activeTab === 'hours'"
+        (click)="activeTab = 'hours'"
+      >
+        <i class="fas fa-clock me-2"></i>Khung giờ làm việc
+      </button>
+    </li>
+    <li class="nav-item">
+      <button
+        class="nav-link fw-semibold px-4"
+        [class.active]="activeTab === 'holidays'"
+        (click)="activeTab = 'holidays'"
+      >
+        <i class="fas fa-calendar-day me-2"></i>Lịch ngày nghỉ lễ
+      </button>
+    </li>
+  </ul>
+
+  <!-- Tab 1: Business Hours -->
+  @if (activeTab === 'hours') {
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+        <div>
+          <h6 class="fw-bold mb-0 text-dark">Lịch làm việc trong tuần</h6>
+          <small class="text-muted">Các ngày không làm việc hoặc ngoài giờ hành chính sẽ không bị tính vào thời gian xử lý SLA.</small>
+        </div>
+        <button class="btn btn-primary" (click)="saveBusinessHours()">
+          <i class="fas fa-save me-1"></i>Lưu thiết lập
+        </button>
+      </div>
+      <div class="card-body p-0">
+        <form [formGroup]="hoursForm">
+          <div class="table-responsive">
+            <table class="table align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th style="width: 200px">Thứ trong tuần</th>
+                  <th style="width: 180px" class="text-center">Ngày làm việc</th>
+                  <th style="width: 220px">Giờ bắt đầu</th>
+                  <th style="width: 220px">Giờ kết thúc</th>
+                  <th>Ghi chú</th>
+                </tr>
+              </thead>
+              <tbody formArrayName="items">
+                @for (item of hoursArray.controls; track $index; let i = $index) {
+                  <tr [formGroupName]="i" [class.table-light]="!item.get('isWorkingDay')?.value">
+                    <td>
+                      <span class="fw-bold fs-6" [class.text-muted]="!item.get('isWorkingDay')?.value">
+                        {{ item.get('dayOfWeekName')?.value }}
+                      </span>
+                    </td>
+                    <td class="text-center">
+                      <div class="form-check form-switch d-inline-block">
+                        <input class="form-check-input" type="checkbox" formControlName="isWorkingDay" />
+                      </div>
+                    </td>
+                    <td>
+                      <input
+                        type="time"
+                        class="form-control"
+                        formControlName="startTime"
+                        [disabled]="!item.get('isWorkingDay')?.value"
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="time"
+                        class="form-control"
+                        formControlName="endTime"
+                        [disabled]="!item.get('isWorkingDay')?.value"
+                      />
+                    </td>
+                    <td>
+                      @if (item.get('isWorkingDay')?.value) {
+                        <span class="badge bg-success-subtle text-success border border-success-subtle">
+                          <i class="fas fa-briefcase me-1"></i>Đang tính SLA
+                        </span>
+                      } @else {
+                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">
+                          <i class="fas fa-bed me-1"></i>Nghỉ cuối tuần
+                        </span>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </form>
+      </div>
+      <div class="card-footer bg-white py-3 text-end">
+        <button class="btn btn-primary px-4" (click)="saveBusinessHours()">
+          <i class="fas fa-save me-1"></i>Lưu thiết lập
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Tab 2: Holidays -->
+  @if (activeTab === 'holidays') {
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+        <div>
+          <h6 class="fw-bold mb-0 text-dark">Danh sách ngày nghỉ lễ & nghỉ bù</h6>
+          <small class="text-muted">Các ngày nghỉ lễ theo quy định nhà nước hoặc nội bộ doanh nghiệp.</small>
+        </div>
+        <button class="btn btn-primary" (click)="openCreateHolidayModal()">
+          <i class="fas fa-plus me-1"></i>Thêm ngày nghỉ
+        </button>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th style="width: 250px">Tên ngày nghỉ lễ</th>
+                <th style="width: 180px">Ngày áp dụng</th>
+                <th style="width: 180px" class="text-center">Lặp lại hàng năm</th>
+                <th style="width: 120px" class="text-center">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (h of holidays; track h.id) {
+                <tr>
+                  <td>
+                    <span class="fw-bold text-dark">{{ h.name }}</span>
+                  </td>
+                  <td>
+                    <span class="font-monospace fw-semibold">{{ h.date | date:'dd/MM/yyyy' }}</span>
+                  </td>
+                  <td class="text-center">
+                    @if (h.isRecurring) {
+                      <span class="badge bg-info-subtle text-info border border-info-subtle px-2 py-1">
+                        <i class="fas fa-redo me-1"></i>Lặp hàng năm
+                      </span>
+                    } @else {
+                      <span class="badge bg-light text-muted border px-2 py-1">Một lần</span>
+                    }
+                  </td>
+                  <td class="text-center">
+                    <button class="btn btn-sm btn-outline-primary me-1" (click)="openEditHolidayModal(h)" title="Sửa">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" (click)="deleteHoliday(h)" title="Xóa">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="4" class="text-center py-5 text-muted">
+                    <i class="fas fa-calendar-times fa-3x mb-3 text-secondary d-block"></i>
+                    Chưa có ngày nghỉ lễ nào được cấu hình
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  }
+</div>
+
+<!-- Modal Add/Edit Holiday -->
+@if (isHolidayModalOpen) {
+  <div class="modal show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);" (click)="closeHolidayModal()">
+    <div class="modal-dialog modal-dialog-centered" (click)="$event.stopPropagation()">
+      <div class="modal-content border-0 shadow">
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold">
+            <i class="fas fa-calendar-plus me-2 text-primary"></i>
+            {{ isEditingHoliday ? 'Chỉnh sửa ngày nghỉ lễ' : 'Thêm mới ngày nghỉ lễ' }}
+          </h5>
+          <button type="button" class="btn-close" (click)="closeHolidayModal()"></button>
+        </div>
+        <div class="modal-body p-4">
+          <form [formGroup]="holidayForm">
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Tên ngày nghỉ <span class="text-danger">*</span></label>
+              <input
+                type="text"
+                class="form-control"
+                formControlName="name"
+                placeholder="Ví dụ: Tết Dương Lịch, Quốc Khánh 2/9..."
+                [class.is-invalid]="holidayForm.get('name')?.invalid && holidayForm.get('name')?.touched"
+              />
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Ngày diễn ra <span class="text-danger">*</span></label>
+              <input
+                type="date"
+                class="form-control"
+                formControlName="date"
+                [class.is-invalid]="holidayForm.get('date')?.invalid && holidayForm.get('date')?.touched"
+              />
+            </div>
+            <div class="form-check form-switch mt-3">
+              <input class="form-check-input" type="checkbox" formControlName="isRecurring" id="chkRecurring" />
+              <label class="form-check-label fw-semibold" for="chkRecurring">
+                Lặp lại hàng năm
+              </label>
+              <small class="text-muted d-block">Tự động áp dụng vào cùng ngày và tháng cho tất cả các năm tiếp theo.</small>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" (click)="closeHolidayModal()">Đóng</button>
+          <button type="button" class="btn btn-primary" (click)="saveHoliday()">
+            <i class="fas fa-save me-1"></i>Lưu ngày nghỉ
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

@@ -1,0 +1,206 @@
+<div class="container-fluid py-4">
+  <!-- Page Header -->
+  <div class="row mb-4 align-items-center">
+    <div class="col">
+      <h2 class="mb-1 fw-bold text-dark">
+        <i class="fas fa-chart-line me-2 text-primary"></i>
+        Báo cáo & Giám sát Tuân thủ SLA
+      </h2>
+      <p class="text-muted mb-0">Thống kê tỷ lệ hoàn thành cam kết dịch vụ và lịch sử các trường hợp trễ hạn SLA</p>
+    </div>
+  </div>
+
+  <!-- Filter Card -->
+  <div class="card mb-4 border-0 shadow-sm">
+    <div class="card-body py-3">
+      <div class="row g-3 align-items-end">
+        <div class="col-md-3">
+          <label class="form-label small fw-semibold text-muted mb-1">Từ ngày</label>
+          <input type="date" class="form-control form-control-sm" [(ngModel)]="startDate" />
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small fw-semibold text-muted mb-1">Đến ngày</label>
+          <input type="date" class="form-control form-control-sm" [(ngModel)]="endDate" />
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small fw-semibold text-muted mb-1">Loại vi phạm</label>
+          <select class="form-select form-select-sm" [(ngModel)]="selectedBreachType" (change)="applyFilter()">
+            <option [ngValue]="undefined">-- Tất cả loại vi phạm --</option>
+            <option [ngValue]="SlaBreachType.Response">Phản hồi lần đầu</option>
+            <option [ngValue]="SlaBreachType.Resolution">Giải quyết sự vụ</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <button class="btn btn-primary btn-sm w-100" (click)="applyFilter()">
+            <i class="fas fa-filter me-1"></i>Lọc dữ liệu
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KPI Stat Cards -->
+  <div class="row g-4 mb-4">
+    <!-- Total SLA Tickets -->
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body d-flex align-items-center">
+          <div class="rounded-circle p-3 bg-primary-subtle text-primary me-3">
+            <i class="fas fa-ticket-alt fa-2x"></i>
+          </div>
+          <div>
+            <div class="text-muted small fw-semibold text-uppercase">Tổng Ticket áp dụng SLA</div>
+            <div class="fs-2 fw-bold text-dark">{{ stats.totalTicketsWithSla }}</div>
+            <small class="text-muted">Trong khoảng thời gian đã chọn</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- First Response Compliance -->
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="text-muted small fw-semibold text-uppercase">Tuân thủ Phản hồi đầu tiên</span>
+            <span class="badge" [ngClass]="getFirstResponseRate() >= 90 ? 'bg-success' : (getFirstResponseRate() >= 75 ? 'bg-warning text-dark' : 'bg-danger')">
+              {{ getFirstResponseRate() }}%
+            </span>
+          </div>
+          <div class="progress mb-2" style="height: 8px;">
+            <div
+              class="progress-bar"
+              [ngClass]="getFirstResponseRate() >= 90 ? 'bg-success' : (getFirstResponseRate() >= 75 ? 'bg-warning' : 'bg-danger')"
+              role="progressbar"
+              [style.width.%]="getFirstResponseRate()"
+            ></div>
+          </div>
+          <div class="d-flex justify-content-between text-muted small">
+            <span><i class="fas fa-check text-success me-1"></i>Đúng hạn: <strong>{{ stats.firstResponseMetCount ?? 0 }}</strong></span>
+            <span><i class="fas fa-times text-danger me-1"></i>Trễ hạn: <strong>{{ stats.firstResponseBreachedCount ?? 0 }}</strong></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Resolution Compliance -->
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="text-muted small fw-semibold text-uppercase">Tuân thủ Giải quyết sự vụ</span>
+            <span class="badge" [ngClass]="getResolutionRate() >= 90 ? 'bg-success' : (getResolutionRate() >= 75 ? 'bg-warning text-dark' : 'bg-danger')">
+              {{ getResolutionRate() }}%
+            </span>
+          </div>
+          <div class="progress mb-2" style="height: 8px;">
+            <div
+              class="progress-bar"
+              [ngClass]="getResolutionRate() >= 90 ? 'bg-success' : (getResolutionRate() >= 75 ? 'bg-warning' : 'bg-danger')"
+              role="progressbar"
+              [style.width.%]="getResolutionRate()"
+            ></div>
+          </div>
+          <div class="d-flex justify-content-between text-muted small">
+            <span><i class="fas fa-check text-success me-1"></i>Đúng hạn: <strong>{{ stats.resolutionMetCount ?? 0 }}</strong></span>
+            <span><i class="fas fa-times text-danger me-1"></i>Trễ hạn: <strong>{{ stats.resolutionBreachedCount ?? 0 }}</strong></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Breach Logs Table -->
+  <div class="card border-0 shadow-sm">
+    <div class="card-header bg-white py-3">
+      <h6 class="fw-bold mb-0 text-dark">
+        <i class="fas fa-exclamation-triangle text-danger me-2"></i>
+        Nhật ký vi phạm SLA (Breach Logs)
+      </h6>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th style="width: 150px">Mã sự vụ</th>
+              <th>Tiêu đề Ticket</th>
+              <th style="width: 160px" class="text-center">Loại vi phạm</th>
+              <th style="width: 170px">Hạn dự kiến (SLA)</th>
+              <th style="width: 170px">Thời điểm vi phạm</th>
+              <th style="width: 140px" class="text-center">Thời gian trễ</th>
+              <th>Lý do / Mô tả</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (log of breachLogs; track log.id) {
+              <tr>
+                <td>
+                  <a
+                    href="javascript:void(0)"
+                    class="badge bg-light text-primary border text-decoration-none font-monospace px-2 py-1"
+                    (click)="viewTicket(log.ticketId)"
+                  >
+                    #{{ log.ticketNumber }}
+                  </a>
+                </td>
+                <td>
+                  <div class="fw-semibold text-dark text-truncate" style="max-width: 280px;">
+                    {{ log.ticketTitle }}
+                  </div>
+                </td>
+                <td class="text-center">
+                  @if (log.breachType === SlaBreachType.Response) {
+                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2 py-1">
+                      <i class="fas fa-comment-slash me-1"></i>Phản hồi đầu
+                    </span>
+                  } @else {
+                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1">
+                      <i class="fas fa-times-circle me-1"></i>Giải quyết
+                    </span>
+                  }
+                </td>
+                <td>
+                  <small class="text-dark">{{ log.expectedDate | date:'dd/MM/yyyy HH:mm' }}</small>
+                </td>
+                <td>
+                  <small class="text-danger fw-semibold">{{ (log.actualDate || log.creationTime) | date:'dd/MM/yyyy HH:mm' }}</small>
+                </td>
+                <td class="text-center">
+                  <span class="badge bg-danger text-white">
+                    +{{ formatMinutes(log.breachedMinutes) }}
+                  </span>
+                </td>
+                <td>
+                  <small class="text-muted">{{ log.reason || '—' }}</small>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="7" class="text-center py-5 text-muted">
+                  <i class="fas fa-shield-alt fa-3x mb-3 text-success d-block"></i>
+                  Tuyệt vời! Không có sự vụ nào vi phạm SLA trong khoảng thời gian này
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+    @if (totalBreachCount > 0) {
+      <div class="card-footer bg-white border-0 py-3">
+        <div class="d-flex justify-content-between align-items-center">
+          <span class="text-muted small">Tổng số: {{ totalBreachCount }} bản ghi vi phạm</span>
+          <ngb-pagination
+            [collectionSize]="totalBreachCount"
+            [(page)]="list.page"
+            [pageSize]="list.maxResultCount"
+            (pageChange)="list.get()"
+            [maxSize]="5"
+            [boundaryLinks]="true"
+          ></ngb-pagination>
+        </div>
+      </div>
+    }
+  </div>
+</div>

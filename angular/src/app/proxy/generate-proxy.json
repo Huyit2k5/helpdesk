@@ -3464,6 +3464,1352 @@
             }
           }
         },
+        "Helpdesk.Sla.BusinessHourAppService": {
+          "controllerName": "BusinessHour",
+          "controllerGroupName": "BusinessHour",
+          "isRemoteService": true,
+          "isIntegrationService": false,
+          "apiVersion": null,
+          "type": "Helpdesk.Sla.BusinessHourAppService",
+          "summary": null,
+          "remarks": null,
+          "description": null,
+          "displayName": null,
+          "interfaces": [
+            {
+              "type": "Helpdesk.Sla.IBusinessHourAppService",
+              "name": "IBusinessHourAppService",
+              "methods": [
+                {
+                  "name": "GetBusinessHoursAsync",
+                  "parametersOnMethod": [],
+                  "returnValue": {
+                    "type": "System.Collections.Generic.List<Helpdesk.Sla.Dtos.BusinessHourDto>",
+                    "typeSimple": "[Helpdesk.Sla.Dtos.BusinessHourDto]",
+                    "summary": null,
+                    "contentTypes": null,
+                    "isRemoteStream": false
+                  }
+                },
+                {
+                  "name": "UpdateBusinessHoursAsync",
+                  "parametersOnMethod": [
+                    {
+                      "name": "input",
+                      "typeAsString": "System.Collections.Generic.List`1[[Helpdesk.Sla.Dtos.UpdateBusinessHourDto, Helpdesk.Application.Contracts, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]], System.Private.CoreLib",
+                      "type": "System.Collections.Generic.List<Helpdesk.Sla.Dtos.UpdateBusinessHourDto>",
+                      "typeSimple": "[Helpdesk.Sla.Dtos.UpdateBusinessHourDto]",
+                      "isOptional": false,
+                      "defaultValue": null,
+                      "summary": null,
+                      "description": null,
+                      "displayName": null
+                    }
+                  ],
+                  "returnValue": {
+                    "type": "System.Collections.Generic.List<Helpdesk.Sla.Dtos.BusinessHourDto>",
+                    "typeSimple": "[Helpdesk.Sla.Dtos.BusinessHourDto]",
+                    "summary": null,
+                    "contentTypes": null,
+                    "isRemoteStream": false
+                  }
+                },
+                {
+                  "name": "GetHolidaysAsync",
+                  "parametersOnMethod": [],
+                  "returnValue": {
+                    "type": "System.Collections.Generic.List<Helpdesk.Sla.Dtos.HolidayDto>",
+                    "typeSimple": "[Helpdesk.Sla.Dtos.HolidayDto]",
+                    "summary": null,
+                    "contentTypes": null,
+                    "isRemoteStream": false
+                  }
+                },
+                {
+                  "name": "CreateHolidayAsync",
+                  "parametersOnMethod": [
+                    {
+                      "name": "input",
+                      "typeAsString": "Helpdesk.Sla.Dtos.CreateUpdateHolidayDto, Helpdesk.Application.Contracts",
+                      "type": "Helpdesk.Sla.Dtos.CreateUpdateHolidayDto",
+                      "typeSimple": "Helpdesk.Sla.Dtos.CreateUpdateHolidayDto",
+                      "isOptional": false,
+                      "defaultValue": null,
+                      "summary": null,
+                      "description": null,
+                      "displayName": null
+                    }
+                  ],
+                  "returnValue": {
+                    "type": "Helpdesk.Sla.Dtos.HolidayDto",
+                    "typeSimple": "Helpdesk.Sla.Dtos.HolidayDto",
+                    "summary": null,
+                    "contentTypes": null,
+                    "isRemoteStream": false
+                  }
+                },
+                {
+                  "name": "UpdateHolidayAsync",
+                  "parametersOnMethod": [
+                    {
+                      "name": "id",
+                      "typeAsString": "System.Guid, System.Private.CoreLib",
+                      "type": "System.Guid",
+                      "typeSimple": "string",
+                      "isOptional": false,
+                      "defaultValue": null,
+                      "summary": null,
+                      "description": null,
+                      "displayName": null
+                    },
+                    {
+                      "name": "input",
+                      "typeAsString": "Helpdesk.Sla.Dtos.CreateUpdateHolidayDto, Helpdesk.Application.Contracts",
+                      "type": "Helpdesk.Sla.Dtos.CreateUpdateHolidayDto",
+                      "typeSimple": "Helpdesk.Sla.Dtos.CreateUpdateHolidayDto",
+                      "isOptional": false,
+                      "defaultValue": null,
+                      "summary": null,
+                      "description": null,
+                      "displayName": null
+                    }
+                  ],
+                  "returnValue": {
+                    "type": "Helpdesk.Sla.Dtos.HolidayDto",
+                    "typeSimple": "Helpdesk.Sla.Dtos.HolidayDto",
+                    "summary": null,
+                    "contentTypes": null,
+                    "isRemoteStream": false
+                  }
+                },
+                {
+                  "name": "DeleteHolidayAsync",
+                  "parametersOnMethod": [
+                    {
+                      "name": "id",
+                      "typeAsString": "System.Guid, System.Private.CoreLib",
+                      "type": "System.Guid",
+                      "typeSimple": "string",
+                      "isOptional": false,
+                      "defaultValue": null,
+                      "summary": null,
+                      "description": null,
+                      "displayName": null
+                    }
+                  ],
+                  "returnValue": {
+                    "type": "System.Void",
+                    "typeSimple": "System.Void",
+                    "summary": null,
+                    "contentTypes": null,
+                    "isRemoteStream": false
+                  }
+                }
+              ]
+            }
+          ],
+          "actions": {
+            "GetBusinessHoursAsync": {
+              "uniqueName": "GetBusinessHoursAsync",
+              "name": "GetBusinessHoursAsync",
+              "httpMethod": "GET",
+              "url": "api/app/business-hour/business-hours",
+              "supportedVersions": [],
+              "parametersOnMethod": [],
+              "parameters": [],
+              "returnValue": {
+                "type": "System.Collections.Generic.List<Helpdesk.Sla.Dtos.BusinessHourDto>",
+                "typeSimple": "[Helpdesk.Sla.Dtos.BusinessHourDto]",
+                "summary": null,
+                "contentTypes": [
+                  "text/plain",
+                  "application/json",
+                  "text/json"
+                ],
+                "isRemoteStream": false
+              },
+              "allowAnonymous": false,
+              "authorizeDatas": [
+                {
+                  "policy": "Helpdesk.Sla.BusinessHours",
+                  "roles": null
+                }
+              ],
+              "implementFrom": "Helpdesk.Sla.IBusinessHourAppService",
+              "summary": null,
+              "remarks": null,
+              "description": null,
+              "displayName": null
+            },
+            "UpdateBusinessHoursAsyncByInput": {
+              "uniqueName": "UpdateBusinessHoursAsyncByInput",
+              "name": "UpdateBusinessHoursAsync",
+              "httpMethod": "PUT",
+              "url": "api/app/business-hour/business-hours",
+              "supportedVersions": [],
+              "parametersOnMethod": [
+                {
+                  "name": "input",
+                  "typeAsString": "System.Collections.Generic.List`1[[Helpdesk.Sla.Dtos.UpdateBusinessHourDto, Helpdesk.Application.Contracts, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]], System.Private.CoreLib",
+                  "type": "System.Collections.Generic.List<Helpdesk.Sla.Dtos.UpdateBusinessHourDto>",
+                  "typeSimple": "[Helpdesk.Sla.Dtos.UpdateBusinessHourDto]",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "summary": null,
+                  "description": null,
+                  "displayName": null
+                }
+              ],
+              "parameters": [
+                {
+                  "nameOnMethod": "input",
+                  "name": "input",
+                  "jsonName": null,
+                  "type": "System.Collections.Generic.List<Helpdesk.Sla.Dtos.UpdateBusinessHourDto>",
+                  "typeSimple": "[Helpdesk.Sla.Dtos.UpdateBusinessHourDto]",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "constraintTypes": null,
+                  "bindingSourceId": "Body",
+                  "descriptorName": "",
+                  "summary": null,
+                  "description": null,
+                  "displayName": null
+                }
+              ],
+              "returnValue": {
+                "type": "System.Collections.Generic.List<Helpdesk.Sla.Dtos.BusinessHourDto>",
+                "typeSimple": "[Helpdesk.Sla.Dtos.BusinessHourDto]",
+                "summary": null,
+                "contentTypes": [
+                  "text/plain",
+                  "application/json",
+                  "text/json"
+                ],
+                "isRemoteStream": false
+              },
+              "allowAnonymous": false,
+              "authorizeDatas": [
+                {
+                  "policy": "Helpdesk.Sla.BusinessHours",
+                  "roles": null
+                }
+              ],
+              "implementFrom": "Helpdesk.Sla.IBusinessHourAppService",
+              "summary": null,
+              "remarks": null,
+              "description": null,
+              "displayName": null
+            },
+            "GetHolidaysAsync": {
+              "uniqueName": "GetHolidaysAsync",
+              "name": "GetHolidaysAsync",
+              "httpMethod": "GET",
+              "url": "api/app/business-hour/holidays",
+              "supportedVersions": [],
+              "parametersOnMethod": [],
+              "parameters": [],
+              "returnValue": {
+                "type": "System.Collections.Generic.List<Helpdesk.Sla.Dtos.HolidayDto>",
+                "typeSimple": "[Helpdesk.Sla.Dtos.HolidayDto]",
+                "summary": null,
+                "contentTypes": [
+                  "text/plain",
+                  "application/json",
+                  "text/json"
+                ],
+                "isRemoteStream": false
+              },
+              "allowAnonymous": false,
+              "authorizeDatas": [
+                {
+                  "policy": "Helpdesk.Sla.BusinessHours",
+                  "roles": null
+                }
+              ],
+              "implementFrom": "Helpdesk.Sla.IBusinessHourAppService",
+              "summary": null,
+              "remarks": null,
+              "description": null,
+              "displayName": null
+            },
+            "CreateHolidayAsyncByInput": {
+              "uniqueName": "CreateHolidayAsyncByInput",
+              "name": "CreateHolidayAsync",
+              "httpMethod": "POST",
+              "url": "api/app/business-hour/holiday",
+              "supportedVersions": [],
+              "parametersOnMethod": [
+                {
+                  "name": "input",
+                  "typeAsString": "Helpdesk.Sla.Dtos.CreateUpdateHolidayDto, Helpdesk.Application.Contracts",
+                  "type": "Helpdesk.Sla.Dtos.CreateUpdateHolidayDto",
+                  "typeSimple": "Helpdesk.Sla.Dtos.CreateUpdateHolidayDto",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "summary": null,
+                  "description": null,
+                  "displayName": null
+                }
+              ],
+              "parameters": [
+                {
+                  "nameOnMethod": "input",
+                  "name": "input",
+                  "jsonName": null,
+                  "type": "Helpdesk.Sla.Dtos.CreateUpdateHolidayDto",
+                  "typeSimple": "Helpdesk.Sla.Dtos.CreateUpdateHolidayDto",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "constraintTypes": null,
+                  "bindingSourceId": "Body",
+                  "descriptorName": "",
+                  "summary": null,
+                  "description": null,
+                  "displayName": null
+                }
+              ],
+              "returnValue": {
+                "type": "Helpdesk.Sla.Dtos.HolidayDto",
+                "typeSimple": "Helpdesk.Sla.Dtos.HolidayDto",
+                "summary": null,
+                "contentTypes": [
+                  "text/plain",
+                  "application/json",
+                  "text/json"
+                ],
+                "isRemoteStream": false
+              },
+              "allowAnonymous": false,
+              "authorizeDatas": [
+                {
+                  "policy": "Helpdesk.Sla.BusinessHours",
+                  "roles": null
+                }
+              ],
+              "implementFrom": "Helpdesk.Sla.IBusinessHourAppService",
+              "summary": null,
+              "remarks": null,
+              "description": null,
+              "displayName": null
+            },
+            "UpdateHolidayAsyncByIdAndInput": {
+              "uniqueName": "UpdateHolidayAsyncByIdAndInput",
+              "name": "UpdateHolidayAsync",
+              "httpMethod": "PUT",
+              "url": "api/app/business-hour/{id}/holiday",
+              "supportedVersions": [],
+              "parametersOnMethod": [
+                {
+                  "name": "id",
+                  "typeAsString": "System.Guid, System.Private.CoreLib",
+                  "type": "System.Guid",
+                  "typeSimple": "string",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "summary": null,
+                  "description": null,
+                  "displayName": null
+                },
+                {
+                  "name": "input",
+                  "typeAsString": "Helpdesk.Sla.Dtos.CreateUpdateHolidayDto, Helpdesk.Application.Contracts",
+                  "type": "Helpdesk.Sla.Dtos.CreateUpdateHolidayDto",
+                  "typeSimple": "Helpdesk.Sla.Dtos.CreateUpdateHolidayDto",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "summary": null,
+                  "description": null,
+                  "displayName": null
+                }
+              ],
+              "parameters": [
+                {
+                  "nameOnMethod": "id",
+                  "name": "id",
+                  "jsonName": null,
+                  "type": "System.Guid",
+                  "typeSimple": "string",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "constraintTypes": [],
+                  "bindingSourceId": "Path",
+                  "descriptorName": "",
+                  "summary": null,
+                  "description": null,
+                  "displayName": null
+                },
+                {
+                  "nameOnMethod": "input",
+                  "name": "input",
+                  "jsonName": null,
+                  "type": "Helpdesk.Sla.Dtos.CreateUpdateHolidayDto",
+                  "typeSimple": "Helpdesk.Sla.Dtos.CreateUpdateHolidayDto",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "constraintTypes": null,
+                  "bindingSourceId": "Body",
+                  "descriptorName": "",
+                  "summary": null,
+                  "description": null,
+                  "displayName": null
+                }
+              ],
+              "returnValue": {
+                "type": "Helpdesk.Sla.Dtos.HolidayDto",
+                "typeSimple": "Helpdesk.Sla.Dtos.HolidayDto",
+                "summary": null,
+                "contentTypes": [
+                  "text/plain",
+                  "application/json",
+                  "text/json"
+                ],
+                "isRemoteStream": false
+              },
+              "allowAnonymous": false,
+              "authorizeDatas": [
+                {
+                  "policy": "Helpdesk.Sla.BusinessHours",
+                  "roles": null
+                }
+              ],
+              "implementFrom": "Helpdesk.Sla.IBusinessHourAppService",
+              "summary": null,
+              "remarks": null,
+              "description": null,
+              "displayName": null
+            },
+            "DeleteHolidayAsyncById": {
+              "uniqueName": "DeleteHolidayAsyncById",
+              "name": "DeleteHolidayAsync",
+              "httpMethod": "DELETE",
+              "url": "api/app/business-hour/{id}/holiday",
+              "supportedVersions": [],
+              "parametersOnMethod": [
+                {
+                  "name": "id",
+                  "typeAsString": "System.Guid, System.Private.CoreLib",
+                  "type": "System.Guid",
+                  "typeSimple": "string",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "summary": null,
+                  "description": null,
+                  "displayName": null
+                }
+              ],
+              "parameters": [
+                {
+                  "nameOnMethod": "id",
+                  "name": "id",
+                  "jsonName": null,
+                  "type": "System.Guid",
+                  "typeSimple": "string",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "constraintTypes": [],
+                  "bindingSourceId": "Path",
+                  "descriptorName": "",
+                  "summary": null,
+                  "description": null,
+                  "displayName": null
+                }
+              ],
+              "returnValue": {
+                "type": "System.Void",
+                "typeSimple": "System.Void",
+                "summary": null,
+                "contentTypes": null,
+                "isRemoteStream": false
+              },
+              "allowAnonymous": false,
+              "authorizeDatas": [
+                {
+                  "policy": "Helpdesk.Sla.BusinessHours",
+                  "roles": null
+                }
+              ],
+              "implementFrom": "Helpdesk.Sla.IBusinessHourAppService",
+              "summary": null,
+              "remarks": null,
+              "description": null,
+              "displayName": null
+            }
+          }
+        },
+        "Helpdesk.Sla.SlaPolicyAppService": {
+          "controllerName": "SlaPolicy",
+          "controllerGroupName": "SlaPolicy",
+          "isRemoteService": true,
+          "isIntegrationService": false,
+          "apiVersion": null,
+          "type": "Helpdesk.Sla.SlaPolicyAppService",
+          "summary": null,
+          "remarks": null,
+          "description": null,
+          "displayName": null,
+          "interfaces": [
+            {
+              "type": "Helpdesk.Sla.ISlaPolicyAppService",
+              "name": "ISlaPolicyAppService",
+              "methods": [
+                {
+                  "name": "GetListAsync",
+                  "parametersOnMethod": [
+                    {
+                      "name": "input",
+                      "typeAsString": "Helpdesk.Sla.Dtos.GetSlaPolicyListInput, Helpdesk.Application.Contracts",
+                      "type": "Helpdesk.Sla.Dtos.GetSlaPolicyListInput",
+                      "typeSimple": "Helpdesk.Sla.Dtos.GetSlaPolicyListInput",
+                      "isOptional": false,
+                      "defaultValue": null,
+                      "summary": null,
+                      "description": null,
+                      "displayName": null
+                    }
+                  ],
+                  "returnValue": {
+                    "type": "Volo.Abp.Application.Dtos.PagedResultDto<Helpdesk.Sla.Dtos.SlaPolicyDto>",
+                    "typeSimple": "Volo.Abp.Application.Dtos.PagedResultDto<Helpdesk.Sla.Dtos.SlaPolicyDto>",
+                    "summary": null,
+                    "contentTypes": null,
+                    "isRemoteStream": false
+                  }
+                },
+                {
+                  "name": "GetAsync",
+                  "parametersOnMethod": [
+                    {
+                      "name": "id",
+                      "typeAsString": "System.Guid, System.Private.CoreLib",
+                      "type": "System.Guid",
+                      "typeSimple": "string",
+                      "isOptional": false,
+                      "defaultValue": null,
+                      "summary": null,
+                      "description": null,
+                      "displayName": null
+                    }
+                  ],
+                  "returnValue": {
+                    "type": "Helpdesk.Sla.Dtos.SlaPolicyDto",
+                    "typeSimple": "Helpdesk.Sla.Dtos.SlaPolicyDto",
+                    "summary": null,
+                    "contentTypes": null,
+                    "isRemoteStream": false
+                  }
+                },
+                {
+                  "name": "CreateAsync",
+                  "parametersOnMethod": [
+                    {
+                      "name": "input",
+                      "typeAsString": "Helpdesk.Sla.Dtos.CreateUpdateSlaPolicyDto, Helpdesk.Application.Contracts",
+                      "type": "Helpdesk.Sla.Dtos.CreateUpdateSlaPolicyDto",
+                      "typeSimple": "Helpdesk.Sla.Dtos.CreateUpdateSlaPolicyDto",
+                      "isOptional": false,
+                      "defaultValue": null,
+                      "summary": null,
+                      "description": null,
+                      "displayName": null
+                    }
+                  ],
+                  "returnValue": {
+                    "type": "Helpdesk.Sla.Dtos.SlaPolicyDto",
+                    "typeSimple": "Helpdesk.Sla.Dtos.SlaPolicyDto",
+                    "summary": null,
+                    "contentTypes": null,
+                    "isRemoteStream": false
+                  }
+                },
+                {
+                  "name": "UpdateAsync",
+                  "parametersOnMethod": [
+                    {
+                      "name": "id",
+                      "typeAsString": "System.Guid, System.Private.CoreLib",
+                      "type": "System.Guid",
+                      "typeSimple": "string",
+                      "isOptional": false,
+                      "defaultValue": null,
+                      "summary": null,
+                      "description": null,
+                      "displayName": null
+                    },
+                    {
+                      "name": "input",
+                      "typeAsString": "Helpdesk.Sla.Dtos.CreateUpdateSlaPolicyDto, Helpdesk.Application.Contracts",
+                      "type": "Helpdesk.Sla.Dtos.CreateUpdateSlaPolicyDto",
+                      "typeSimple": "Helpdesk.Sla.Dtos.CreateUpdateSlaPolicyDto",
+                      "isOptional": false,
+                      "defaultValue": null,
+                      "summary": null,
+                      "description": null,
+                      "displayName": null
+                    }
+                  ],
+                  "returnValue": {
+                    "type": "Helpdesk.Sla.Dtos.SlaPolicyDto",
+                    "typeSimple": "Helpdesk.Sla.Dtos.SlaPolicyDto",
+                    "summary": null,
+                    "contentTypes": null,
+                    "isRemoteStream": false
+                  }
+                },
+                {
+                  "name": "DeleteAsync",
+                  "parametersOnMethod": [
+                    {
+                      "name": "id",
+                      "typeAsString": "System.Guid, System.Private.CoreLib",
+                      "type": "System.Guid",
+                      "typeSimple": "string",
+                      "isOptional": false,
+                      "defaultValue": null,
+                      "summary": null,
+                      "description": null,
+                      "displayName": null
+                    }
+                  ],
+                  "returnValue": {
+                    "type": "System.Void",
+                    "typeSimple": "System.Void",
+                    "summary": null,
+                    "contentTypes": null,
+                    "isRemoteStream": false
+                  }
+                },
+                {
+                  "name": "GetActivePolicyListAsync",
+                  "parametersOnMethod": [],
+                  "returnValue": {
+                    "type": "System.Collections.Generic.List<Helpdesk.Sla.Dtos.SlaPolicyDto>",
+                    "typeSimple": "[Helpdesk.Sla.Dtos.SlaPolicyDto]",
+                    "summary": null,
+                    "contentTypes": null,
+                    "isRemoteStream": false
+                  }
+                }
+              ]
+            }
+          ],
+          "actions": {
+            "GetListAsyncByInput": {
+              "uniqueName": "GetListAsyncByInput",
+              "name": "GetListAsync",
+              "httpMethod": "GET",
+              "url": "api/app/sla-policy",
+              "supportedVersions": [],
+              "parametersOnMethod": [
+                {
+                  "name": "input",
+                  "typeAsString": "Helpdesk.Sla.Dtos.GetSlaPolicyListInput, Helpdesk.Application.Contracts",
+                  "type": "Helpdesk.Sla.Dtos.GetSlaPolicyListInput",
+                  "typeSimple": "Helpdesk.Sla.Dtos.GetSlaPolicyListInput",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "summary": null,
+                  "description": null,
+                  "displayName": null
+                }
+              ],
+              "parameters": [
+                {
+                  "nameOnMethod": "input",
+                  "name": "Filter",
+                  "jsonName": null,
+                  "type": "System.String",
+                  "typeSimple": "string",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "constraintTypes": null,
+                  "bindingSourceId": "ModelBinding",
+                  "descriptorName": "input",
+                  "summary": null,
+                  "description": null,
+                  "displayName": null
+                },
+                {
+                  "nameOnMethod": "input",
+                  "name": "IsActive",
+                  "jsonName": null,
+                  "type": "System.Boolean?",
+                  "typeSimple": "boolean?",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "constraintTypes": null,
+                  "bindingSourceId": "ModelBinding",
+                  "descriptorName": "input",
+                  "summary": null,
+                  "description": null,
+                  "displayName": null
+                },
+                {
+                  "nameOnMethod": "input",
+                  "name": "Sorting",
+                  "jsonName": null,
+                  "type": "System.String",
+                  "typeSimple": "string",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "constraintTypes": null,
+                  "bindingSourceId": "ModelBinding",
+                  "descriptorName": "input",
+                  "summary": null,
+                  "description": null,
+                  "displayName": null
+                },
+                {
+                  "nameOnMethod": "input",
+                  "name": "SkipCount",
+                  "jsonName": null,
+                  "type": "System.Int32",
+                  "typeSimple": "number",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "constraintTypes": null,
+                  "bindingSourceId": "ModelBinding",
+                  "descriptorName": "input",
+                  "summary": null,
+                  "description": null,
+                  "displayName": null
+                },
+                {
+                  "nameOnMethod": "input",
+                  "name": "MaxResultCount",
+                  "jsonName": null,
+                  "type": "System.Int32",
+                  "typeSimple": "number",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "constraintTypes": null,
+                  "bindingSourceId": "ModelBinding",
+                  "descriptorName": "input",
+                  "summary": null,
+                  "description": null,
+                  "displayName": null
+                }
+              ],
+              "returnValue": {
+                "type": "Volo.Abp.Application.Dtos.PagedResultDto<Helpdesk.Sla.Dtos.SlaPolicyDto>",
+                "typeSimple": "Volo.Abp.Application.Dtos.PagedResultDto<Helpdesk.Sla.Dtos.SlaPolicyDto>",
+                "summary": null,
+                "contentTypes": [
+                  "text/plain",
+                  "application/json",
+                  "text/json"
+                ],
+                "isRemoteStream": false
+              },
+              "allowAnonymous": false,
+              "authorizeDatas": [
+                {
+                  "policy": "Helpdesk.Sla.Policies",
+                  "roles": null
+                }
+              ],
+              "implementFrom": "Helpdesk.Sla.ISlaPolicyAppService",
+              "summary": null,
+              "remarks": null,
+              "description": null,
+              "displayName": null
+            },
+            "GetAsyncById": {
+              "uniqueName": "GetAsyncById",
+              "name": "GetAsync",
+              "httpMethod": "GET",
+              "url": "api/app/sla-policy/{id}",
+              "supportedVersions": [],
+              "parametersOnMethod": [
+                {
+                  "name": "id",
+                  "typeAsString": "System.Guid, System.Private.CoreLib",
+                  "type": "System.Guid",
+                  "typeSimple": "string",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "summary": null,
+                  "description": null,
+                  "displayName": null
+                }
+              ],
+              "parameters": [
+                {
+                  "nameOnMethod": "id",
+                  "name": "id",
+                  "jsonName": null,
+                  "type": "System.Guid",
+                  "typeSimple": "string",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "constraintTypes": [],
+                  "bindingSourceId": "Path",
+                  "descriptorName": "",
+                  "summary": null,
+                  "description": null,
+                  "displayName": null
+                }
+              ],
+              "returnValue": {
+                "type": "Helpdesk.Sla.Dtos.SlaPolicyDto",
+                "typeSimple": "Helpdesk.Sla.Dtos.SlaPolicyDto",
+                "summary": null,
+                "contentTypes": [
+                  "text/plain",
+                  "application/json",
+                  "text/json"
+                ],
+                "isRemoteStream": false
+              },
+              "allowAnonymous": false,
+              "authorizeDatas": [
+                {
+                  "policy": "Helpdesk.Sla.Policies",
+                  "roles": null
+                }
+              ],
+              "implementFrom": "Helpdesk.Sla.ISlaPolicyAppService",
+              "summary": null,
+              "remarks": null,
+              "description": null,
+              "displayName": null
+            },
+            "CreateAsyncByInput": {
+              "uniqueName": "CreateAsyncByInput",
+              "name": "CreateAsync",
+              "httpMethod": "POST",
+              "url": "api/app/sla-policy",
+              "supportedVersions": [],
+              "parametersOnMethod": [
+                {
+                  "name": "input",
+                  "typeAsString": "Helpdesk.Sla.Dtos.CreateUpdateSlaPolicyDto, Helpdesk.Application.Contracts",
+                  "type": "Helpdesk.Sla.Dtos.CreateUpdateSlaPolicyDto",
+                  "typeSimple": "Helpdesk.Sla.Dtos.CreateUpdateSlaPolicyDto",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "summary": null,
+                  "description": null,
+                  "displayName": null
+                }
+              ],
+              "parameters": [
+                {
+                  "nameOnMethod": "input",
+                  "name": "input",
+                  "jsonName": null,
+                  "type": "Helpdesk.Sla.Dtos.CreateUpdateSlaPolicyDto",
+                  "typeSimple": "Helpdesk.Sla.Dtos.CreateUpdateSlaPolicyDto",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "constraintTypes": null,
+                  "bindingSourceId": "Body",
+                  "descriptorName": "",
+                  "summary": null,
+                  "description": null,
+                  "displayName": null
+                }
+              ],
+              "returnValue": {
+                "type": "Helpdesk.Sla.Dtos.SlaPolicyDto",
+                "typeSimple": "Helpdesk.Sla.Dtos.SlaPolicyDto",
+                "summary": null,
+                "contentTypes": [
+                  "text/plain",
+                  "application/json",
+                  "text/json"
+                ],
+                "isRemoteStream": false
+              },
+              "allowAnonymous": false,
+              "authorizeDatas": [
+                {
+                  "policy": "Helpdesk.Sla.Policies",
+                  "roles": null
+                }
+              ],
+              "implementFrom": "Helpdesk.Sla.ISlaPolicyAppService",
+              "summary": null,
+              "remarks": null,
+              "description": null,
+              "displayName": null
+            },
+            "UpdateAsyncByIdAndInput": {
+              "uniqueName": "UpdateAsyncByIdAndInput",
+              "name": "UpdateAsync",
+              "httpMethod": "PUT",
+              "url": "api/app/sla-policy/{id}",
+              "supportedVersions": [],
+              "parametersOnMethod": [
+                {
+                  "name": "id",
+                  "typeAsString": "System.Guid, System.Private.CoreLib",
+                  "type": "System.Guid",
+                  "typeSimple": "string",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "summary": null,
+                  "description": null,
+                  "displayName": null
+                },
+                {
+                  "name": "input",
+                  "typeAsString": "Helpdesk.Sla.Dtos.CreateUpdateSlaPolicyDto, Helpdesk.Application.Contracts",
+                  "type": "Helpdesk.Sla.Dtos.CreateUpdateSlaPolicyDto",
+                  "typeSimple": "Helpdesk.Sla.Dtos.CreateUpdateSlaPolicyDto",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "summary": null,
+                  "description": null,
+                  "displayName": null
+                }
+              ],
+              "parameters": [
+                {
+                  "nameOnMethod": "id",
+                  "name": "id",
+                  "jsonName": null,
+                  "type": "System.Guid",
+                  "typeSimple": "string",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "constraintTypes": [],
+                  "bindingSourceId": "Path",
+                  "descriptorName": "",
+                  "summary": null,
+                  "description": null,
+                  "displayName": null
+                },
+                {
+                  "nameOnMethod": "input",
+                  "name": "input",
+                  "jsonName": null,
+                  "type": "Helpdesk.Sla.Dtos.CreateUpdateSlaPolicyDto",
+                  "typeSimple": "Helpdesk.Sla.Dtos.CreateUpdateSlaPolicyDto",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "constraintTypes": null,
+                  "bindingSourceId": "Body",
+                  "descriptorName": "",
+                  "summary": null,
+                  "description": null,
+                  "displayName": null
+                }
+              ],
+              "returnValue": {
+                "type": "Helpdesk.Sla.Dtos.SlaPolicyDto",
+                "typeSimple": "Helpdesk.Sla.Dtos.SlaPolicyDto",
+                "summary": null,
+                "contentTypes": [
+                  "text/plain",
+                  "application/json",
+                  "text/json"
+                ],
+                "isRemoteStream": false
+              },
+              "allowAnonymous": false,
+              "authorizeDatas": [
+                {
+                  "policy": "Helpdesk.Sla.Policies",
+                  "roles": null
+                }
+              ],
+              "implementFrom": "Helpdesk.Sla.ISlaPolicyAppService",
+              "summary": null,
+              "remarks": null,
+              "description": null,
+              "displayName": null
+            },
+            "DeleteAsyncById": {
+              "uniqueName": "DeleteAsyncById",
+              "name": "DeleteAsync",
+              "httpMethod": "DELETE",
+              "url": "api/app/sla-policy/{id}",
+              "supportedVersions": [],
+              "parametersOnMethod": [
+                {
+                  "name": "id",
+                  "typeAsString": "System.Guid, System.Private.CoreLib",
+                  "type": "System.Guid",
+                  "typeSimple": "string",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "summary": null,
+                  "description": null,
+                  "displayName": null
+                }
+              ],
+              "parameters": [
+                {
+                  "nameOnMethod": "id",
+                  "name": "id",
+                  "jsonName": null,
+                  "type": "System.Guid",
+                  "typeSimple": "string",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "constraintTypes": [],
+                  "bindingSourceId": "Path",
+                  "descriptorName": "",
+                  "summary": null,
+                  "description": null,
+                  "displayName": null
+                }
+              ],
+              "returnValue": {
+                "type": "System.Void",
+                "typeSimple": "System.Void",
+                "summary": null,
+                "contentTypes": null,
+                "isRemoteStream": false
+              },
+              "allowAnonymous": false,
+              "authorizeDatas": [
+                {
+                  "policy": "Helpdesk.Sla.Policies",
+                  "roles": null
+                }
+              ],
+              "implementFrom": "Helpdesk.Sla.ISlaPolicyAppService",
+              "summary": null,
+              "remarks": null,
+              "description": null,
+              "displayName": null
+            },
+            "GetActivePolicyListAsync": {
+              "uniqueName": "GetActivePolicyListAsync",
+              "name": "GetActivePolicyListAsync",
+              "httpMethod": "GET",
+              "url": "api/app/sla-policy/active-policy-list",
+              "supportedVersions": [],
+              "parametersOnMethod": [],
+              "parameters": [],
+              "returnValue": {
+                "type": "System.Collections.Generic.List<Helpdesk.Sla.Dtos.SlaPolicyDto>",
+                "typeSimple": "[Helpdesk.Sla.Dtos.SlaPolicyDto]",
+                "summary": null,
+                "contentTypes": [
+                  "text/plain",
+                  "application/json",
+                  "text/json"
+                ],
+                "isRemoteStream": false
+              },
+              "allowAnonymous": false,
+              "authorizeDatas": [
+                {
+                  "policy": "Helpdesk.Sla.Policies",
+                  "roles": null
+                }
+              ],
+              "implementFrom": "Helpdesk.Sla.ISlaPolicyAppService",
+              "summary": null,
+              "remarks": null,
+              "description": null,
+              "displayName": null
+            }
+          }
+        },
+        "Helpdesk.Sla.SlaReportAppService": {
+          "controllerName": "SlaReport",
+          "controllerGroupName": "SlaReport",
+          "isRemoteService": true,
+          "isIntegrationService": false,
+          "apiVersion": null,
+          "type": "Helpdesk.Sla.SlaReportAppService",
+          "summary": null,
+          "remarks": null,
+          "description": null,
+          "displayName": null,
+          "interfaces": [
+            {
+              "type": "Helpdesk.Sla.ISlaReportAppService",
+              "name": "ISlaReportAppService",
+              "methods": [
+                {
+                  "name": "GetComplianceStatsAsync",
+                  "parametersOnMethod": [
+                    {
+                      "name": "startDate",
+                      "typeAsString": "System.Nullable`1[[System.DateTime, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], System.Private.CoreLib",
+                      "type": "System.DateTime?",
+                      "typeSimple": "string?",
+                      "isOptional": true,
+                      "defaultValue": null,
+                      "summary": null,
+                      "description": null,
+                      "displayName": null
+                    },
+                    {
+                      "name": "endDate",
+                      "typeAsString": "System.Nullable`1[[System.DateTime, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], System.Private.CoreLib",
+                      "type": "System.DateTime?",
+                      "typeSimple": "string?",
+                      "isOptional": true,
+                      "defaultValue": null,
+                      "summary": null,
+                      "description": null,
+                      "displayName": null
+                    }
+                  ],
+                  "returnValue": {
+                    "type": "Helpdesk.Sla.Dtos.SlaComplianceStatsDto",
+                    "typeSimple": "Helpdesk.Sla.Dtos.SlaComplianceStatsDto",
+                    "summary": null,
+                    "contentTypes": null,
+                    "isRemoteStream": false
+                  }
+                },
+                {
+                  "name": "GetBreachLogsAsync",
+                  "parametersOnMethod": [
+                    {
+                      "name": "input",
+                      "typeAsString": "Helpdesk.Sla.Dtos.GetSlaBreachListInput, Helpdesk.Application.Contracts",
+                      "type": "Helpdesk.Sla.Dtos.GetSlaBreachListInput",
+                      "typeSimple": "Helpdesk.Sla.Dtos.GetSlaBreachListInput",
+                      "isOptional": false,
+                      "defaultValue": null,
+                      "summary": null,
+                      "description": null,
+                      "displayName": null
+                    }
+                  ],
+                  "returnValue": {
+                    "type": "Volo.Abp.Application.Dtos.PagedResultDto<Helpdesk.Sla.Dtos.SlaBreachLogDto>",
+                    "typeSimple": "Volo.Abp.Application.Dtos.PagedResultDto<Helpdesk.Sla.Dtos.SlaBreachLogDto>",
+                    "summary": null,
+                    "contentTypes": null,
+                    "isRemoteStream": false
+                  }
+                }
+              ]
+            }
+          ],
+          "actions": {
+            "GetComplianceStatsAsyncByStartDateAndEndDate": {
+              "uniqueName": "GetComplianceStatsAsyncByStartDateAndEndDate",
+              "name": "GetComplianceStatsAsync",
+              "httpMethod": "GET",
+              "url": "api/app/sla-report/compliance-stats",
+              "supportedVersions": [],
+              "parametersOnMethod": [
+                {
+                  "name": "startDate",
+                  "typeAsString": "System.Nullable`1[[System.DateTime, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], System.Private.CoreLib",
+                  "type": "System.DateTime?",
+                  "typeSimple": "string?",
+                  "isOptional": true,
+                  "defaultValue": null,
+                  "summary": null,
+                  "description": null,
+                  "displayName": null
+                },
+                {
+                  "name": "endDate",
+                  "typeAsString": "System.Nullable`1[[System.DateTime, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], System.Private.CoreLib",
+                  "type": "System.DateTime?",
+                  "typeSimple": "string?",
+                  "isOptional": true,
+                  "defaultValue": null,
+                  "summary": null,
+                  "description": null,
+                  "displayName": null
+                }
+              ],
+              "parameters": [
+                {
+                  "nameOnMethod": "startDate",
+                  "name": "startDate",
+                  "jsonName": null,
+                  "type": "System.DateTime?",
+                  "typeSimple": "string?",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "constraintTypes": null,
+                  "bindingSourceId": "ModelBinding",
+                  "descriptorName": "",
+                  "summary": null,
+                  "description": null,
+                  "displayName": null
+                },
+                {
+                  "nameOnMethod": "endDate",
+                  "name": "endDate",
+                  "jsonName": null,
+                  "type": "System.DateTime?",
+                  "typeSimple": "string?",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "constraintTypes": null,
+                  "bindingSourceId": "ModelBinding",
+                  "descriptorName": "",
+                  "summary": null,
+                  "description": null,
+                  "displayName": null
+                }
+              ],
+              "returnValue": {
+                "type": "Helpdesk.Sla.Dtos.SlaComplianceStatsDto",
+                "typeSimple": "Helpdesk.Sla.Dtos.SlaComplianceStatsDto",
+                "summary": null,
+                "contentTypes": [
+                  "text/plain",
+                  "application/json",
+                  "text/json"
+                ],
+                "isRemoteStream": false
+              },
+              "allowAnonymous": false,
+              "authorizeDatas": [
+                {
+                  "policy": "Helpdesk.Sla.Reports",
+                  "roles": null
+                }
+              ],
+              "implementFrom": "Helpdesk.Sla.ISlaReportAppService",
+              "summary": null,
+              "remarks": null,
+              "description": null,
+              "displayName": null
+            },
+            "GetBreachLogsAsyncByInput": {
+              "uniqueName": "GetBreachLogsAsyncByInput",
+              "name": "GetBreachLogsAsync",
+              "httpMethod": "GET",
+              "url": "api/app/sla-report/breach-logs",
+              "supportedVersions": [],
+              "parametersOnMethod": [
+                {
+                  "name": "input",
+                  "typeAsString": "Helpdesk.Sla.Dtos.GetSlaBreachListInput, Helpdesk.Application.Contracts",
+                  "type": "Helpdesk.Sla.Dtos.GetSlaBreachListInput",
+                  "typeSimple": "Helpdesk.Sla.Dtos.GetSlaBreachListInput",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "summary": null,
+                  "description": null,
+                  "displayName": null
+                }
+              ],
+              "parameters": [
+                {
+                  "nameOnMethod": "input",
+                  "name": "BreachType",
+                  "jsonName": null,
+                  "type": "Helpdesk.Sla.SlaBreachType?",
+                  "typeSimple": "enum?",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "constraintTypes": null,
+                  "bindingSourceId": "ModelBinding",
+                  "descriptorName": "input",
+                  "summary": null,
+                  "description": null,
+                  "displayName": null
+                },
+                {
+                  "nameOnMethod": "input",
+                  "name": "StartDate",
+                  "jsonName": null,
+                  "type": "System.DateTime?",
+                  "typeSimple": "string?",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "constraintTypes": null,
+                  "bindingSourceId": "ModelBinding",
+                  "descriptorName": "input",
+                  "summary": null,
+                  "description": null,
+                  "displayName": null
+                },
+                {
+                  "nameOnMethod": "input",
+                  "name": "EndDate",
+                  "jsonName": null,
+                  "type": "System.DateTime?",
+                  "typeSimple": "string?",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "constraintTypes": null,
+                  "bindingSourceId": "ModelBinding",
+                  "descriptorName": "input",
+                  "summary": null,
+                  "description": null,
+                  "displayName": null
+                },
+                {
+                  "nameOnMethod": "input",
+                  "name": "Sorting",
+                  "jsonName": null,
+                  "type": "System.String",
+                  "typeSimple": "string",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "constraintTypes": null,
+                  "bindingSourceId": "ModelBinding",
+                  "descriptorName": "input",
+                  "summary": null,
+                  "description": null,
+                  "displayName": null
+                },
+                {
+                  "nameOnMethod": "input",
+                  "name": "SkipCount",
+                  "jsonName": null,
+                  "type": "System.Int32",
+                  "typeSimple": "number",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "constraintTypes": null,
+                  "bindingSourceId": "ModelBinding",
+                  "descriptorName": "input",
+                  "summary": null,
+                  "description": null,
+                  "displayName": null
+                },
+                {
+                  "nameOnMethod": "input",
+                  "name": "MaxResultCount",
+                  "jsonName": null,
+                  "type": "System.Int32",
+                  "typeSimple": "number",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "constraintTypes": null,
+                  "bindingSourceId": "ModelBinding",
+                  "descriptorName": "input",
+                  "summary": null,
+                  "description": null,
+                  "displayName": null
+                }
+              ],
+              "returnValue": {
+                "type": "Volo.Abp.Application.Dtos.PagedResultDto<Helpdesk.Sla.Dtos.SlaBreachLogDto>",
+                "typeSimple": "Volo.Abp.Application.Dtos.PagedResultDto<Helpdesk.Sla.Dtos.SlaBreachLogDto>",
+                "summary": null,
+                "contentTypes": [
+                  "text/plain",
+                  "application/json",
+                  "text/json"
+                ],
+                "isRemoteStream": false
+              },
+              "allowAnonymous": false,
+              "authorizeDatas": [
+                {
+                  "policy": "Helpdesk.Sla.Reports",
+                  "roles": null
+                }
+              ],
+              "implementFrom": "Helpdesk.Sla.ISlaReportAppService",
+              "summary": null,
+              "remarks": null,
+              "description": null,
+              "displayName": null
+            }
+          }
+        },
         "Helpdesk.Tickets.TicketAppService": {
           "controllerName": "Ticket",
           "controllerGroupName": "Ticket",
@@ -11728,6 +13074,1108 @@
       "description": null,
       "displayName": null
     },
+    "Helpdesk.Sla.Dtos.BusinessHourDto": {
+      "baseType": "Volo.Abp.Application.Dtos.EntityDto<System.Guid>",
+      "isEnum": false,
+      "enumNames": null,
+      "enumValues": null,
+      "genericArguments": null,
+      "properties": [
+        {
+          "name": "DayOfWeek",
+          "jsonName": null,
+          "type": "System.DayOfWeek",
+          "typeSimple": "enum",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": false,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "DayOfWeekName",
+          "jsonName": null,
+          "type": "System.String",
+          "typeSimple": "string",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": false,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "StartTime",
+          "jsonName": null,
+          "type": "System.String",
+          "typeSimple": "string",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": false,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "EndTime",
+          "jsonName": null,
+          "type": "System.String",
+          "typeSimple": "string",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": false,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "IsWorkingDay",
+          "jsonName": null,
+          "type": "System.Boolean",
+          "typeSimple": "boolean",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": false,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        }
+      ],
+      "summary": null,
+      "remarks": null,
+      "description": null,
+      "displayName": null
+    },
+    "Helpdesk.Sla.Dtos.CreateUpdateHolidayDto": {
+      "baseType": null,
+      "isEnum": false,
+      "enumNames": null,
+      "enumValues": null,
+      "genericArguments": null,
+      "properties": [
+        {
+          "name": "Name",
+          "jsonName": null,
+          "type": "System.String",
+          "typeSimple": "string",
+          "isRequired": true,
+          "minLength": 0,
+          "maxLength": 128,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": false,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "Date",
+          "jsonName": null,
+          "type": "System.DateTime",
+          "typeSimple": "string",
+          "isRequired": true,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": false,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "IsRecurring",
+          "jsonName": null,
+          "type": "System.Boolean",
+          "typeSimple": "boolean",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": false,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        }
+      ],
+      "summary": null,
+      "remarks": null,
+      "description": null,
+      "displayName": null
+    },
+    "Helpdesk.Sla.Dtos.CreateUpdateSlaPolicyDto": {
+      "baseType": null,
+      "isEnum": false,
+      "enumNames": null,
+      "enumValues": null,
+      "genericArguments": null,
+      "properties": [
+        {
+          "name": "Name",
+          "jsonName": null,
+          "type": "System.String",
+          "typeSimple": "string",
+          "isRequired": true,
+          "minLength": 0,
+          "maxLength": 128,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": false,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "Description",
+          "jsonName": null,
+          "type": "System.String",
+          "typeSimple": "string",
+          "isRequired": false,
+          "minLength": 0,
+          "maxLength": 500,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": true,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "IsDefault",
+          "jsonName": null,
+          "type": "System.Boolean",
+          "typeSimple": "boolean",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": false,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "IsActive",
+          "jsonName": null,
+          "type": "System.Boolean",
+          "typeSimple": "boolean",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": false,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "Rules",
+          "jsonName": null,
+          "type": "[Helpdesk.Sla.Dtos.CreateUpdateSlaPolicyRuleDto]",
+          "typeSimple": "[Helpdesk.Sla.Dtos.CreateUpdateSlaPolicyRuleDto]",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": false,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        }
+      ],
+      "summary": null,
+      "remarks": null,
+      "description": null,
+      "displayName": null
+    },
+    "Helpdesk.Sla.Dtos.CreateUpdateSlaPolicyRuleDto": {
+      "baseType": null,
+      "isEnum": false,
+      "enumNames": null,
+      "enumValues": null,
+      "genericArguments": null,
+      "properties": [
+        {
+          "name": "Id",
+          "jsonName": null,
+          "type": "System.Guid?",
+          "typeSimple": "string?",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": true,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "PriorityId",
+          "jsonName": null,
+          "type": "System.Guid",
+          "typeSimple": "string",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": false,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "CategoryId",
+          "jsonName": null,
+          "type": "System.Guid?",
+          "typeSimple": "string?",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": true,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "ResponseTimeMinutes",
+          "jsonName": null,
+          "type": "System.Int32",
+          "typeSimple": "number",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": false,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "ResolutionTimeMinutes",
+          "jsonName": null,
+          "type": "System.Int32",
+          "typeSimple": "number",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": false,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        }
+      ],
+      "summary": null,
+      "remarks": null,
+      "description": null,
+      "displayName": null
+    },
+    "Helpdesk.Sla.Dtos.GetSlaBreachListInput": {
+      "baseType": "Volo.Abp.Application.Dtos.PagedAndSortedResultRequestDto",
+      "isEnum": false,
+      "enumNames": null,
+      "enumValues": null,
+      "genericArguments": null,
+      "properties": [
+        {
+          "name": "BreachType",
+          "jsonName": null,
+          "type": "Helpdesk.Sla.SlaBreachType?",
+          "typeSimple": "enum?",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": true,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "StartDate",
+          "jsonName": null,
+          "type": "System.DateTime?",
+          "typeSimple": "string?",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": true,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "EndDate",
+          "jsonName": null,
+          "type": "System.DateTime?",
+          "typeSimple": "string?",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": true,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        }
+      ],
+      "summary": null,
+      "remarks": null,
+      "description": null,
+      "displayName": null
+    },
+    "Helpdesk.Sla.Dtos.GetSlaPolicyListInput": {
+      "baseType": "Volo.Abp.Application.Dtos.PagedAndSortedResultRequestDto",
+      "isEnum": false,
+      "enumNames": null,
+      "enumValues": null,
+      "genericArguments": null,
+      "properties": [
+        {
+          "name": "Filter",
+          "jsonName": null,
+          "type": "System.String",
+          "typeSimple": "string",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": true,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "IsActive",
+          "jsonName": null,
+          "type": "System.Boolean?",
+          "typeSimple": "boolean?",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": true,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        }
+      ],
+      "summary": null,
+      "remarks": null,
+      "description": null,
+      "displayName": null
+    },
+    "Helpdesk.Sla.Dtos.HolidayDto": {
+      "baseType": "Volo.Abp.Application.Dtos.EntityDto<System.Guid>",
+      "isEnum": false,
+      "enumNames": null,
+      "enumValues": null,
+      "genericArguments": null,
+      "properties": [
+        {
+          "name": "Name",
+          "jsonName": null,
+          "type": "System.String",
+          "typeSimple": "string",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": false,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "Date",
+          "jsonName": null,
+          "type": "System.DateTime",
+          "typeSimple": "string",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": false,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "IsRecurring",
+          "jsonName": null,
+          "type": "System.Boolean",
+          "typeSimple": "boolean",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": false,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        }
+      ],
+      "summary": null,
+      "remarks": null,
+      "description": null,
+      "displayName": null
+    },
+    "Helpdesk.Sla.Dtos.SlaBreachLogDto": {
+      "baseType": "Volo.Abp.Application.Dtos.CreationAuditedEntityDto<System.Guid>",
+      "isEnum": false,
+      "enumNames": null,
+      "enumValues": null,
+      "genericArguments": null,
+      "properties": [
+        {
+          "name": "TicketId",
+          "jsonName": null,
+          "type": "System.Guid",
+          "typeSimple": "string",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": false,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "TicketNumber",
+          "jsonName": null,
+          "type": "System.String",
+          "typeSimple": "string",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": false,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "TicketTitle",
+          "jsonName": null,
+          "type": "System.String",
+          "typeSimple": "string",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": false,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "BreachType",
+          "jsonName": null,
+          "type": "Helpdesk.Sla.SlaBreachType",
+          "typeSimple": "enum",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": false,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "BreachTypeName",
+          "jsonName": null,
+          "type": "System.String",
+          "typeSimple": "string",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": false,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "ExpectedDate",
+          "jsonName": null,
+          "type": "System.DateTime",
+          "typeSimple": "string",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": false,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "ActualDate",
+          "jsonName": null,
+          "type": "System.DateTime?",
+          "typeSimple": "string?",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": true,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "BreachedMinutes",
+          "jsonName": null,
+          "type": "System.Double",
+          "typeSimple": "number",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": false,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "Reason",
+          "jsonName": null,
+          "type": "System.String",
+          "typeSimple": "string",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": true,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        }
+      ],
+      "summary": null,
+      "remarks": null,
+      "description": null,
+      "displayName": null
+    },
+    "Helpdesk.Sla.Dtos.SlaComplianceStatsDto": {
+      "baseType": null,
+      "isEnum": false,
+      "enumNames": null,
+      "enumValues": null,
+      "genericArguments": null,
+      "properties": [
+        {
+          "name": "TotalTicketsWithSla",
+          "jsonName": null,
+          "type": "System.Int32",
+          "typeSimple": "number",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": false,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "FirstResponseMetCount",
+          "jsonName": null,
+          "type": "System.Int32",
+          "typeSimple": "number",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": false,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "FirstResponseBreachedCount",
+          "jsonName": null,
+          "type": "System.Int32",
+          "typeSimple": "number",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": false,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "FirstResponseComplianceRate",
+          "jsonName": null,
+          "type": "System.Double",
+          "typeSimple": "number",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": false,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "ResolutionMetCount",
+          "jsonName": null,
+          "type": "System.Int32",
+          "typeSimple": "number",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": false,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "ResolutionBreachedCount",
+          "jsonName": null,
+          "type": "System.Int32",
+          "typeSimple": "number",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": false,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "ResolutionComplianceRate",
+          "jsonName": null,
+          "type": "System.Double",
+          "typeSimple": "number",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": false,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        }
+      ],
+      "summary": null,
+      "remarks": null,
+      "description": null,
+      "displayName": null
+    },
+    "Helpdesk.Sla.Dtos.SlaPolicyDto": {
+      "baseType": "Volo.Abp.Application.Dtos.FullAuditedEntityDto<System.Guid>",
+      "isEnum": false,
+      "enumNames": null,
+      "enumValues": null,
+      "genericArguments": null,
+      "properties": [
+        {
+          "name": "Name",
+          "jsonName": null,
+          "type": "System.String",
+          "typeSimple": "string",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": false,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "Description",
+          "jsonName": null,
+          "type": "System.String",
+          "typeSimple": "string",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": true,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "IsDefault",
+          "jsonName": null,
+          "type": "System.Boolean",
+          "typeSimple": "boolean",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": false,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "IsActive",
+          "jsonName": null,
+          "type": "System.Boolean",
+          "typeSimple": "boolean",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": false,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "Rules",
+          "jsonName": null,
+          "type": "[Helpdesk.Sla.Dtos.SlaPolicyRuleDto]",
+          "typeSimple": "[Helpdesk.Sla.Dtos.SlaPolicyRuleDto]",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": false,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        }
+      ],
+      "summary": null,
+      "remarks": null,
+      "description": null,
+      "displayName": null
+    },
+    "Helpdesk.Sla.Dtos.SlaPolicyRuleDto": {
+      "baseType": "Volo.Abp.Application.Dtos.EntityDto<System.Guid>",
+      "isEnum": false,
+      "enumNames": null,
+      "enumValues": null,
+      "genericArguments": null,
+      "properties": [
+        {
+          "name": "SlaPolicyId",
+          "jsonName": null,
+          "type": "System.Guid",
+          "typeSimple": "string",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": false,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "PriorityId",
+          "jsonName": null,
+          "type": "System.Guid",
+          "typeSimple": "string",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": false,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "PriorityName",
+          "jsonName": null,
+          "type": "System.String",
+          "typeSimple": "string",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": false,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "CategoryId",
+          "jsonName": null,
+          "type": "System.Guid?",
+          "typeSimple": "string?",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": true,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "CategoryName",
+          "jsonName": null,
+          "type": "System.String",
+          "typeSimple": "string",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": true,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "ResponseTimeMinutes",
+          "jsonName": null,
+          "type": "System.Int32",
+          "typeSimple": "number",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": false,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "ResolutionTimeMinutes",
+          "jsonName": null,
+          "type": "System.Int32",
+          "typeSimple": "number",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": false,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        }
+      ],
+      "summary": null,
+      "remarks": null,
+      "description": null,
+      "displayName": null
+    },
+    "Helpdesk.Sla.Dtos.UpdateBusinessHourDto": {
+      "baseType": null,
+      "isEnum": false,
+      "enumNames": null,
+      "enumValues": null,
+      "genericArguments": null,
+      "properties": [
+        {
+          "name": "Id",
+          "jsonName": null,
+          "type": "System.Guid",
+          "typeSimple": "string",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": false,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "StartTime",
+          "jsonName": null,
+          "type": "System.String",
+          "typeSimple": "string",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": false,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "EndTime",
+          "jsonName": null,
+          "type": "System.String",
+          "typeSimple": "string",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": false,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "IsWorkingDay",
+          "jsonName": null,
+          "type": "System.Boolean",
+          "typeSimple": "boolean",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": false,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        }
+      ],
+      "summary": null,
+      "remarks": null,
+      "description": null,
+      "displayName": null
+    },
+    "Helpdesk.Sla.SlaBreachType": {
+      "baseType": "System.Enum",
+      "isEnum": true,
+      "enumNames": [
+        "Response",
+        "Resolution"
+      ],
+      "enumValues": [
+        1,
+        2
+      ],
+      "genericArguments": null,
+      "properties": null,
+      "summary": null,
+      "remarks": null,
+      "description": null,
+      "displayName": null
+    },
     "Helpdesk.Tickets.Dtos.AssignTicketInput": {
       "baseType": null,
       "isEnum": false,
@@ -12883,6 +15331,102 @@
           "displayName": null
         },
         {
+          "name": "SlaPolicyId",
+          "jsonName": null,
+          "type": "System.Guid?",
+          "typeSimple": "string?",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": true,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "SlaPolicyName",
+          "jsonName": null,
+          "type": "System.String",
+          "typeSimple": "string",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": true,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "FirstResponseDueDate",
+          "jsonName": null,
+          "type": "System.DateTime?",
+          "typeSimple": "string?",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": true,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "FirstRespondedAt",
+          "jsonName": null,
+          "type": "System.DateTime?",
+          "typeSimple": "string?",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": true,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "IsFirstResponseBreached",
+          "jsonName": null,
+          "type": "System.Boolean",
+          "typeSimple": "boolean",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": false,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "IsResolutionBreached",
+          "jsonName": null,
+          "type": "System.Boolean",
+          "typeSimple": "boolean",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": false,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
           "name": "Tags",
           "jsonName": null,
           "type": "System.String",
@@ -13291,6 +15835,102 @@
           "maximum": null,
           "regex": null,
           "isNullable": true,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "SlaPolicyId",
+          "jsonName": null,
+          "type": "System.Guid?",
+          "typeSimple": "string?",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": true,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "SlaPolicyName",
+          "jsonName": null,
+          "type": "System.String",
+          "typeSimple": "string",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": true,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "FirstResponseDueDate",
+          "jsonName": null,
+          "type": "System.DateTime?",
+          "typeSimple": "string?",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": true,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "FirstRespondedAt",
+          "jsonName": null,
+          "type": "System.DateTime?",
+          "typeSimple": "string?",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": true,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "IsFirstResponseBreached",
+          "jsonName": null,
+          "type": "System.Boolean",
+          "typeSimple": "boolean",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": false,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "IsResolutionBreached",
+          "jsonName": null,
+          "type": "System.Boolean",
+          "typeSimple": "boolean",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": false,
           "summary": null,
           "description": null,
           "displayName": null
@@ -14028,6 +16668,81 @@
           "maximum": null,
           "regex": null,
           "isNullable": true,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        }
+      ],
+      "summary": null,
+      "remarks": null,
+      "description": null,
+      "displayName": null
+    },
+    "System.DayOfWeek": {
+      "baseType": "System.Enum",
+      "isEnum": true,
+      "enumNames": [
+        "Sunday",
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday"
+      ],
+      "enumValues": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "genericArguments": null,
+      "properties": null,
+      "summary": null,
+      "remarks": null,
+      "description": null,
+      "displayName": null
+    },
+    "System.Nullable<T0>": {
+      "baseType": "System.ValueType",
+      "isEnum": false,
+      "enumNames": null,
+      "enumValues": null,
+      "genericArguments": [
+        "T"
+      ],
+      "properties": [
+        {
+          "name": "HasValue",
+          "jsonName": null,
+          "type": "System.Boolean",
+          "typeSimple": "boolean",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": false,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "Value",
+          "jsonName": null,
+          "type": "T",
+          "typeSimple": "T",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": false,
           "summary": null,
           "description": null,
           "displayName": null

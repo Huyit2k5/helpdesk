@@ -39,6 +39,7 @@ using Volo.Abp.OpenIddict;
 using Volo.Abp.Swashbuckle;
 using Volo.Abp.Studio.Client.AspNetCore;
 using Volo.Abp.Security.Claims;
+using Volo.Abp.BackgroundWorkers;
 
 namespace Helpdesk;
 
@@ -52,7 +53,8 @@ namespace Helpdesk;
     typeof(HelpdeskEntityFrameworkCoreModule),
     typeof(AbpAccountWebOpenIddictModule),
     typeof(AbpSwashbuckleModule),
-    typeof(AbpAspNetCoreSerilogModule)
+    typeof(AbpAspNetCoreSerilogModule),
+    typeof(AbpBackgroundWorkersModule)
     )]
 public class HelpdeskHttpApiHostModule : AbpModule
 {
@@ -301,5 +303,11 @@ public class HelpdeskHttpApiHostModule : AbpModule
         app.UseAuditing();
         app.UseAbpSerilogEnrichers();
         app.UseConfiguredEndpoints();
+    }
+
+    public override async System.Threading.Tasks.Task OnApplicationInitializationAsync(ApplicationInitializationContext context)
+    {
+        OnApplicationInitialization(context);
+        await context.AddBackgroundWorkerAsync<Helpdesk.BackgroundWorkers.SlaCheckingWorker>();
     }
 }

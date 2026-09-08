@@ -225,4 +225,29 @@ export class TicketsComponent implements OnInit {
       }
     });
   }
+
+  getSlaStatus(item: TicketListDto): { text: string; cssClass: string; icon: string } {
+    if (item.isResolutionBreached) {
+      return { text: 'Trễ hạn giải quyết', cssClass: 'bg-danger-subtle text-danger border border-danger-subtle', icon: 'fas fa-exclamation-circle' };
+    }
+    if (item.isFirstResponseBreached) {
+      return { text: 'Trễ phản hồi đầu', cssClass: 'bg-warning-subtle text-warning-emphasis border border-warning-subtle', icon: 'fas fa-exclamation-triangle' };
+    }
+    if (item.resolvedAt) {
+      return { text: 'Đúng hạn SLA', cssClass: 'bg-success-subtle text-success border border-success-subtle', icon: 'fas fa-check-circle' };
+    }
+    if (item.dueDate) {
+      const now = new Date().getTime();
+      const due = new Date(item.dueDate).getTime();
+      const diffMinutes = Math.floor((due - now) / (1000 * 60));
+      if (diffMinutes < 0) {
+        return { text: 'Quá hạn xử lý', cssClass: 'bg-danger text-white', icon: 'fas fa-clock' };
+      }
+      if (diffMinutes <= 120) {
+        return { text: `Còn ${diffMinutes}p`, cssClass: 'bg-warning text-dark', icon: 'fas fa-hourglass-half' };
+      }
+      return { text: 'Trong hạn', cssClass: 'bg-primary-subtle text-primary border border-primary-subtle', icon: 'fas fa-stopwatch' };
+    }
+    return { text: '—', cssClass: 'text-muted small', icon: '' };
+  }
 }

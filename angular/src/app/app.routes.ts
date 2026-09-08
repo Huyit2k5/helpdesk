@@ -32,4 +32,9 @@ export const APP_ROUTES: Routes = [
     loadChildren: () =>
       import('./master-data/master-data.routes').then(m => m.MASTER_DATA_ROUTES),
   },
+  {
+    path: 'sla',
+    loadChildren: () =>
+      import('./sla/sla.routes').then(m => m.SLA_ROUTES),
+  },
 ];

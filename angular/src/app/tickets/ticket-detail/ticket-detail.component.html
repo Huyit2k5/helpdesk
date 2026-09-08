@@ -265,12 +265,82 @@
               <span class="text-muted">Kênh tiếp nhận:</span>
               <span class="fw-semibold text-dark">{{ ticket.sourceName || '—' }}</span>
             </div>
-            <div class="d-flex justify-content-between align-items-center py-2">
-              <span class="text-muted">Hạn xử lý (SLA):</span>
-              @if (ticket.dueDate) {
-                <span class="fw-semibold text-dark">{{ ticket.dueDate | date:'dd/MM/yyyy HH:mm' }}</span>
-              } @else {
-                <span class="text-muted">—</span>
+            <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+              <span class="text-muted">Chính sách SLA:</span>
+              <span class="fw-semibold text-primary">
+                <i class="fas fa-handshake me-1"></i>{{ ticket.slaPolicyName || 'SLA Mặc định' }}
+              </span>
+            </div>
+
+            <!-- First Response SLA -->
+            <div class="py-2 border-bottom">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="text-muted small">Phản hồi lần đầu:</span>
+                @if (ticket.firstRespondedAt) {
+                  @if (ticket.isFirstResponseBreached) {
+                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle">
+                      <i class="fas fa-times-circle me-1"></i>Trễ hạn
+                    </span>
+                  } @else {
+                    <span class="badge bg-success-subtle text-success border border-success-subtle">
+                      <i class="fas fa-check-circle me-1"></i>Đúng hạn
+                    </span>
+                  }
+                } @else {
+                  @if (ticket.isFirstResponseBreached) {
+                    <span class="badge bg-danger text-white">Quá hạn phản hồi</span>
+                  } @else {
+                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle">Chờ phản hồi</span>
+                  }
+                }
+              </div>
+              <div class="small font-monospace text-dark">
+                @if (ticket.firstResponseDueDate) {
+                  Hạn: {{ ticket.firstResponseDueDate | date:'dd/MM/yyyy HH:mm' }}
+                } @else {
+                  <span class="text-muted">—</span>
+                }
+              </div>
+              @if (ticket.firstRespondedAt) {
+                <small class="text-muted d-block" style="font-size: 0.75rem;">
+                  Đã phản hồi lúc: {{ ticket.firstRespondedAt | date:'dd/MM/yyyy HH:mm' }}
+                </small>
+              }
+            </div>
+
+            <!-- Resolution SLA -->
+            <div class="py-2">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="text-muted small">Giải quyết sự vụ:</span>
+                @if (ticket.resolvedAt) {
+                  @if (ticket.isResolutionBreached) {
+                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle">
+                      <i class="fas fa-times-circle me-1"></i>Trễ hạn
+                    </span>
+                  } @else {
+                    <span class="badge bg-success-subtle text-success border border-success-subtle">
+                      <i class="fas fa-check-circle me-1"></i>Đúng hạn
+                    </span>
+                  }
+                } @else {
+                  @if (ticket.isResolutionBreached) {
+                    <span class="badge bg-danger text-white">Quá hạn giải quyết</span>
+                  } @else {
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle">Đang trong hạn</span>
+                  }
+                }
+              </div>
+              <div class="small font-monospace text-dark">
+                @if (ticket.dueDate) {
+                  Hạn: {{ ticket.dueDate | date:'dd/MM/yyyy HH:mm' }}
+                } @else {
+                  <span class="text-muted">—</span>
+                }
+              </div>
+              @if (ticket.resolvedAt) {
+                <small class="text-muted d-block" style="font-size: 0.75rem;">
+                  Đã giải quyết lúc: {{ ticket.resolvedAt | date:'dd/MM/yyyy HH:mm' }}
+                </small>
               }
             </div>
           </div>

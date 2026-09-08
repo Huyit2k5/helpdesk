@@ -55,6 +55,12 @@ public class HelpdeskPermissionDefinitionProvider : PermissionDefinitionProvider
         ticketsPermission.AddChild(HelpdeskPermissions.Tickets.Assign, L("Permission:Tickets.Assign"));
         ticketsPermission.AddChild(HelpdeskPermissions.Tickets.ChangeStatus, L("Permission:Tickets.ChangeStatus"));
         ticketsPermission.AddChild(HelpdeskPermissions.Tickets.AddComment, L("Permission:Tickets.AddComment"));
+
+        // SLA
+        var slaPermission = helpdeskGroup.AddPermission(HelpdeskPermissions.Sla.Default, L("Permission:Sla"));
+        slaPermission.AddChild(HelpdeskPermissions.Sla.Policies, L("Permission:Sla.Policies"));
+        slaPermission.AddChild(HelpdeskPermissions.Sla.BusinessHours, L("Permission:Sla.BusinessHours"));
+        slaPermission.AddChild(HelpdeskPermissions.Sla.Reports, L("Permission:Sla.Reports"));
     }
 
     private static LocalizableString L(string name)

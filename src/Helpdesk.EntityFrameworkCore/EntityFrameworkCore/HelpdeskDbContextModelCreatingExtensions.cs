@@ -140,5 +140,50 @@ public static class HelpdeskDbContextModelCreatingExtensions
 
             b.HasIndex(x => x.TicketId);
         });
+
+        builder.Entity<Helpdesk.Sla.SlaPolicy>(b =>
+        {
+            b.ToTable(HelpdeskConsts.DbTablePrefix + "SlaPolicies", HelpdeskConsts.DbSchema);
+            b.ConfigureByConvention();
+
+            b.Property(x => x.Name).IsRequired().HasMaxLength(Helpdesk.Sla.SlaConsts.MaxNameLength);
+            b.Property(x => x.Description).HasMaxLength(Helpdesk.Sla.SlaConsts.MaxDescriptionLength);
+
+            b.HasMany(x => x.Rules).WithOne().HasForeignKey(r => r.SlaPolicyId).IsRequired().OnDelete(Microsoft.EntityFrameworkCore.DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<Helpdesk.Sla.SlaPolicyRule>(b =>
+        {
+            b.ToTable(HelpdeskConsts.DbTablePrefix + "SlaPolicyRules", HelpdeskConsts.DbSchema);
+            b.ConfigureByConvention();
+
+            b.HasIndex(x => new { x.SlaPolicyId, x.PriorityId, x.CategoryId });
+        });
+
+        builder.Entity<Helpdesk.Sla.BusinessHour>(b =>
+        {
+            b.ToTable(HelpdeskConsts.DbTablePrefix + "BusinessHours", HelpdeskConsts.DbSchema);
+            b.ConfigureByConvention();
+
+            b.HasIndex(x => x.DayOfWeek);
+        });
+
+        builder.Entity<Helpdesk.Sla.Holiday>(b =>
+        {
+            b.ToTable(HelpdeskConsts.DbTablePrefix + "Holidays", HelpdeskConsts.DbSchema);
+            b.ConfigureByConvention();
+
+            b.Property(x => x.Name).IsRequired().HasMaxLength(Helpdesk.Sla.SlaConsts.MaxHolidayNameLength);
+            b.HasIndex(x => x.Date);
+        });
+
+        builder.Entity<Helpdesk.Sla.SlaBreachLog>(b =>
+        {
+            b.ToTable(HelpdeskConsts.DbTablePrefix + "SlaBreachLogs", HelpdeskConsts.DbSchema);
+            b.ConfigureByConvention();
+
+            b.HasIndex(x => x.TicketId);
+            b.HasIndex(x => x.BreachedAt);
+        });
     }
 }
