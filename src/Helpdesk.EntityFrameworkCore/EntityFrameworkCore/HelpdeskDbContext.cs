@@ -1,3 +1,9 @@
+using Helpdesk.CannedResponses;
+using Helpdesk.Categories;
+using Helpdesk.Departments;
+using Helpdesk.Priorities;
+using Helpdesk.TicketSources;
+using Helpdesk.TicketStatuses;
 using Microsoft.EntityFrameworkCore;
 using Volo.Abp.AuditLogging.EntityFrameworkCore;
 using Volo.Abp.BackgroundJobs.EntityFrameworkCore;
@@ -27,6 +33,13 @@ public class HelpdeskDbContext :
 {
     /* Add DbSet properties for your Aggregate Roots / Entities here. */
 
+    // Master Data
+    public DbSet<Category> Categories { get; set; }
+    public DbSet<Priority> Priorities { get; set; }
+    public DbSet<Department> Departments { get; set; }
+    public DbSet<TicketStatus> TicketStatuses { get; set; }
+    public DbSet<TicketSource> TicketSources { get; set; }
+    public DbSet<CannedResponse> CannedResponses { get; set; }
 
     #region Entities from the modules
 
@@ -81,11 +94,6 @@ public class HelpdeskDbContext :
 
         /* Configure your own tables/entities inside here */
 
-        //builder.Entity<YourEntity>(b =>
-        //{
-        //    b.ToTable(HelpdeskConsts.DbTablePrefix + "YourEntities", HelpdeskConsts.DbSchema);
-        //    b.ConfigureByConvention(); //auto configure for the base class props
-        //    //...
-        //});
+        builder.ConfigureHelpdesk();
     }
 }

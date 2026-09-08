@@ -281,3 +281,4 @@ src/Helpdesk.Blazor.Server.Tiered/Logs/*
 # IdentityServer temp files
 tempkey.rsa
 tempkey.jwk
+implementation_plan.md

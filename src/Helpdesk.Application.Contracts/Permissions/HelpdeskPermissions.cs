@@ -4,8 +4,51 @@ public static class HelpdeskPermissions
 {
     public const string GroupName = "Helpdesk";
 
+    public static class Categories
+    {
+        public const string Default = GroupName + ".Categories";
+        public const string Create = Default + ".Create";
+        public const string Edit = Default + ".Edit";
+        public const string Delete = Default + ".Delete";
+    }
 
-    
-    //Add your own permission names. Example:
-    //public const string MyPermission1 = GroupName + ".MyPermission1";
+    public static class Priorities
+    {
+        public const string Default = GroupName + ".Priorities";
+        public const string Create = Default + ".Create";
+        public const string Edit = Default + ".Edit";
+        public const string Delete = Default + ".Delete";
+    }
+
+    public static class Departments
+    {
+        public const string Default = GroupName + ".Departments";
+        public const string Create = Default + ".Create";
+        public const string Edit = Default + ".Edit";
+        public const string Delete = Default + ".Delete";
+    }
+
+    public static class TicketStatuses
+    {
+        public const string Default = GroupName + ".TicketStatuses";
+        public const string Create = Default + ".Create";
+        public const string Edit = Default + ".Edit";
+        public const string Delete = Default + ".Delete";
+    }
+
+    public static class TicketSources
+    {
+        public const string Default = GroupName + ".TicketSources";
+        public const string Create = Default + ".Create";
+        public const string Edit = Default + ".Edit";
+        public const string Delete = Default + ".Delete";
+    }
+
+    public static class CannedResponses
+    {
+        public const string Default = GroupName + ".CannedResponses";
+        public const string Create = Default + ".Create";
+        public const string Edit = Default + ".Edit";
+        public const string Delete = Default + ".Delete";
+    }
 }
