@@ -110,6 +110,23 @@
     "Helpdesk:00002": "A priority with the code '{code}' already exists.",
     "Helpdesk:00003": "A department with the code '{code}' already exists.",
     "Helpdesk:00004": "A ticket status with the code '{code}' already exists.",
-    "Helpdesk:00005": "A ticket source with the code '{code}' already exists."
+    "Helpdesk:00005": "A ticket source with the code '{code}' already exists.",
+
+    "NewCategory": "New Category",
+    "EditCategory": "Edit Category",
+    "NewPriority": "New Priority",
+    "EditPriority": "Edit Priority",
+    "NewDepartment": "New Department",
+    "EditDepartment": "Edit Department",
+    "NewTicketStatus": "New Ticket Status",
+    "EditTicketStatus": "Edit Ticket Status",
+    "NewTicketSource": "New Ticket Source",
+    "EditTicketSource": "Edit Ticket Source",
+    "NewCannedResponse": "New Canned Response",
+    "EditCannedResponse": "Edit Canned Response",
+
+    "Search": "Search",
+    "AreYouSure": "Are you sure?",
+    "AreYouSureToDelete": "Are you sure you want to delete {0}?"
   }
 }

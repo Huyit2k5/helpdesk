@@ -17,12 +17,14 @@ import { environment } from '../environments/environment';
 import { APP_ROUTES } from './app.routes';
 import { APP_ROUTE_PROVIDER } from './route.provider';
 import { FOOTER_PROVIDER } from './footer/footer.config';
+import { MASTER_DATA_ROUTE_PROVIDER } from './master-data/master-data-route.provider';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(APP_ROUTES),
     APP_ROUTE_PROVIDER,
     FOOTER_PROVIDER,
+    MASTER_DATA_ROUTE_PROVIDER,
     provideAnimations(),
     provideAbpCore(
       withOptions({
@@ -42,3 +44,4 @@ export const appConfig: ApplicationConfig = {
     provideAbpThemeShared(),
   ]
 };
+

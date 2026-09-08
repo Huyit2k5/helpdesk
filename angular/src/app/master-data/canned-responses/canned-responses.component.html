@@ -1,0 +1,145 @@
+<div class="container-fluid py-4">
+  <div class="row mb-4 align-items-center">
+    <div class="col">
+      <h2 class="mb-1 fw-bold"><i class="fas fa-comment-dots me-2 text-teal" style="color:#0d9488"></i>Câu Trả Lời Mẫu</h2>
+      <p class="text-muted mb-0">Thư viện mẫu phản hồi nhanh cho các câu hỏi thường gặp</p>
+    </div>
+    <div class="col-auto">
+      <button class="btn btn-primary" (click)="openCreateModal()" id="btn-create-canned">
+        <i class="fas fa-plus me-2"></i>Thêm mẫu phản hồi
+      </button>
+    </div>
+  </div>
+
+  <div class="card mb-4 border-0 shadow-sm">
+    <div class="card-body py-3">
+      <div class="input-group" style="max-width: 400px">
+        <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
+        <input type="text" class="form-control border-start-0" placeholder="Tìm kiếm tiêu đề, nội dung..." [(ngModel)]="filterText" (keyup.enter)="search()" />
+        <button class="btn btn-outline-secondary" (click)="search()">Tìm</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Tiêu đề</th>
+              <th style="width: 120px">Phím tắt</th>
+              <th class="text-center" style="width: 100px">Sử dụng</th>
+              <th class="text-center" style="width: 100px">Trạng thái</th>
+              <th class="text-center" style="width: 120px">Thao tác</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of items; track item.id) {
+              <tr>
+                <td>
+                  <div class="fw-semibold">{{ item.title }}</div>
+                  <small class="text-muted text-truncate d-block" style="max-width: 400px">{{ item.content }}</small>
+                </td>
+                <td>
+                  @if (item.shortcut) {
+                    <kbd class="border rounded px-2 py-1 bg-light text-dark small">/{{ item.shortcut }}</kbd>
+                  } @else { <span class="text-muted">—</span> }
+                </td>
+                <td class="text-center">
+                  <span class="badge bg-light text-dark border">{{ item.usageCount }}</span>
+                </td>
+                <td class="text-center">
+                  @if (item.isActive) { <span class="badge bg-success-subtle text-success border border-success-subtle">Hoạt động</span> }
+                  @else { <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">Tạm ngừng</span> }
+                </td>
+                <td class="text-center">
+                  <button class="btn btn-sm btn-outline-primary me-1" (click)="openEditModal(item)"><i class="fas fa-edit"></i></button>
+                  <button class="btn btn-sm btn-outline-danger" (click)="delete(item)"><i class="fas fa-trash"></i></button>
+                </td>
+              </tr>
+            } @empty {
+              <tr><td colspan="5" class="text-center py-5 text-muted"><i class="fas fa-inbox fa-3x mb-3 d-block opacity-25"></i>Chưa có mẫu phản hồi nào</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card-footer d-flex justify-content-between align-items-center">
+      <small class="text-muted">Tổng: {{ totalCount }} bản ghi</small>
+      <ngb-pagination [(page)]="list.page" [pageSize]="list.maxResultCount" [collectionSize]="totalCount" (pageChange)="list.get()" [maxSize]="5" class="mb-0" />
+    </div>
+  </div>
+</div>
+
+@if (isModalOpen) {
+  <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5)">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+      <div class="modal-content border-0 shadow-lg">
+        <div class="modal-header border-0">
+          <h5 class="modal-title fw-bold"><i class="fas fa-comment-dots me-2" style="color:#0d9488"></i>{{ isEditing ? 'Sửa mẫu phản hồi' : 'Thêm mẫu phản hồi' }}</h5>
+          <button type="button" class="btn-close" (click)="closeModal()"></button>
+        </div>
+        <form [formGroup]="form" (ngSubmit)="save()">
+          <div class="modal-body">
+            <div class="row g-3">
+              <div class="col-md-9">
+                <label class="form-label fw-semibold">Tiêu đề <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" formControlName="title" placeholder="Tiêu đề mẫu phản hồi" id="input-canned-title" [class.is-invalid]="form.get('title')?.invalid && form.get('title')?.touched" />
+                <div class="invalid-feedback">Tiêu đề là bắt buộc</div>
+              </div>
+              <div class="col-md-3">
+                <label class="form-label fw-semibold">Phím tắt</label>
+                <div class="input-group">
+                  <span class="input-group-text">/</span>
+                  <input type="text" class="form-control" formControlName="shortcut" placeholder="vd: thanks" />
+                </div>
+                <div class="form-text">Gõ /shortcut để chèn nhanh</div>
+              </div>
+              <div class="col-12">
+                <label class="form-label fw-semibold">Nội dung <span class="text-danger">*</span></label>
+                <textarea
+                  class="form-control"
+                  formControlName="content"
+                  rows="8"
+                  placeholder="Nội dung mẫu phản hồi..."
+                  id="input-canned-content"
+                  [class.is-invalid]="form.get('content')?.invalid && form.get('content')?.touched"
+                ></textarea>
+                <div class="invalid-feedback">Nội dung là bắt buộc</div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Danh mục liên quan</label>
+                <select class="form-select" formControlName="categoryId">
+                  <option [ngValue]="null">— Tất cả danh mục —</option>
+                  @for (cat of categories; track cat.id) {
+                    <option [value]="cat.id">{{ cat.name }}</option>
+                  }
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Phòng ban liên quan</label>
+                <select class="form-select" formControlName="departmentId">
+                  <option [ngValue]="null">— Tất cả phòng ban —</option>
+                  @for (dept of departments; track dept.id) {
+                    <option [value]="dept.id">{{ dept.name }}</option>
+                  }
+                </select>
+              </div>
+              <div class="col-auto">
+                <div class="form-check form-switch mt-2">
+                  <input class="form-check-input" type="checkbox" formControlName="isActive" id="sw-canned-active" />
+                  <label class="form-check-label" for="sw-canned-active">Đang hoạt động</label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer border-0">
+            <button type="button" class="btn btn-outline-secondary" (click)="closeModal()"><i class="fas fa-times me-1"></i>Hủy</button>
+            <button type="submit" class="btn btn-primary" [disabled]="form.invalid"><i class="fas fa-save me-1"></i>{{ isEditing ? 'Cập nhật' : 'Tạo mới' }}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+}
