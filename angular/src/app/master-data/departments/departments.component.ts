@@ -4,8 +4,8 @@ import { ReactiveFormsModule, FormsModule, FormBuilder, FormGroup, Validators } 
 import { ListService } from '@abp/ng.core';
 import { ConfirmationService, Confirmation } from '@abp/ng.theme.shared';
 import { NgbPaginationModule } from '@ng-bootstrap/ng-bootstrap';
-import { DepartmentDto, DepartmentGetListInput, CreateUpdateDepartmentDto } from '../../proxy/helpdesk/models';
-import { DepartmentService } from '../../proxy/helpdesk/department.service';
+import { DepartmentDto, DepartmentGetListInput, CreateUpdateDepartmentDto } from '../../proxy/departments/models';
+import { DepartmentService } from '../../proxy/departments/department.service';
 
 @Component({
   selector: 'app-departments',
@@ -33,7 +33,6 @@ export class DepartmentsComponent implements OnInit {
     code: ['', [Validators.required, Validators.maxLength(50)]],
     name: ['', [Validators.required, Validators.maxLength(200)]],
     description: ['', Validators.maxLength(500)],
-    email: ['', Validators.maxLength(256)],
     managerId: [null],
     isActive: [true],
   });
@@ -60,7 +59,13 @@ export class DepartmentsComponent implements OnInit {
   openEditModal(item: DepartmentDto): void {
     this.isEditing = true;
     this.selectedId = item.id;
-    this.form.patchValue(item);
+    this.form.patchValue({
+      code: item.code,
+      name: item.name,
+      description: item.description,
+      managerId: item.managerId,
+      isActive: item.isActive,
+    });
     this.isModalOpen = true;
   }
 
@@ -74,9 +79,9 @@ export class DepartmentsComponent implements OnInit {
   }
 
   delete(item: DepartmentDto): void {
-    this.confirmation.warn('::AreYouSureToDelete', '::AreYouSure', { messageLocalizationParams: [item.name] })
+    this.confirmation.warn('::AreYouSureToDelete', '::AreYouSure', { messageLocalizationParams: [item.name ?? ''] })
       .subscribe((s: Confirmation.Status) => {
-        if (s === Confirmation.Status.confirm) this.svc.delete(item.id).subscribe(() => this.list.get());
+        if (s === Confirmation.Status.confirm && item.id) this.svc.delete(item.id).subscribe(() => this.list.get());
       });
   }
 }

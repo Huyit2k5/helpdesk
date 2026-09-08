@@ -28,9 +28,9 @@
           <thead class="table-light">
             <tr>
               <th>Tiêu đề</th>
-              <th style="width: 120px">Phím tắt</th>
+              <th>Danh mục</th>
               <th class="text-center" style="width: 100px">Sử dụng</th>
-              <th class="text-center" style="width: 100px">Trạng thái</th>
+              <th class="text-center" style="width: 120px">Phạm vi</th>
               <th class="text-center" style="width: 120px">Thao tác</th>
             </tr>
           </thead>
@@ -42,16 +42,16 @@
                   <small class="text-muted text-truncate d-block" style="max-width: 400px">{{ item.content }}</small>
                 </td>
                 <td>
-                  @if (item.shortcut) {
-                    <kbd class="border rounded px-2 py-1 bg-light text-dark small">/{{ item.shortcut }}</kbd>
+                  @if (item.categoryName) {
+                    <span class="badge bg-light text-dark border">{{ item.categoryName }}</span>
                   } @else { <span class="text-muted">—</span> }
                 </td>
                 <td class="text-center">
-                  <span class="badge bg-light text-dark border">{{ item.usageCount }}</span>
+                  <span class="badge bg-light text-dark border">{{ item.usageCount ?? 0 }}</span>
                 </td>
                 <td class="text-center">
-                  @if (item.isActive) { <span class="badge bg-success-subtle text-success border border-success-subtle">Hoạt động</span> }
-                  @else { <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">Tạm ngừng</span> }
+                  @if (item.isPublic) { <span class="badge bg-success-subtle text-success border border-success-subtle">Công khai</span> }
+                  @else { <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">Nội bộ</span> }
                 </td>
                 <td class="text-center">
                   <button class="btn btn-sm btn-outline-primary me-1" (click)="openEditModal(item)"><i class="fas fa-edit"></i></button>
@@ -74,7 +74,7 @@
 
 @if (isModalOpen) {
   <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5)">
-    <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
       <div class="modal-content border-0 shadow-lg">
         <div class="modal-header border-0">
           <h5 class="modal-title fw-bold"><i class="fas fa-comment-dots me-2" style="color:#0d9488"></i>{{ isEditing ? 'Sửa mẫu phản hồi' : 'Thêm mẫu phản hồi' }}</h5>
@@ -83,32 +83,24 @@
         <form [formGroup]="form" (ngSubmit)="save()">
           <div class="modal-body">
             <div class="row g-3">
-              <div class="col-md-9">
+              <div class="col-12">
                 <label class="form-label fw-semibold">Tiêu đề <span class="text-danger">*</span></label>
                 <input type="text" class="form-control" formControlName="title" placeholder="Tiêu đề mẫu phản hồi" id="input-canned-title" [class.is-invalid]="form.get('title')?.invalid && form.get('title')?.touched" />
                 <div class="invalid-feedback">Tiêu đề là bắt buộc</div>
-              </div>
-              <div class="col-md-3">
-                <label class="form-label fw-semibold">Phím tắt</label>
-                <div class="input-group">
-                  <span class="input-group-text">/</span>
-                  <input type="text" class="form-control" formControlName="shortcut" placeholder="vd: thanks" />
-                </div>
-                <div class="form-text">Gõ /shortcut để chèn nhanh</div>
               </div>
               <div class="col-12">
                 <label class="form-label fw-semibold">Nội dung <span class="text-danger">*</span></label>
                 <textarea
                   class="form-control"
                   formControlName="content"
-                  rows="8"
+                  rows="6"
                   placeholder="Nội dung mẫu phản hồi..."
                   id="input-canned-content"
                   [class.is-invalid]="form.get('content')?.invalid && form.get('content')?.touched"
                 ></textarea>
                 <div class="invalid-feedback">Nội dung là bắt buộc</div>
               </div>
-              <div class="col-md-6">
+              <div class="col-md-8">
                 <label class="form-label fw-semibold">Danh mục liên quan</label>
                 <select class="form-select" formControlName="categoryId">
                   <option [ngValue]="null">— Tất cả danh mục —</option>
@@ -117,19 +109,10 @@
                   }
                 </select>
               </div>
-              <div class="col-md-6">
-                <label class="form-label fw-semibold">Phòng ban liên quan</label>
-                <select class="form-select" formControlName="departmentId">
-                  <option [ngValue]="null">— Tất cả phòng ban —</option>
-                  @for (dept of departments; track dept.id) {
-                    <option [value]="dept.id">{{ dept.name }}</option>
-                  }
-                </select>
-              </div>
-              <div class="col-auto">
-                <div class="form-check form-switch mt-2">
-                  <input class="form-check-input" type="checkbox" formControlName="isActive" id="sw-canned-active" />
-                  <label class="form-check-label" for="sw-canned-active">Đang hoạt động</label>
+              <div class="col-md-4 d-flex align-items-end">
+                <div class="form-check form-switch mb-2">
+                  <input class="form-check-input" type="checkbox" formControlName="isPublic" id="sw-canned-public" />
+                  <label class="form-check-label" for="sw-canned-public">Công khai</label>
                 </div>
               </div>
             </div>

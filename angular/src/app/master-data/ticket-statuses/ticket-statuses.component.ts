@@ -4,8 +4,9 @@ import { ReactiveFormsModule, FormsModule, FormBuilder, FormGroup, Validators } 
 import { ListService } from '@abp/ng.core';
 import { ConfirmationService, Confirmation } from '@abp/ng.theme.shared';
 import { NgbPaginationModule } from '@ng-bootstrap/ng-bootstrap';
-import { TicketStatusDto, TicketStatusGetListInput, CreateUpdateTicketStatusDto, StatusGroup } from '../../proxy/helpdesk/models';
-import { TicketStatusService } from '../../proxy/helpdesk/ticket-status.service';
+import { TicketStatusDto, TicketStatusGetListInput, CreateUpdateTicketStatusDto } from '../../proxy/ticket-statuses/models';
+import { StatusGroup } from '../../proxy/categories/status-group.enum';
+import { TicketStatusService } from '../../proxy/ticket-statuses/ticket-status.service';
 
 @Component({
   selector: 'app-ticket-statuses',
@@ -52,13 +53,11 @@ export class TicketStatusesComponent implements OnInit {
   form: FormGroup = this.fb.group({
     code: ['', [Validators.required, Validators.maxLength(50)]],
     name: ['', [Validators.required, Validators.maxLength(200)]],
-    description: ['', Validators.maxLength(500)],
-    group: [StatusGroup.Open, Validators.required],
-    colorHex: ['#6c757d', Validators.required],
-    sortOrder: [0],
+    statusGroup: [StatusGroup.Open, Validators.required],
+    color: ['#6c757d', Validators.required],
+    order: [0],
     isDefault: [false],
     isFinal: [false],
-    isActive: [true],
   });
 
   ngOnInit(): void {
@@ -76,14 +75,22 @@ export class TicketStatusesComponent implements OnInit {
   openCreateModal(): void {
     this.isEditing = false;
     this.selectedId = undefined;
-    this.form.reset({ isActive: true, isDefault: false, isFinal: false, group: StatusGroup.Open, colorHex: '#6c757d', sortOrder: 0 });
+    this.form.reset({ isDefault: false, isFinal: false, statusGroup: StatusGroup.Open, color: '#6c757d', order: 0 });
     this.isModalOpen = true;
   }
 
   openEditModal(item: TicketStatusDto): void {
     this.isEditing = true;
     this.selectedId = item.id;
-    this.form.patchValue(item);
+    this.form.patchValue({
+      code: item.code,
+      name: item.name,
+      statusGroup: item.statusGroup ?? StatusGroup.Open,
+      color: item.color || '#6c757d',
+      order: item.order ?? 0,
+      isDefault: item.isDefault ?? false,
+      isFinal: item.isFinal ?? false,
+    });
     this.isModalOpen = true;
   }
 
@@ -91,15 +98,15 @@ export class TicketStatusesComponent implements OnInit {
 
   save(): void {
     if (this.form.invalid) return;
-    const input: CreateUpdateTicketStatusDto = { ...this.form.value, group: Number(this.form.value.group) };
+    const input: CreateUpdateTicketStatusDto = { ...this.form.value, statusGroup: Number(this.form.value.statusGroup) };
     const req = this.isEditing ? this.svc.update(this.selectedId!, input) : this.svc.create(input);
     req.subscribe(() => { this.isModalOpen = false; this.list.get(); });
   }
 
   delete(item: TicketStatusDto): void {
-    this.confirmation.warn('::AreYouSureToDelete', '::AreYouSure', { messageLocalizationParams: [item.name] })
+    this.confirmation.warn('::AreYouSureToDelete', '::AreYouSure', { messageLocalizationParams: [item.name ?? ''] })
       .subscribe((s: Confirmation.Status) => {
-        if (s === Confirmation.Status.confirm) this.svc.delete(item.id).subscribe(() => this.list.get());
+        if (s === Confirmation.Status.confirm && item.id) this.svc.delete(item.id).subscribe(() => this.list.get());
       });
   }
 }

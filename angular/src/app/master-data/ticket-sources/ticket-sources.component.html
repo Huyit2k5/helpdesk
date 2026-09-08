@@ -29,8 +29,6 @@
             <tr>
               <th>Mã</th>
               <th>Tên kênh</th>
-              <th class="text-center">Icon class</th>
-              <th class="text-center">Mặc định</th>
               <th class="text-center">Trạng thái</th>
               <th class="text-center" style="width: 120px">Thao tác</th>
             </tr>
@@ -41,15 +39,8 @@
                 <td><code class="text-primary">{{ item.code }}</code></td>
                 <td>
                   <div class="fw-semibold">
-                    @if (item.icon) { <i [class]="item.icon + ' me-2 text-muted'"></i> }
                     {{ item.name }}
                   </div>
-                  @if (item.description) { <small class="text-muted">{{ item.description }}</small> }
-                </td>
-                <td class="text-center"><code class="text-muted">{{ item.icon || '—' }}</code></td>
-                <td class="text-center">
-                  @if (item.isDefault) { <span class="badge bg-primary-subtle text-primary border border-primary-subtle">Mặc định</span> }
-                  @else { <span class="text-muted">—</span> }
                 </td>
                 <td class="text-center">
                   @if (item.isActive) { <span class="badge bg-success-subtle text-success border border-success-subtle">Hoạt động</span> }
@@ -61,7 +52,7 @@
                 </td>
               </tr>
             } @empty {
-              <tr><td colspan="6" class="text-center py-5 text-muted"><i class="fas fa-inbox fa-3x mb-3 d-block opacity-25"></i>Chưa có dữ liệu</td></tr>
+              <tr><td colspan="4" class="text-center py-5 text-muted"><i class="fas fa-inbox fa-3x mb-3 d-block opacity-25"></i>Chưa có dữ liệu</td></tr>
             }
           </tbody>
         </table>
@@ -96,21 +87,6 @@
                 <div class="invalid-feedback">Tên là bắt buộc</div>
               </div>
               <div class="col-12">
-                <label class="form-label fw-semibold">Icon CSS class</label>
-                <input type="text" class="form-control" formControlName="icon" placeholder="VD: fas fa-envelope" />
-                <div class="form-text">Font Awesome icon class (ví dụ: fas fa-envelope)</div>
-              </div>
-              <div class="col-12">
-                <label class="form-label fw-semibold">Mô tả</label>
-                <textarea class="form-control" formControlName="description" rows="2" placeholder="Mô tả kênh tiếp nhận"></textarea>
-              </div>
-              <div class="col-md-6">
-                <div class="form-check form-switch">
-                  <input class="form-check-input" type="checkbox" formControlName="isDefault" id="sw-source-default" />
-                  <label class="form-check-label" for="sw-source-default">Kênh mặc định</label>
-                </div>
-              </div>
-              <div class="col-md-6">
                 <div class="form-check form-switch">
                   <input class="form-check-input" type="checkbox" formControlName="isActive" id="sw-source-active" />
                   <label class="form-check-label" for="sw-source-active">Đang hoạt động</label>

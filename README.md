@@ -1,277 +1,193 @@
 # 🎫 HỆ THỐNG QUẢN LÝ HỖ TRỢ KỸ THUẬT (HELPDESK SYSTEM)
 
-Dự án xây dựng hệ thống Helpdesk doanh nghiệp hiện đại, đa kênh (Omnichannel), hỗ trợ Multi-tenancy và SLA dựa trên nền tảng **ABP Framework v10.6**, **.NET 10**, **PostgreSQL** và **Angular 22**.
+Dự án xây dựng hệ thống Helpdesk doanh nghiệp hiện đại, đa kênh (Omnichannel), hỗ trợ Multi-tenancy và SLA dựa trên nền tảng **ABP Framework v10.6**, **.NET 10**, **PostgreSQL** và **Angular 19 (Standalone)**.
 
 ---
 
 ## 📑 MỤC LỤC
 
-1. [Tổng Quan Dự Án & Kiến Trúc](#-tổng-quan-dự-án--kiến-trúc)
-2. [Lộ Trình Triển Khai (Roadmap 7 Phân Hệ)](#-lộ-trình-triển-khai-roadmap-7-phân-hệ)
-3. [Báo Cáo Triển Khai Phân Hệ 1: Master Data](#-báo-cáo-triển-khai-phân-hệ-1-quản-lý-danh-mục-master-data)
-   - [3.1. Thiết Kế & Cấu Trúc Thực Thể (Entities)](#31-thiết-kế--cấu-trúc-thực-thể-entities)
-   - [3.2. Chi Tiết Các Tầng Kiến Trúc DDD](#32-chi-tiết-các-tầng-kiến-trúc-ddd)
-   - [3.3. Ma Trận Phân Quyền (Permissions)](#33-ma-trận-phân-quyền-permissions)
-   - [3.4. Dữ Liệu Khởi Tạo Mặc Định (Data Seeder)](#34-dữ-liệu-khởi-tạo-mặc-định-data-seeder)
-   - [3.5. Bảng Thống Kê Các File Triển Khai](#35-bảng-thống-kê-các-file-triển-khai)
-4. [Hướng Dẫn Vận Hành & Khởi Chạy](#-hướng-dẫn-vận-hành--khởi-chạy)
-   - [4.1. Tạo Migration & Cập Nhật Database](#41-tạo-migration--cập-nhật-database)
-   - [4.2. Khởi Chạy Backend API (Swagger)](#42-khởi-chạy-backend-api-swagger)
-   - [4.3. Hướng Dẫn Angular Frontend](#43-hướng-dẫn-angular-frontend)
-5. [Kế Hoạch Tiếp Theo](#-kế-hoạch-tiếp-theo)
+1. [Tổng Quan Kiến Trúc & Công Nghệ](#-tổng-quan-kiến-trúc--công-nghệ)
+2. [Lộ Trình Triển Khai (Roadmap)](#-lộ-trình-triển-khai-roadmap)
+3. [Tóm Tắt Các Phần Đã Triển Khai](#-tóm-tắt-các-phần-đã-triển-khai)
+   - [Phân Hệ 1: Quản Lý Danh Mục (Master Data)](#31-phân-hệ-1-quản-lý-danh-mục-master-data)
+   - [Phân Hệ 2: Quản Lý Sự Vụ Cốt Lõi (Ticket Core)](#32-phân-hệ-2-quản-lý-sự-vụ-cốt-lõi-ticket-core)
+4. [Hướng Dẫn Khởi Chạy & Đăng Nhập](#-hướng-dẫn-khởi-chạy--đăng-nhập)
+5. [Các Lỗi Đã Xảy Ra & Cách Khắc Phục (Troubleshooting)](#-các-lỗi-đã-xảy-ra--cách-khắc-phục-troubleshooting)
 
 ---
 
-## 🏛️ TỔNG QUAN DỰ ÁN & KIẾN TRÚC
+## 🏛️ TỔNG QUAN KIẾN TRÚC & CÔNG NGHỆ
 
-### 1. Công Nghệ Sử Dụng
-- **Backend**: .NET 10.0, C# 13, ABP Framework v10.6.0
-- **Database**: PostgreSQL 16+ với Entity Framework Core 10
-- **Architecture**: Domain-Driven Design (DDD) phân tầng chuẩn mực
-- **Multi-Tenancy**: Sẵn sàng cho mô hình SaaS (`IMultiTenant`)
-- **Frontend**: Angular 22, ABP Angular packages, Bootstrap / NgRx
-
-### 2. Cấu Trúc Solution
-```
-Helpdesk/
-├── src/
-│   ├── Helpdesk.Domain.Shared/       # Hằng số, Enum, ErrorCodes, Localization
-│   ├── Helpdesk.Domain/              # Entities, Domain Managers, Repositories (Interface), Data Seeder
-│   ├── Helpdesk.Application.Contracts/ # DTOs, Permissions, Service Interfaces
-│   ├── Helpdesk.Application/         # Application Services thực thi nghiệp vụ (CRUD, Mapping, Rules)
-│   ├── Helpdesk.EntityFrameworkCore/ # DbContext, Fluent Configurations, EF Core Repositories
-│   ├── Helpdesk.HttpApi/             # API Controllers (auto-api)
-│   ├── Helpdesk.HttpApi.Host/        # Host API Web App, OpenIddict, Swagger UI
-│   └── Helpdesk.DbMigrator/          # Console tool chạy Migrations & Data Seeders
-├── angular/                          # Single Page Application (Angular)
-└── test/                             # Unit & Integration Tests cho từng tầng
-```
+- **Backend**: .NET 10.0, C# 13, ABP Framework v10.6.0 (Domain-Driven Design).
+- **Database**: PostgreSQL 17 (Docker), Entity Framework Core 10.
+- **Frontend**: Angular 19 (Standalone Components), Bootstrap 5, FontAwesome, ABP Angular SDK.
+- **Authentication & Security**: OpenIddict, JWT Bearer Token, RBAC Permissions.
 
 ---
 
-## 🗺️ LỘ TRÌNH TRIỂN KHAI (ROADMAP 7 PHÂN HỆ)
+## 🗺️ LỘ TRÌNH TRIỂN KHAI (ROADMAP)
 
-| STT | Phân Hệ | Mục Tiêu & Chức Năng Chính | Trạng Thái |
+| STT | Phân Hệ | Chức Năng Chính | Trạng Thái |
 |:---:|:---|:---|:---:|
-| **1** | **Quản Lý Danh Mục (Master Data)** | Phân loại Category, Priority, Department, Status, Source, Canned Response | **Hoàn thành (Backend)** |
-| **2** | **Quản Lý Ticket Cốt Lõi (Ticket Core)** | Vòng đời vé hỗ trợ, chuyển trạng thái, phân công, bình luận, đính kèm tệp | Chuẩn bị triển khai |
-| **3** | **Quản Lý Cam Kết Dịch Vụ (SLA Engine)** | Định nghĩa quy tắc SLA, cảnh báo trễ hạn, tính giờ làm việc (Business Hours) | Lập kế hoạch |
-| **4** | **Báo Cáo & Thống Kê (Dashboard & Analytics)** | KPI xử lý, phân tích theo nhân viên/phòng ban, biểu đồ xu hướng | Lập kế hoạch |
-| **5** | **Hệ Thống Thông Báo (Notifications)** | Real-time SignalR, Email thông báo cập nhật vé, nhắc hạn tự động | Lập kế hoạch |
-| **6** | **Cơ Sở Tri Thức (Knowledge Base - FAQ)** | Bài viết hướng dẫn tự phục vụ, giải đáp thắc mắc người dùng | Lập kế hoạch |
-| **7** | **Cổng Khách Hàng (Customer Portal)** | Giao diện riêng cho khách hàng theo dõi vé, đánh giá chất lượng dịch vụ | Lập kế hoạch |
+| **1** | **Quản Lý Danh Mục (Master Data)** | Quản lý Categories, Priorities, Departments, Statuses, Sources, Canned Responses | **Hoàn thành (Backend + Frontend)** |
+| **2** | **Quản Lý Ticket (Ticket Core)** | Vòng đời vé, sinh mã tự động, chuyển trạng thái, phân công, bình luận, Kanban, Timeline | **Hoàn thành (Backend + Frontend)** |
+| **3** | **Quản Lý Cam Kết Dịch Vụ (SLA Engine)** | Quy tắc tính SLA theo giờ làm việc, cảnh báo vi phạm hạn xử lý | Sắp triển khai |
+| **4** | **Báo Cáo & Thống Kê (Dashboard)** | Biểu đồ trực quan, KPI xử lý sự vụ theo nhân viên và phòng ban | Kế hoạch |
+| **5** | **Hệ Thống Thông Báo (Notifications)** | Thông báo thời gian thực qua SignalR & Email | Kế hoạch |
+| **6** | **Cơ Sở Tri Thức (Knowledge Base - FAQ)**| Thư viện bài viết tự phục vụ người dùng | Kế hoạch |
+| **7** | **Cổng Khách Hàng (Customer Portal)** | Portal riêng để người dùng tạo và tra cứu tiến độ vé | Kế hoạch |
 
 ---
 
-## 🚀 BÁO CÁO TRIỂN KHAI PHÂN HỆ 1: QUẢN LÝ DANH MỤC (MASTER DATA)
+## 🚀 TÓM TẮT CÁC PHẦN ĐÃ TRIỂN KHAI
 
-### 3.1. Thiết Kế & Cấu Trúc Thực Thể (Entities)
+### 3.1. Phân Hệ 1: Quản Lý Danh Mục (Master Data)
 
-Toàn bộ 6 thực thể được thiết kế tuân thủ nghiêm ngặt nguyên lý DDD:
-- Kế thừa `FullAuditedAggregateRoot<Guid>` (tự động theo dõi `CreationTime`, `CreatorId`, `LastModificationTime`, `IsDeleted`, `DeleterId`...)
-- Thực thi interface `IMultiTenant` (phục vụ tách biệt dữ liệu theo TenantId)
-- Encapsulation: Dùng private setters, cập nhật thuộc tính thông qua constructor và domain methods với validation kiểm tra null/empty/độ dài.
+Đã hoàn thành toàn diện 6 mô-đun danh mục cấu hình hệ thống:
 
-```
-                    ┌─────────────────────────┐
-                    │      Department         │
-                    │ (Phòng ban chuyên trách)│
-                    └───────────┬─────────────┘
-                                │ 1:N
-┌──────────────────┐   ┌────────▼────────┐   ┌──────────────────┐
-│     Priority     │   │    Category     │   │   TicketStatus   │
-│ (Mức ưu tiên)    │   │ (Cây phân cấp)  │   │  (Trạng thái vé) │
-└──────────────────┘   └────────┬────────┘   └──────────────────┘
-                                │ 1:N
-┌──────────────────┐   ┌────────▼────────┐
-│   TicketSource   │   │ CannedResponse  │
-│ (Kênh tiếp nhận) │   │ (Mẫu phản hồi)  │
-└──────────────────┘   └─────────────────┘
-```
+1. **Category (Danh mục sự cố)**: Phân loại đa cấp cha-con, quản lý mã, tên, mô tả.
+2. **Priority (Mức độ ưu tiên)**: Quản lý mức khẩn cấp, gắn mã màu hiển thị, định nghĩa thời gian phản hồi và xử lý SLA tiêu chuẩn (`Low`, `Medium`, `High`, `Critical`).
+3. **Department (Phòng ban xử lý)**: Quản lý phòng ban kỹ thuật, hỗ trợ viên, người quản lý phòng ban.
+4. **TicketStatus (Trạng thái vé)**: Phân nhóm trạng thái (`Open`, `InProgress`, `Closed`), đánh dấu trạng thái mặc định (`isDefault`) và kết thúc (`isFinal`).
+5. **TicketSource (Kênh tiếp nhận)**: Kênh phát sinh yêu cầu (`Email`, `Phone`, `Web Portal`, `Chat`, `Walk-in`).
+6. **CannedResponse (Mẫu phản hồi nhanh)**: Thư viện soạn sẵn câu trả lời mẫu cho hỗ trợ viên, gắn theo danh mục, phạm vi công khai hoặc nội bộ.
 
-#### 1. Category (Danh mục hỗ trợ)
-- **Mục đích**: Phân loại yêu cầu hỗ trợ theo lĩnh vực kỹ thuật/nghiệp vụ.
-- **Tính năng đặc biệt**: Hỗ trợ cây phân cấp cha - con qua `ParentId`, cấu hình `SupportEmail` riêng cho từng danh mục.
-- **Các trường chính**: `Code`, `Name`, `Description`, `ParentId`, `SortOrder`, `IsActive`, `SupportEmail`.
-
-#### 2. Priority (Mức độ ưu tiên)
-- **Mục đích**: Xác định tính cấp bách của sự cố và chuẩn hóa thời hạn phản hồi/xử lý.
-- **Tính năng đặc biệt**: Tích hợp sẵn `FirstResponseHours` và `ResolutionHours` (chuẩn bị cho SLA Engine), mã màu `ColorHex` phục vụ giao diện.
-- **Các trường chính**: `Code`, `Name`, `Description`, `Level` (int), `ColorHex`, `FirstResponseHours`, `ResolutionHours`, `IsDefault`, `IsActive`.
-
-#### 3. Department (Phòng ban xử lý)
-- **Mục đích**: Nhóm kỹ thuật viên và bộ phận chịu trách nhiệm giải quyết yêu cầu.
-- **Tính năng đặc biệt**: Liên kết trực tiếp tới người phụ trách `ManagerId` (`IdentityUser`).
-- **Các trường chính**: `Code`, `Name`, `Description`, `Email`, `ManagerId`, `IsActive`.
-
-#### 4. TicketStatus (Trạng thái vé)
-- **Mục đích**: Kiểm soát từng giai đoạn trong vòng đời xử lý vé.
-- **Tính năng đặc biệt**: Phân nhóm bằng Enum `StatusGroup` (`Open`, `InProgress`, `Closed`), đánh dấu cờ `IsDefault` (trạng thái lúc tạo) và `IsFinal` (trạng thái đóng/kết thúc).
-- **Các trường chính**: `Code`, `Name`, `Description`, `Group`, `ColorHex`, `SortOrder`, `IsDefault`, `IsFinal`, `IsActive`.
-
-#### 5. TicketSource (Kênh tiếp nhận)
-- **Mục đích**: Nhận diện nguồn gốc phát sinh yêu cầu hỗ trợ.
-- **Các trường chính**: `Code`, `Name`, `Description`, `Icon`, `IsDefault`, `IsActive`.
-
-#### 6. CannedResponse (Mẫu câu trả lời sẵn)
-- **Mục đích**: Tăng tốc độ và tính chuẩn hóa khi hỗ trợ viên phản hồi các câu hỏi lặp lại.
-- **Tính năng đặc biệt**: Hỗ trợ phím tắt gợi ý `Shortcut`, liên kết theo `CategoryId` và `DepartmentId`, bộ đếm số lần sử dụng `UsageCount`.
-- **Các trường chính**: `Title`, `Content`, `Shortcut`, `CategoryId`, `DepartmentId`, `UsageCount`, `IsActive`.
+- **Backend**: Entity, Domain Manager kiểm tra trùng mã `Code`, EF Core mapping, Migration `Added_MasterData_Entities`, Seeder tự động nạp dữ liệu chuẩn, 24 quyền hạn `Helpdesk.*`.
+- **Frontend Angular**: 6 màn hình CRUD danh mục độc lập tại `/master-data/*`, hỗ trợ tìm kiếm, phân trang, Modal Reactive Form, xác nhận xóa.
 
 ---
 
-### 3.2. Chi Tiết Các Tầng Kiến Trúc DDD
+### 3.2. Phân Hệ 2: Quản Lý Sự Vụ Cốt Lõi (Ticket Core)
 
-#### 1. Tầng Domain.Shared
-- **Constants**: `CategoryConsts`, `PriorityConsts`, `DepartmentConsts`, `TicketStatusConsts`, `TicketSourceConsts`, `CannedResponseConsts` chuẩn hóa MaxLengths.
-- **Enums**: `StatusGroup` (`Open = 1`, `InProgress = 2`, `Closed = 3`).
-- **Error Codes**: `HelpdeskDomainErrorCodes` định nghĩa lỗi vi phạm dữ liệu (mã trùng lặp).
-- **Localization**: Bổ sung hơn 110 nhãn dịch tiếng Anh trong `en.json` cho toàn bộ thực thể, trường thuộc tính và thông điệp lỗi.
+Trọng tâm vận hành của Helpdesk, xử lý toàn bộ vòng đời của yêu cầu hỗ trợ:
 
-#### 2. Tầng Domain
-- **6 Aggregate Roots**: Cài đặt logic nghiệp vụ cốt lõi, bảo vệ tính toàn vẹn dữ liệu.
-- **5 Domain Managers**: `CategoryManager`, `PriorityManager`, `DepartmentManager`, `TicketStatusManager`, `TicketSourceManager` chịu trách nhiệm validate tính duy nhất của `Code` trong cùng Tenant trước khi thêm mới hoặc cập nhật.
-- **6 Custom Repository Interfaces**: Khai báo các phương thức nghiệp vụ chuyên biệt (`FindByCodeAsync`, `GetListWithDetailsAsync`...).
-- **Data Seeder**: `HelpdeskDataSeedContributor` tự động nạp dữ liệu mẫu ban đầu khi khởi tạo hệ thống.
+#### A. Backend (.NET 10 & EF Core)
+- **Aggregate Root `Ticket`**: Quản lý toàn bộ thông tin sự vụ, mã vé `TicketNumber`, tiêu đề, mô tả, thông tin người yêu cầu (Tên, Email, Điện thoại), liên kết Danh mục, Ưu tiên, Trạng thái, Kênh tiếp nhận, Phòng ban và Người phụ trách (`AssigneeId`), hạn SLA (`DueDate`), thời điểm giải quyết (`ResolvedAt`), đóng vé (`ClosedAt`).
+- **Domain Service `TicketManager`**: Tự động sinh mã sự vụ chuẩn định dạng duy nhất `TK-yyyyMMdd-XXXX` (ví dụ: `TK-20260908-0001`).
+- **Entity `TicketComment`**: Hỗ trợ trao đổi công khai với khách hàng hoặc ghi chú nội bộ kỹ thuật (`IsInternal = true`).
+- **Entity `TicketActivity` & Enum `TicketActivityType`**: Tự động ghi nhật ký kiểm toán (Audit Trail) khi tạo vé, đổi trạng thái, gán người xử lý, thêm bình luận...
+- **Application Service `TicketAppService`**: Triển khai đầy đủ CRUD, đa tiêu chí lọc linh hoạt (từ khóa, status, priority, category, department, assignee), các API chuyên biệt: `AssignAsync`, `ChangeStatusAsync`, `AddCommentAsync`, `GetActivitiesAsync`.
+- **CSDL**: Đã chạy Migration `20260908042328_Add_Tickets_Module` vào PostgreSQL, tạo sẵn các Index tối ưu hóa truy vấn (`IX_AppTickets_TicketNumber`, `IX_AppTickets_StatusId`, `IX_AppTickets_AssigneeId`, `IX_AppTickets_CreationTime`).
+- **Phân quyền**: Bổ sung nhóm quyền `Helpdesk.Tickets` (`Create`, `Edit`, `Delete`, `Assign`, `ChangeStatus`, `AddComment`) và đã cấp toàn quyền cho vai trò `admin`.
 
-#### 3. Tầng Application.Contracts
-- **DTOs**: Thiết kế tách biệt `*Dto`, `CreateUpdate*Dto`, `*GetListInput` (hỗ trợ phân trang, sắp xếp và lọc theo từ khóa, trạng thái active).
-- **Lookup DTOs**: `CategoryLookupDto` phục vụ dropdown cha-con.
-- **Interfaces**: Kế thừa `ICrudAppService<TEntityDto, Guid, TGetListInput, TCreateUpdateDto>`.
-- **Permissions**: Khai báo cấu trúc quyền 4 cấp (Default, Create, Update, Delete) cho cả 6 danh mục.
-
-#### 4. Tầng Application
-- **6 Application Services**: Kế thừa `CrudAppService`, tích hợp sẵn Authorization Policies cho từng hành động.
-- Áp dụng Domain Manager trong pipeline `CreateAsync` và `UpdateAsync`.
-- Tối ưu hóa truy vấn `CreateFilteredQueryAsync` hỗ trợ tìm kiếm đa trường và lọc trạng thái linh hoạt.
-
-#### 5. Tầng EntityFrameworkCore
-- **DbContext & Fluent API**: Cấu hình bảng dữ liệu qua `HelpdeskDbContextModelCreatingExtensions` với tiền tố bảng `App` (ví dụ: `AppCategories`, `AppPriorities`...).
-- **Database Indexes**: Tạo Composite Index trên `[TenantId, Code]` (Unique Index) và `[TenantId, IsActive]` để tối ưu hóa hiệu năng truy vấn.
-- **6 EF Core Repositories**: Thực thi đầy đủ các repository interfaces tùy biến.
+#### B. Frontend (Angular 19 Standalone)
+- **Chế độ xem kép (Dual View)**:
+  - **Dạng Bảng (Table View)**: Hiển thị danh sách vé đầy đủ cột nghiệp vụ, nhãn trạng thái và mức ưu tiên có màu sắc trực quan, phân trang `ngb-pagination`.
+  - **Bảng Kanban (Kanban Board View)**: Nhóm vé theo từng cột trạng thái trực quan, thẻ vé hiển thị người gửi, ưu tiên, người xử lý và số lượng bình luận.
+- **Thanh công cụ lọc đa tiêu chí**: Tìm kiếm theo từ khóa/số vé, dropdown lọc theo Trạng thái, Mức ưu tiên, Danh mục, Nhân viên xử lý; nút đặt lại bộ lọc.
+- **Modal tạo mới sự vụ (`app-ticket-create-modal`)**: Form nhập liệu rõ ràng, chia 3 nhóm thông tin (Thông tin sự vụ, Khách hàng, Phân công), tự động nạp danh mục và trạng thái mặc định.
+- **Trang chi tiết sự vụ (`/tickets/:id`)**:
+  - Header hiển thị mã vé `#TK-xxx`, nhãn trạng thái và ưu tiên, nút thao tác nhanh (Đổi trạng thái, Phân công, Xóa).
+  - Khung soạn thảo phản hồi 2 chế độ: **Phản Hồi Khách Hàng (Public Reply)** vs **Ghi Chú Nội Bộ (Internal Note - nhãn vàng bảo mật)**.
+  - Tích hợp chèn nhanh nội dung từ danh sách **Câu trả lời mẫu (Canned Responses)**.
+  - **Dòng thời gian (Timeline & Audit Trail)**: Hợp nhất lịch sử trao đổi của khách hàng, ghi chú kỹ thuật và nhật ký hành động hệ thống.
+  - Sidebar hiển thị đầy đủ thông tin người gửi, phòng ban, hạn SLA và các mốc thời gian giải quyết/đóng sự vụ.
 
 ---
 
-### 3.3. Ma Trận Phân Quyền (Permissions)
+## 🛠️ HƯỚNG DẪN KHỞI CHẠY & ĐĂNG NHẬP
 
-Tổng cộng **24 permissions** được thiết lập trong `HelpdeskPermissions.cs` và đăng ký vào `HelpdeskPermissionDefinitionProvider.cs`:
-
-| Nhóm Danh Mục | Xem (Default) | Thêm mới (Create) | Sửa (Edit) | Xóa (Delete) |
-|:---|:---:|:---:|:---:|:---:|
-| **Categories** | `Helpdesk.Categories` | `Helpdesk.Categories.Create` | `Helpdesk.Categories.Edit` | `Helpdesk.Categories.Delete` |
-| **Priorities** | `Helpdesk.Priorities` | `Helpdesk.Priorities.Create` | `Helpdesk.Priorities.Edit` | `Helpdesk.Priorities.Delete` |
-| **Departments** | `Helpdesk.Departments` | `Helpdesk.Departments.Create` | `Helpdesk.Departments.Edit` | `Helpdesk.Departments.Delete` |
-| **TicketStatuses** | `Helpdesk.TicketStatuses` | `Helpdesk.TicketStatuses.Create` | `Helpdesk.TicketStatuses.Edit` | `Helpdesk.TicketStatuses.Delete` |
-| **TicketSources** | `Helpdesk.TicketSources` | `Helpdesk.TicketSources.Create` | `Helpdesk.TicketSources.Edit` | `Helpdesk.TicketSources.Delete` |
-| **CannedResponses** | `Helpdesk.CannedResponses` | `Helpdesk.CannedResponses.Create` | `Helpdesk.CannedResponses.Edit` | `Helpdesk.CannedResponses.Delete` |
-
----
-
-### 3.4. Dữ Liệu Khởi Tạo Mặc Định (Data Seeder)
-
-Khi chạy `Helpdesk.DbMigrator`, `HelpdeskDataSeedContributor` sẽ tự động khởi tạo bộ dữ liệu tiêu chuẩn:
-
-1. **Priorities (4 mức)**:
-   - `LOW`: Thấp (Màu xanh lam `#28A745`, Phản hồi 24h, Xử lý 72h)
-   - `MEDIUM`: Trung bình - Mặc định (Màu cam `#FFC107`, Phản hồi 8h, Xử lý 24h)
-   - `HIGH`: Cao (Màu cam đỏ `#FD7E14`, Phản hồi 4h, Xử lý 8h)
-   - `URGENT`: Khẩn cấp (Màu đỏ `#DC3545`, Phản hồi 1h, Xử lý 4h)
-
-2. **TicketStatuses (7 trạng thái)**:
-   - Nhóm `Open`: `NEW` (Mới tiếp nhận - Default), `OPEN` (Đang mở)
-   - Nhóm `InProgress`: `IN_PROGRESS` (Đang xử lý), `PENDING_CUSTOMER` (Chờ khách phản hồi), `PENDING_VENDOR` (Chờ đối tác)
-   - Nhóm `Closed`: `RESOLVED` (Đã giải quyết), `CLOSED` (Đã đóng - IsFinal)
-
-3. **TicketSources (5 kênh)**:
-   - `PORTAL`: Cổng hỗ trợ trực tuyến (Default)
-   - `EMAIL`: Hộp thư hỗ trợ
-   - `PHONE`: Đường dây nóng
-   - `CHAT`: Trực tuyến (Livechat)
-   - `IN_PERSON`: Tiếp nhận trực tiếp
-
-4. **Departments (2 bộ phận mẫu)**:
-   - `IT_SUPPORT`: Bộ phận Hỗ trợ CNTT
-   - `CUSTOMER_SERVICE`: Bộ phận Chăm sóc khách hàng
-
-5. **Categories (5 danh mục mẫu)**:
-   - `HARDWARE`: Sự cố Phần cứng
-   - `SOFTWARE`: Sự cố Phần mềm
-   - `NETWORK`: Mạng & Kết nối
-   - `ACCOUNT`: Tài khoản & Quyền truy cập
-   - `GENERAL`: Yêu cầu chung
-
----
-
-### 3.5. Bảng Thống Kê Các File Triển Khai
-
-| Tầng Dự Án | Số file mới | Số file sửa | Chi tiết chính |
-|:---|:---:|:---:|:---|
-| **Domain.Shared** | 7 | 2 | Constants, Enum, Error Codes, Localization (`en.json`) |
-| **Domain** | 18 | 0 | 6 Entities, 6 Repositories, 5 Domain Managers, Data Seeder |
-| **Application.Contracts** | 20 | 2 | 6 DTOs, 6 Inputs, 6 Interfaces, Permissions |
-| **Application** | 6 | 0 | 6 Application Services (CRUD, validation, mapping) |
-| **EntityFrameworkCore** | 7 | 1 | DbContext, ModelCreatingExtensions, 6 EF Repositories |
-| **TỔNG CỘNG** | **58 files mới** | **5 files sửa** | **Build thành công 100% (0 errors)** |
-
----
-
-## 🛠️ HƯỚNG DẪN VẬN HÀNH & KHỞI CHẠY
-
-### 4.1. Tạo Migration & Cập Nhật Database
-
-> **Yêu cầu**: Đảm bảo PostgreSQL đã chạy (mặc định tại `localhost:5432`, database: `appdb`). Cấu hình chuỗi kết nối trong `appsettings.json`.
-
-Mở terminal tại thư mục gốc `d:\helpdesk\Helpdesk`:
-
-**Bước 1: Tạo EF Core Migration cho 6 thực thể mới**
+### 1. Khởi động CSDL PostgreSQL (Docker)
 ```powershell
-dotnet ef migrations add Added_MasterData_Entities -p src/Helpdesk.EntityFrameworkCore -s src/Helpdesk.HttpApi.Host
+docker start postgres
 ```
 
-**Bước 2: Cập nhật CSDL và tự động nạp dữ liệu mẫu (Seeder)**
+### 2. Khởi động Backend API
 ```powershell
-dotnet run --project src/Helpdesk.DbMigrator
-```
-*Lệnh này sẽ tự động tạo các bảng `AppCategories`, `AppPriorities`, `AppDepartments`... và nạp toàn bộ danh mục mẫu đã định cấu hình.*
-
----
-
-### 4.2. Khởi Chạy Backend API (Swagger)
-
-Khởi động dự án Web API Host:
-```powershell
+cd d:\helpdesk\Helpdesk
 dotnet run --project src/Helpdesk.HttpApi.Host
 ```
-- **URL Swagger UI**: `https://localhost:44346/swagger`
-- Tại đây, bạn sẽ thấy đầy đủ danh sách RESTful APIs cho:
-  - `/api/app/category`
-  - `/api/app/priority`
-  - `/api/app/department`
-  - `/api/app/ticket-status`
-  - `/api/app/ticket-source`
-  - `/api/app/canned-response`
+- API & Swagger UI: `https://localhost:44346/swagger`
+
+### 3. Khởi động Frontend Angular
+```powershell
+cd d:\helpdesk\Helpdesk\angular
+npm start
+```
+- Giao diện ứng dụng: `http://localhost:4200`
+
+### 4. Tài khoản quản trị mặc định
+- **Tài khoản**: `admin`
+- **Mật khẩu**: `Huy123@`
+- **Các đường dẫn chính**:
+  - Quản lý sự vụ (Tickets): `http://localhost:4200/tickets`
+  - Quản lý danh mục (Master Data): `http://localhost:4200/master-data`
 
 ---
 
-### 4.3. Hướng Dẫn Angular Frontend
+## ⚠️ CÁC LỖI ĐÃ XẢY RA & CÁCH KHẮC PHỤC (TROUBLESHOOTING)
 
-Khi sẵn sàng xây dựng màn hình CRUD trên giao diện Angular:
+Trong quá trình phát triển và tích hợp hệ thống, các lỗi phổ biến sau đã xuất hiện và được xử lý triệt để:
 
-1. **Sinh Proxy API cho Angular Client**:
-   ```bash
-   cd angular
-   abp generate-proxy -t ng
-   ```
-2. Thêm module hoặc routing cho các trang quản trị danh mục (Master Data Management).
+### 1. Không nhìn thấy các bảng dữ liệu trong DBeaver
+- **Hiện tượng**: Kết nối PostgreSQL trong DBeaver thành công nhưng khi mở mục `Schemas -> public -> Tables` thì danh sách bảng trống trơn.
+- **Nguyên nhân**: Mặc định DBeaver kết nối vào database hệ thống có tên là `postgres` (database này rỗng). Trong khi toàn bộ 51 bảng của dự án Helpdesk nằm ở database **`appdb`**.
+- **Cách khắc phục**:
+  - **Cách 1**: Chuột phải vào kết nối trong DBeaver $\rightarrow$ **Edit Connection** $\rightarrow$ Tại ô **Database**, đổi từ `postgres` thành **`appdb`** $\rightarrow$ Nhấn **OK**.
+  - **Cách 2**: Trong **Edit Connection** $\rightarrow$ chọn tab **PostgreSQL** $\rightarrow$ tích chọn **Show all databases** $\rightarrow$ mở rộng nhánh `appdb -> Schemas -> public -> Tables`.
+  - *(Lưu ý: Nhấn **F5** để Refresh nếu DBeaver đang lưu cache cũ)*.
 
 ---
 
-## 📌 KẾ HOẠCH TIẾP THEO
+### 2. Lỗi 403 Forbidden khi truy cập trang Tickets trên giao diện Angular
+- **Hiện tượng**: Menu `Tickets` đã xuất hiện trên thanh điều hướng nhưng khi bấm vào bị chặn với thông báo lỗi 403 Forbidden.
+- **Nguyên nhân**:
+  1. Khi bổ sung nhóm quyền mới `Helpdesk.Tickets` trong code, database chưa tự động cấp các quyền này cho vai trò `admin` trong bảng `AbpPermissionGrants`.
+  2. Backend API đang chạy vẫn giữ bộ nhớ đệm (Permission Cache) từ lúc khởi động, chưa nhận diện quyền mới.
+  3. Trên frontend, nếu một API phụ trợ (như nạp danh sách user `IdentityUserService.getList()`) bị từ chối quyền, cơ chế Interceptor mặc định của ABP sẽ chuyển hướng toàn bộ trang sang 403.
+- **Cách khắc phục**:
+  - Cấp toàn bộ 7 quyền `Helpdesk.Tickets.*` cho vai trò `admin` vào bảng `AbpPermissionGrants` trong PostgreSQL:
+    ```sql
+    INSERT INTO "AbpPermissionGrants" ("Id", "Name", "ProviderName", "ProviderKey") VALUES
+    (gen_random_uuid(), 'Helpdesk.Tickets', 'R', 'admin'),
+    (gen_random_uuid(), 'Helpdesk.Tickets.Create', 'R', 'admin'),
+    (gen_random_uuid(), 'Helpdesk.Tickets.Edit', 'R', 'admin'),
+    (gen_random_uuid(), 'Helpdesk.Tickets.Delete', 'R', 'admin'),
+    (gen_random_uuid(), 'Helpdesk.Tickets.Assign', 'R', 'admin'),
+    (gen_random_uuid(), 'Helpdesk.Tickets.ChangeStatus', 'R', 'admin'),
+    (gen_random_uuid(), 'Helpdesk.Tickets.AddComment', 'R', 'admin')
+    ON CONFLICT DO NOTHING;
+    ```
+  - Khởi động lại Backend API (`Helpdesk.HttpApi.Host`) để xóa cache quyền cũ và nạp lại từ database.
+  - Trên Angular: Bỏ cấu hình `requiredPolicy` trên thanh điều hướng top-level menu để menu luôn hiển thị, đồng thời bọc các lệnh gọi API phụ trong `tickets.component.ts` bằng `catchError(() => of(...))` từ RxJS.
 
-- [ ] **Giai đoạn 1.B**: Phát triển giao diện Angular (Data Table, Form Modal, Filter, Tree View cho Category) cho Phân hệ Master Data.
-- [ ] **Giai đoạn 2**: Triển khai **Phân hệ 2 - Ticket Core (Xử lý phiếu hỗ trợ)**:
-  - Aggregate Root `Ticket` (Mã vé tự sinh, Tiêu đề, Mô tả, Khách hàng, Trạng thái, Phân công)
-  - `TicketComment` (Bình luận nội bộ & phản hồi khách hàng)
-  - `TicketAttachment` (Tệp đính kèm)
-  - `TicketActivityLog` (Lịch sử thao tác / Audit Trail)
-- [ ] **Giai đoạn 3**: Triển khai **Phân hệ 3 - SLA Management Engine**.
+---
+
+### 3. Khóa file DLL khi chạy `dotnet build` hoặc `dotnet ef migrations` (Lỗi MSB3027 / MSB3021)
+- **Hiện tượng**: Báo lỗi không thể sao chép hoặc ghi đè file `*.dll` trong thư mục `bin\Debug\net10.0\` vì file đang được sử dụng bởi tiến trình khác (*"The process cannot access the file because it is being used by another process"*).
+- **Nguyên nhân**: Tiến trình Backend `Helpdesk.HttpApi.Host` đang chạy ngầm và giữ khóa (file lock) các DLL của solution.
+- **Cách khắc phục**:
+  - Tắt tiến trình Backend API trước khi biên dịch hoặc tạo migration mới.
+  - Sau khi build / migrate xong xuôi mới chạy lại `dotnet run --project src/Helpdesk.HttpApi.Host`.
+
+---
+
+### 4. Xung đột Async LINQ trong tầng Application (`ToListAsync` vs `AsyncExecuter`)
+- **Hiện tượng**: Gọi trực tiếp `await query.ToListAsync()` hoặc `await query.CountAsync()` trong tầng Application gây lỗi biên dịch hoặc xung đột thư viện EF Core.
+- **Nguyên nhân**: Kiến trúc chuẩn của ABP Framework khuyến nghị tầng Application không phụ thuộc trực tiếp vào package `Microsoft.EntityFrameworkCore` để đảm bảo tính độc lập với ORM.
+- **Cách khắc phục**:
+  - Sử dụng đối tượng `AsyncExecuter` được tích hợp sẵn trong `ApplicationService` của ABP:
+    ```csharp
+    var totalCount = await AsyncExecuter.CountAsync(query);
+    var items = await AsyncExecuter.ToListAsync(query);
+    ```
+
+---
+
+### 5. Lỗi đường dẫn import và sai lệch trường DTO khi chạy `abp generate-proxy -t ng`
+- **Hiện tượng**: Sau khi chạy lệnh sinh mã proxy Angular, một số component cũ bị lỗi compile: `Cannot find module ...` hoặc báo lỗi thuộc tính không tồn tại trên DTO (ví dụ `item.icon`, `item.shortcut`).
+- **Nguyên nhân**: ABP CLI phiên bản mới tự động phân tách proxy thành các thư mục con theo từng namespace backend (`proxy/tickets/`, `proxy/categories/`, `proxy/ticket-statuses/`...), đồng thời một số trường thử nghiệm ở giao diện không có trong thực thể backend DTO.
+- **Cách khắc phục**:
+  - Sửa lại đường dẫn import tương đối trỏ chính xác vào thư mục con (`../../proxy/categories/category.service`).
+  - Đồng bộ lại các trường trong Reactive Form và HTML template đúng với cấu trúc `models.ts` được sinh ra bởi ABP Proxy.
+
+---
+
+### 6. Lỗi TypeScript Strict Nullability (`TS2322: undefined is not assignable to string`)
+- **Hiện tượng**: Lệnh `ng build` bị lỗi do Angular 19 bật cấu hình kiểm tra kiểu nghiêm ngặt (Strict Type Checking): `Type 'string | undefined' is not assignable to type 'string'`.
+- **Nguyên nhân**: Các trường trong ABP EntityDto sinh ra dạng optional (`title?: string`, `name?: string`, `creationTime?: string | Date`). Khi truyền trực tiếp vào các hàm yêu cầu kiểu `string` (như tham số localization `messageLocalizationParams`), TypeScript sẽ báo lỗi.
+- **Cách khắc phục**:
+  - Bổ sung giá trị dự phòng (fallback): `item.name ?? ''`, `item.title ?? ''`.
+  - Dùng non-null assertion `item.id!` khi đã chắc chắn dữ liệu tồn tại.
+  - Mở rộng kiểu dữ liệu interface (ví dụ `date: string | Date`) để tương thích với cả kiểu chuỗi lẫn đối tượng Date của ABP.
+

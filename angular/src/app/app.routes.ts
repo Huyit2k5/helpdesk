@@ -23,6 +23,11 @@ export const APP_ROUTES: Routes = [
     loadChildren: () => import('@abp/ng.setting-management').then(c => c.createRoutes()),
   },
   {
+    path: 'tickets',
+    loadChildren: () =>
+      import('./tickets/tickets.routes').then(m => m.TICKETS_ROUTES),
+  },
+  {
     path: 'master-data',
     loadChildren: () =>
       import('./master-data/master-data.routes').then(m => m.MASTER_DATA_ROUTES),

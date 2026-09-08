@@ -14,7 +14,7 @@ function configureMasterDataRoutes() {
       path: '/master-data',
       name: '::Menu:MasterData',
       iconClass: 'fas fa-database',
-      order: 2,
+      order: 3,
       layout: eLayoutType.application,
       requiredPolicy: 'Helpdesk.Categories || Helpdesk.Priorities || Helpdesk.Departments',
     },

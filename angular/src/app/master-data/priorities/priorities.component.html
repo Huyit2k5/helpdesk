@@ -41,20 +41,17 @@
             @for (item of items; track item.id) {
               <tr>
                 <td class="text-center">
-                  <span class="d-inline-block rounded-circle border" [style.background-color]="item.colorHex" style="width:24px;height:24px"></span>
+                  <span class="d-inline-block rounded-circle border" [style.background-color]="item.color || '#FFC107'" style="width:24px;height:24px"></span>
                 </td>
                 <td><code class="text-primary">{{ item.code }}</code></td>
                 <td>
                   <div class="fw-semibold">{{ item.name }}</div>
-                  @if (item.isDefault) {
-                    <span class="badge bg-warning-subtle text-warning border border-warning-subtle ms-1">Mặc định</span>
-                  }
                 </td>
                 <td class="text-center">
-                  <span class="badge bg-primary-subtle text-primary border border-primary-subtle">{{ item.level }}</span>
+                  <span class="badge bg-primary-subtle text-primary border border-primary-subtle">{{ item.order }}</span>
                 </td>
-                <td class="text-center"><i class="fas fa-clock text-muted me-1"></i>{{ item.firstResponseHours }}h</td>
-                <td class="text-center"><i class="fas fa-hourglass-half text-muted me-1"></i>{{ item.resolutionHours }}h</td>
+                <td class="text-center"><i class="fas fa-clock text-muted me-1"></i>{{ item.slaResponseHours }}h</td>
+                <td class="text-center"><i class="fas fa-hourglass-half text-muted me-1"></i>{{ item.slaResolutionHours }}h</td>
                 <td class="text-center">
                   @if (item.isActive) {
                     <span class="badge bg-success-subtle text-success border border-success-subtle">Hoạt động</span>
@@ -68,7 +65,7 @@
                 </td>
               </tr>
             } @empty {
-              <tr><td colspan="8" class="text-center py-5 text-muted"><i class="fas fa-inbox fa-3x mb-3 d-block opacity-25"></i>Chưa có dữ liệu</td></tr>
+              <tr><td colspan="7" class="text-center py-5 text-muted"><i class="fas fa-inbox fa-3x mb-3 d-block opacity-25"></i>Chưa có dữ liệu</td></tr>
             }
           </tbody>
         </table>
@@ -103,35 +100,25 @@
                 <div class="invalid-feedback">Tên là bắt buộc</div>
               </div>
               <div class="col-md-3">
-                <label class="form-label fw-semibold">Cấp độ <span class="text-danger">*</span></label>
-                <input type="number" class="form-control" formControlName="level" min="1" />
+                <label class="form-label fw-semibold">Thứ tự <span class="text-danger">*</span></label>
+                <input type="number" class="form-control" formControlName="order" min="0" />
               </div>
               <div class="col-md-3">
                 <label class="form-label fw-semibold">Màu sắc</label>
                 <div class="d-flex align-items-center gap-2">
-                  <input type="color" class="form-control form-control-color" formControlName="colorHex" style="width:60px;height:38px" />
-                  <input type="text" class="form-control" formControlName="colorHex" placeholder="#FFC107" />
+                  <input type="color" class="form-control form-control-color" formControlName="color" style="width:60px;height:38px" />
+                  <input type="text" class="form-control" formControlName="color" placeholder="#FFC107" />
                 </div>
               </div>
               <div class="col-md-3">
-                <label class="form-label fw-semibold">Phản hồi (giờ)</label>
-                <input type="number" class="form-control" formControlName="firstResponseHours" min="0" />
+                <label class="form-label fw-semibold">Phản hồi SLA (giờ)</label>
+                <input type="number" class="form-control" formControlName="slaResponseHours" min="0" />
               </div>
               <div class="col-md-3">
-                <label class="form-label fw-semibold">Xử lý (giờ)</label>
-                <input type="number" class="form-control" formControlName="resolutionHours" min="0" />
+                <label class="form-label fw-semibold">Xử lý SLA (giờ)</label>
+                <input type="number" class="form-control" formControlName="slaResolutionHours" min="0" />
               </div>
               <div class="col-12">
-                <label class="form-label fw-semibold">Mô tả</label>
-                <textarea class="form-control" formControlName="description" rows="2" placeholder="Mô tả ngắn"></textarea>
-              </div>
-              <div class="col-md-6">
-                <div class="form-check form-switch">
-                  <input class="form-check-input" type="checkbox" formControlName="isDefault" id="switch-priority-default" />
-                  <label class="form-check-label" for="switch-priority-default">Mức ưu tiên mặc định</label>
-                </div>
-              </div>
-              <div class="col-md-6">
                 <div class="form-check form-switch">
                   <input class="form-check-input" type="checkbox" formControlName="isActive" id="switch-priority-active" />
                   <label class="form-check-label" for="switch-priority-active">Đang hoạt động</label>

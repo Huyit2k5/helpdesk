@@ -4,8 +4,8 @@ import { ReactiveFormsModule, FormsModule, FormBuilder, FormGroup, Validators } 
 import { ListService, PagedResultDto, LocalizationPipe } from '@abp/ng.core';
 import { ConfirmationService, Confirmation } from '@abp/ng.theme.shared';
 import { NgbPaginationModule } from '@ng-bootstrap/ng-bootstrap';
-import { CategoryDto, CategoryGetListInput, CreateUpdateCategoryDto, CategoryLookupDto } from '../../proxy/helpdesk/models';
-import { CategoryService } from '../../proxy/helpdesk/category.service';
+import { CategoryDto, CategoryGetListInput, CreateUpdateCategoryDto, CategoryLookupDto } from '../../proxy/categories/models';
+import { CategoryService } from '../../proxy/categories/category.service';
 
 @Component({
   selector: 'app-categories',
@@ -35,9 +35,8 @@ export class CategoriesComponent implements OnInit {
     name: ['', [Validators.required, Validators.maxLength(200)]],
     description: ['', Validators.maxLength(500)],
     parentId: [null],
-    sortOrder: [0, Validators.required],
+    order: [0, Validators.required],
     isActive: [true],
-    supportEmail: ['', Validators.maxLength(256)],
   });
 
   ngOnInit(): void {
@@ -54,7 +53,7 @@ export class CategoriesComponent implements OnInit {
 
   loadParentCategories(): void {
     this.categoryService.getLookup().subscribe(data => {
-      this.parentCategories = data;
+      this.parentCategories = data.items ?? [];
       this.cdr.markForCheck();
     });
   }
@@ -66,7 +65,7 @@ export class CategoriesComponent implements OnInit {
   openCreateModal(): void {
     this.isEditing = false;
     this.selectedId = undefined;
-    this.form.reset({ isActive: true, sortOrder: 0 });
+    this.form.reset({ isActive: true, order: 0 });
     this.isModalOpen = true;
   }
 
@@ -78,9 +77,8 @@ export class CategoriesComponent implements OnInit {
       name: item.name,
       description: item.description,
       parentId: item.parentId || null,
-      sortOrder: item.sortOrder,
+      order: item.order ?? 0,
       isActive: item.isActive,
-      supportEmail: item.supportEmail,
     });
     this.isModalOpen = true;
   }
@@ -104,9 +102,9 @@ export class CategoriesComponent implements OnInit {
 
   delete(item: CategoryDto): void {
     this.confirmation.warn('::AreYouSureToDelete', '::AreYouSure', {
-      messageLocalizationParams: [item.name],
+      messageLocalizationParams: [item.name ?? ''],
     }).subscribe((status: Confirmation.Status) => {
-      if (status === Confirmation.Status.confirm) {
+      if (status === Confirmation.Status.confirm && item.id) {
         this.categoryService.delete(item.id).subscribe(() => this.list.get());
       }
     });

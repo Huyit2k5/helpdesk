@@ -46,6 +46,15 @@ public class HelpdeskPermissionDefinitionProvider : PermissionDefinitionProvider
         cannedResponsesPermission.AddChild(HelpdeskPermissions.CannedResponses.Create, L("Permission:CannedResponses.Create"));
         cannedResponsesPermission.AddChild(HelpdeskPermissions.CannedResponses.Edit, L("Permission:CannedResponses.Edit"));
         cannedResponsesPermission.AddChild(HelpdeskPermissions.CannedResponses.Delete, L("Permission:CannedResponses.Delete"));
+
+        // Tickets
+        var ticketsPermission = helpdeskGroup.AddPermission(HelpdeskPermissions.Tickets.Default, L("Permission:Tickets"));
+        ticketsPermission.AddChild(HelpdeskPermissions.Tickets.Create, L("Permission:Tickets.Create"));
+        ticketsPermission.AddChild(HelpdeskPermissions.Tickets.Edit, L("Permission:Tickets.Edit"));
+        ticketsPermission.AddChild(HelpdeskPermissions.Tickets.Delete, L("Permission:Tickets.Delete"));
+        ticketsPermission.AddChild(HelpdeskPermissions.Tickets.Assign, L("Permission:Tickets.Assign"));
+        ticketsPermission.AddChild(HelpdeskPermissions.Tickets.ChangeStatus, L("Permission:Tickets.ChangeStatus"));
+        ticketsPermission.AddChild(HelpdeskPermissions.Tickets.AddComment, L("Permission:Tickets.AddComment"));
     }
 
     private static LocalizableString L(string name)

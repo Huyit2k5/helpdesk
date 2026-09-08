@@ -15,5 +15,12 @@ function configureRoutes() {
         order: 1,
         layout: eLayoutType.application,
       },
+      {
+        path: '/tickets',
+        name: '::Menu:Tickets',
+        iconClass: 'fas fa-ticket-alt',
+        order: 2,
+        layout: eLayoutType.application,
+      },
   ]);
 }

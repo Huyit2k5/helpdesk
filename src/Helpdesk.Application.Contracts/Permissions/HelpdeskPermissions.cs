@@ -51,4 +51,15 @@ public static class HelpdeskPermissions
         public const string Edit = Default + ".Edit";
         public const string Delete = Default + ".Delete";
     }
+
+    public static class Tickets
+    {
+        public const string Default = GroupName + ".Tickets";
+        public const string Create = Default + ".Create";
+        public const string Edit = Default + ".Edit";
+        public const string Delete = Default + ".Delete";
+        public const string Assign = Default + ".Assign";
+        public const string ChangeStatus = Default + ".ChangeStatus";
+        public const string AddComment = Default + ".AddComment";
+    }
 }

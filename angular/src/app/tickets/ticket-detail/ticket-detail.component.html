@@ -1,0 +1,428 @@
+<div class="ticket-detail-page container-fluid py-4">
+  @if (isLoading) {
+    <div class="text-center py-5">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p class="text-muted mt-2">Đang tải chi tiết sự vụ...</p>
+    </div>
+  } @else if (ticket) {
+    <!-- Header bar -->
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-body p-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+          <div>
+            <a routerLink="/tickets" class="btn btn-sm btn-outline-secondary mb-2">
+              <i class="fas fa-arrow-left me-1"></i> Quay lại danh sách
+            </a>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+              <span class="badge bg-dark-subtle text-dark border px-2 py-1 fs-6 font-monospace">
+                #{{ ticket.ticketNumber }}
+              </span>
+              <h3 class="mb-0 fw-bold">{{ ticket.title }}</h3>
+            </div>
+            <div class="d-flex align-items-center gap-2 mt-2 flex-wrap">
+              <!-- Status Badge -->
+              <span
+                class="badge px-3 py-2 fs-6 rounded-pill"
+                [style.background-color]="ticket.statusColor || '#64748b'"
+                [style.color]="'#fff'"
+              >
+                <i class="fas fa-circle fa-xs me-1"></i>{{ ticket.statusName }}
+              </span>
+
+              <!-- Priority Badge -->
+              <span
+                class="badge px-3 py-2 fs-6 rounded-pill"
+                [style.background-color]="ticket.priorityColor || '#0ea5e9'"
+                [style.color]="'#fff'"
+              >
+                <i class="fas fa-flag me-1"></i>{{ ticket.priorityName }}
+              </span>
+
+              @if (ticket.categoryName) {
+                <span class="badge bg-light text-secondary border px-2 py-1">
+                  <i class="fas fa-folder me-1"></i>{{ ticket.categoryName }}
+                </span>
+              }
+
+              @if (ticket.departmentName) {
+                <span class="badge bg-light text-secondary border px-2 py-1">
+                  <i class="fas fa-building me-1"></i>{{ ticket.departmentName }}
+                </span>
+              }
+            </div>
+          </div>
+
+          <!-- Quick Action Buttons -->
+          <div class="d-flex gap-2">
+            <button class="btn btn-primary" (click)="openChangeStatusModal()" id="btn-change-status">
+              <i class="fas fa-exchange-alt me-1"></i> Đổi trạng thái
+            </button>
+            <button class="btn btn-outline-primary" (click)="openAssignModal()" id="btn-assign">
+              <i class="fas fa-user-check me-1"></i> Phân công
+            </button>
+            <button class="btn btn-outline-danger" (click)="deleteTicket()" id="btn-delete-ticket">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="row g-4">
+      <!-- Left Column: Description, Composer, Conversation & Activity (8 cols) -->
+      <div class="col-lg-8">
+        <!-- Ticket Original Content Card -->
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-light border-0 py-3 px-4 d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center">
+              <div class="rounded-circle bg-primary bg-opacity-10 text-primary p-2 me-3 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                <i class="fas fa-user"></i>
+              </div>
+              <div>
+                <span class="fw-bold text-dark">{{ ticket.requesterName }}</span>
+                <small class="text-muted d-block">&lt;{{ ticket.requesterEmail }}&gt;</small>
+              </div>
+            </div>
+            <div class="text-muted small">
+              <i class="fas fa-clock me-1"></i>{{ ticket.creationTime | date:'dd/MM/yyyy HH:mm' }}
+            </div>
+          </div>
+          <div class="card-body p-4">
+            <div class="fs-6" style="white-space: pre-wrap; line-height: 1.7;">
+              {{ ticket.description || '(Không có mô tả chi tiết)' }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Composer Card (Reply / Internal Note) -->
+        <div class="card border-0 shadow-sm composer-card mb-4">
+          <div class="card-header bg-white p-0">
+            <ul class="nav nav-tabs px-3">
+              <li class="nav-item">
+                <button
+                  type="button"
+                  class="nav-link"
+                  [class.active]="composerTab === 'reply'"
+                  (click)="composerTab = 'reply'"
+                >
+                  <i class="fas fa-reply me-1"></i> Phản Hồi Khách Hàng
+                </button>
+              </li>
+              <li class="nav-item">
+                <button
+                  type="button"
+                  class="nav-link"
+                  [class.active]="composerTab === 'note'"
+                  [class.active-note]="composerTab === 'note'"
+                  (click)="composerTab = 'note'"
+                >
+                  <i class="fas fa-lock me-1 text-warning"></i> Ghi Chú Nội Bộ
+                </button>
+              </li>
+            </ul>
+          </div>
+
+          <div class="card-body p-4">
+            @if (composerTab === 'note') {
+              <div class="alert alert-warning py-2 px-3 small border-0 mb-3 d-flex align-items-center">
+                <i class="fas fa-shield-alt me-2 fa-lg"></i>
+                <span>Ghi chú này là <strong>nội bộ</strong> và chỉ nhân viên hệ thống mới nhìn thấy. Khách hàng sẽ không nhận được thông báo.</span>
+              </div>
+            }
+
+            <!-- Quick canned response selector -->
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <label class="form-label fw-semibold small text-muted mb-0">Nội dung phản hồi:</label>
+              <div class="d-flex align-items-center gap-2">
+                <small class="text-muted"><i class="fas fa-magic me-1"></i>Mẫu phản hồi:</small>
+                <select class="form-select form-select-sm" style="width: auto; max-width: 260px;" (change)="insertCannedResponse($event)">
+                  <option value="">-- Chọn câu trả lời mẫu --</option>
+                  @for (canned of cannedResponses; track canned.id) {
+                    <option [value]="canned.id">{{ canned.title }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+
+            <textarea
+              class="form-control mb-3"
+              rows="4"
+              [placeholder]="composerTab === 'reply' ? 'Nhập nội dung phản hồi gửi tới khách hàng...' : 'Nhập ghi chú kỹ thuật hoặc trao đổi nội bộ...'"
+              [(ngModel)]="commentContent"
+              [class.border-warning]="composerTab === 'note'"
+            ></textarea>
+
+            <div class="d-flex justify-content-end">
+              <button
+                type="button"
+                class="btn px-4"
+                [class.btn-primary]="composerTab === 'reply'"
+                [class.btn-warning]="composerTab === 'note'"
+                [disabled]="!commentContent.trim() || isSubmittingComment"
+                (click)="submitComment()"
+              >
+                @if (isSubmittingComment) {
+                  <span class="spinner-border spinner-border-sm me-1"></span> Đang gửi...
+                } @else {
+                  <i [class]="composerTab === 'reply' ? 'fas fa-paper-plane me-1' : 'fas fa-sticky-note me-1'"></i>
+                  {{ composerTab === 'reply' ? 'Gửi Phản Hồi' : 'Lưu Ghi Chú' }}
+                }
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Timeline: Conversations & Activities -->
+        <div class="timeline-section">
+          <h5 class="fw-bold mb-3 d-flex align-items-center">
+            <i class="fas fa-history me-2 text-primary"></i> Dòng Thời Gian & Thảo Luận ({{ timelineItems.length }})
+          </h5>
+
+          <div class="timeline">
+            @for (item of timelineItems; track item.id) {
+              <div class="timeline-item">
+                @if (item.type === 'comment') {
+                  <div
+                    class="timeline-marker"
+                    [class.marker-note]="item.comment?.isInternal"
+                    [class.marker-comment]="!item.comment?.isInternal"
+                  >
+                    <i [class]="item.comment?.isInternal ? 'fas fa-lock' : 'fas fa-comment'"></i>
+                  </div>
+                  <div
+                    class="timeline-bubble"
+                    [class.bubble-note]="item.comment?.isInternal"
+                  >
+                    <div
+                      class="bubble-header d-flex justify-content-between align-items-center"
+                      [class.note-header]="item.comment?.isInternal"
+                    >
+                      <div class="d-flex align-items-center gap-2">
+                        <span class="fw-bold">{{ item.comment?.creatorName || 'Người dùng' }}</span>
+                        @if (item.comment?.isInternal) {
+                          <span class="badge bg-warning text-dark border border-warning-subtle">
+                            <i class="fas fa-lock me-1"></i>Ghi chú nội bộ
+                          </span>
+                        } @else {
+                          <span class="badge bg-primary-subtle text-primary border border-primary-subtle">
+                            <i class="fas fa-comment me-1"></i>Phản hồi
+                          </span>
+                        }
+                      </div>
+                      <small class="text-muted">{{ item.date | date:'dd/MM/yyyy HH:mm' }}</small>
+                    </div>
+                    <div class="bubble-body">
+                      {{ item.comment?.content }}
+                    </div>
+                  </div>
+                } @else if (item.type === 'activity') {
+                  <div class="timeline-marker marker-activity">
+                    <i class="fas fa-bolt"></i>
+                  </div>
+                  <div class="activity-log d-flex justify-content-between align-items-center">
+                    <div>
+                      <i class="fas fa-info-circle me-1 text-primary"></i>
+                      <span><strong>{{ item.activity?.creatorName || 'Hệ thống' }}</strong> {{ item.activity?.description }}</span>
+                    </div>
+                    <small class="text-muted ms-2">{{ item.date | date:'dd/MM/yyyy HH:mm' }}</small>
+                  </div>
+                }
+              </div>
+            } @empty {
+              <div class="text-center py-4 text-muted">
+                <i class="fas fa-comments fa-2x mb-2 d-block opacity-25"></i>
+                Chưa có trao đổi nào trong sự vụ này
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Ticket Metadata & Requester (4 cols) -->
+      <div class="col-lg-4">
+        <!-- Status & SLA Card -->
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-white border-0 py-3 px-4">
+            <h6 class="fw-bold text-uppercase small mb-0 text-muted">
+              <i class="fas fa-tachometer-alt me-1 text-primary"></i> Trạng Thái & SLA
+            </h6>
+          </div>
+          <div class="card-body p-4 pt-0">
+            <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+              <span class="text-muted">Trạng thái:</span>
+              <span class="badge rounded-pill px-3 py-1" [style.background-color]="ticket.statusColor || '#64748b'" [style.color]="'#fff'">
+                {{ ticket.statusName }}
+              </span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+              <span class="text-muted">Độ ưu tiên:</span>
+              <span class="badge rounded-pill px-3 py-1" [style.background-color]="ticket.priorityColor || '#0ea5e9'" [style.color]="'#fff'">
+                {{ ticket.priorityName }}
+              </span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+              <span class="text-muted">Kênh tiếp nhận:</span>
+              <span class="fw-semibold text-dark">{{ ticket.sourceName || '—' }}</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center py-2">
+              <span class="text-muted">Hạn xử lý (SLA):</span>
+              @if (ticket.dueDate) {
+                <span class="fw-semibold text-dark">{{ ticket.dueDate | date:'dd/MM/yyyy HH:mm' }}</span>
+              } @else {
+                <span class="text-muted">—</span>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Assignment Card -->
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-white border-0 py-3 px-4">
+            <h6 class="fw-bold text-uppercase small mb-0 text-muted">
+              <i class="fas fa-users-cog me-1 text-success"></i> Phân Công Xử Lý
+            </h6>
+          </div>
+          <div class="card-body p-4 pt-0">
+            <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+              <span class="text-muted">Phòng ban:</span>
+              <span class="fw-semibold text-dark">{{ ticket.departmentName || 'Chưa gán phòng ban' }}</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center py-2">
+              <span class="text-muted">Người xử lý:</span>
+              @if (ticket.assigneeName) {
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1">
+                  <i class="fas fa-user-check me-1"></i>{{ ticket.assigneeName }}
+                </span>
+              } @else {
+                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1">
+                  Chưa phân công
+                </span>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Requester Information Card -->
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-white border-0 py-3 px-4">
+            <h6 class="fw-bold text-uppercase small mb-0 text-muted">
+              <i class="fas fa-address-card me-1 text-info"></i> Khách Hàng Yêu Cầu
+            </h6>
+          </div>
+          <div class="card-body p-4 pt-0">
+            <div class="d-flex align-items-center mb-3">
+              <div class="rounded-circle bg-info bg-opacity-10 text-info p-3 me-3 fs-5">
+                <i class="fas fa-user"></i>
+              </div>
+              <div>
+                <h6 class="fw-bold mb-0">{{ ticket.requesterName }}</h6>
+                <small class="text-muted">{{ ticket.requesterEmail }}</small>
+              </div>
+            </div>
+
+            @if (ticket.requesterPhone) {
+              <div class="d-flex justify-content-between align-items-center py-2 border-top">
+                <span class="text-muted"><i class="fas fa-phone me-1"></i>Điện thoại:</span>
+                <a [href]="'tel:' + ticket.requesterPhone" class="fw-semibold text-decoration-none">{{ ticket.requesterPhone }}</a>
+              </div>
+            }
+
+            <div class="d-flex justify-content-between align-items-center py-2 border-top">
+              <span class="text-muted"><i class="fas fa-envelope me-1"></i>Email:</span>
+              <a [href]="'mailto:' + ticket.requesterEmail" class="text-truncate text-decoration-none" style="max-width: 180px;">{{ ticket.requesterEmail }}</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Timestamps Card -->
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-white border-0 py-3 px-4">
+            <h6 class="fw-bold text-uppercase small mb-0 text-muted">
+              <i class="fas fa-calendar-alt me-1 text-secondary"></i> Mốc Thời Gian
+            </h6>
+          </div>
+          <div class="card-body p-4 pt-0 small">
+            <div class="d-flex justify-content-between py-2 border-bottom">
+              <span class="text-muted">Ngày tạo:</span>
+              <span class="fw-semibold">{{ ticket.creationTime | date:'dd/MM/yyyy HH:mm' }}</span>
+            </div>
+            <div class="d-flex justify-content-between py-2 border-bottom">
+              <span class="text-muted">Đã giải quyết:</span>
+              <span>{{ ticket.resolvedAt ? (ticket.resolvedAt | date:'dd/MM/yyyy HH:mm') : '—' }}</span>
+            </div>
+            <div class="d-flex justify-content-between py-2">
+              <span class="text-muted">Đóng sự vụ:</span>
+              <span>{{ ticket.closedAt ? (ticket.closedAt | date:'dd/MM/yyyy HH:mm') : '—' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>
+
+<!-- Change Status Modal -->
+@if (isStatusModalOpen) {
+  <div class="modal fade show d-block" tabindex="-1" style="background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 1055;">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow-lg" style="border-radius: 12px; overflow: hidden;">
+        <div class="modal-header bg-light border-0 py-3 px-4">
+          <h5 class="modal-title fw-bold"><i class="fas fa-exchange-alt me-2 text-primary"></i>Đổi Trạng Thái Sự Vụ</h5>
+          <button type="button" class="btn-close" (click)="closeChangeStatusModal()"></button>
+        </div>
+        <div class="modal-body p-4">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Chọn trạng thái mới <span class="text-danger">*</span></label>
+            <select class="form-select" [(ngModel)]="selectedNewStatusId">
+              @for (st of statuses; track st.id) {
+                <option [value]="st.id">{{ st.name }}</option>
+              }
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Ghi chú kèm theo (tùy chọn)</label>
+            <textarea class="form-control" rows="3" [(ngModel)]="statusComment" placeholder="Lý do chuyển trạng thái..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer bg-light border-0 py-3 px-4">
+          <button type="button" class="btn btn-outline-secondary" (click)="closeChangeStatusModal()">Hủy</button>
+          <button type="button" class="btn btn-primary" (click)="saveStatusChange()" [disabled]="!selectedNewStatusId">
+            <i class="fas fa-check me-1"></i> Xác nhận
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Assign Modal -->
+@if (isAssignModalOpen) {
+  <div class="modal fade show d-block" tabindex="-1" style="background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 1055;">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow-lg" style="border-radius: 12px; overflow: hidden;">
+        <div class="modal-header bg-light border-0 py-3 px-4">
+          <h5 class="modal-title fw-bold"><i class="fas fa-user-check me-2 text-primary"></i>Phân Công Xử Lý</h5>
+          <button type="button" class="btn-close" (click)="closeAssignModal()"></button>
+        </div>
+        <div class="modal-body p-4">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Chọn nhân viên xử lý</label>
+            <select class="form-select" [(ngModel)]="selectedNewAssigneeId">
+              <option [ngValue]="null">-- Chưa phân công (Bỏ gán) --</option>
+              @for (u of users; track u.id) {
+                <option [value]="u.id">{{ u.name ? (u.name + ' ' + (u.surname || '')) : u.userName }} ({{ u.userName }})</option>
+              }
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer bg-light border-0 py-3 px-4">
+          <button type="button" class="btn btn-outline-secondary" (click)="closeAssignModal()">Hủy</button>
+          <button type="button" class="btn btn-primary" (click)="saveAssign()">
+            <i class="fas fa-check me-1"></i> Lưu phân công
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

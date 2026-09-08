@@ -4,11 +4,10 @@ import { ReactiveFormsModule, FormsModule, FormBuilder, FormGroup, Validators } 
 import { ListService } from '@abp/ng.core';
 import { ConfirmationService, Confirmation } from '@abp/ng.theme.shared';
 import { NgbPaginationModule } from '@ng-bootstrap/ng-bootstrap';
-import { CannedResponseDto, CannedResponseGetListInput, CreateUpdateCannedResponseDto, CategoryLookupDto } from '../../proxy/helpdesk/models';
-import { CannedResponseService } from '../../proxy/helpdesk/canned-response.service';
-import { CategoryService } from '../../proxy/helpdesk/category.service';
-import { DepartmentService } from '../../proxy/helpdesk/department.service';
-import { DepartmentDto } from '../../proxy/helpdesk/models';
+import { CannedResponseDto, CannedResponseGetListInput, CreateUpdateCannedResponseDto } from '../../proxy/canned-responses/models';
+import { CannedResponseService } from '../../proxy/canned-responses/canned-response.service';
+import { CategoryService } from '../../proxy/categories/category.service';
+import { CategoryLookupDto } from '../../proxy/categories/models';
 
 @Component({
   selector: 'app-canned-responses',
@@ -21,7 +20,6 @@ import { DepartmentDto } from '../../proxy/helpdesk/models';
 export class CannedResponsesComponent implements OnInit {
   private svc = inject(CannedResponseService);
   private categorySvc = inject(CategoryService);
-  private departmentSvc = inject(DepartmentService);
   private fb = inject(FormBuilder);
   private confirmation = inject(ConfirmationService);
   private cdr = inject(ChangeDetectorRef);
@@ -34,15 +32,12 @@ export class CannedResponsesComponent implements OnInit {
   selectedId?: string;
   filterText = '';
   categories: CategoryLookupDto[] = [];
-  departments: { id: string; name: string }[] = [];
 
   form: FormGroup = this.fb.group({
     title: ['', [Validators.required, Validators.maxLength(200)]],
     content: ['', [Validators.required, Validators.maxLength(5000)]],
-    shortcut: ['', Validators.maxLength(50)],
     categoryId: [null],
-    departmentId: [null],
-    isActive: [true],
+    isPublic: [true],
   });
 
   ngOnInit(): void {
@@ -57,9 +52,8 @@ export class CannedResponsesComponent implements OnInit {
   }
 
   loadLookups(): void {
-    this.categorySvc.getLookup().subscribe(d => { this.categories = d; this.cdr.markForCheck(); });
-    this.departmentSvc.getList({ maxResultCount: 100, skipCount: 0 }).subscribe(d => {
-      this.departments = (d.items ?? []).map(x => ({ id: x.id, name: x.name }));
+    this.categorySvc.getLookup().subscribe(d => {
+      this.categories = d.items ?? [];
       this.cdr.markForCheck();
     });
   }
@@ -69,14 +63,19 @@ export class CannedResponsesComponent implements OnInit {
   openCreateModal(): void {
     this.isEditing = false;
     this.selectedId = undefined;
-    this.form.reset({ isActive: true });
+    this.form.reset({ isPublic: true });
     this.isModalOpen = true;
   }
 
   openEditModal(item: CannedResponseDto): void {
     this.isEditing = true;
     this.selectedId = item.id;
-    this.form.patchValue({ ...item, categoryId: item.categoryId || null, departmentId: item.departmentId || null });
+    this.form.patchValue({
+      title: item.title,
+      content: item.content,
+      categoryId: item.categoryId ?? null,
+      isPublic: item.isPublic ?? true,
+    });
     this.isModalOpen = true;
   }
 
@@ -90,9 +89,9 @@ export class CannedResponsesComponent implements OnInit {
   }
 
   delete(item: CannedResponseDto): void {
-    this.confirmation.warn('::AreYouSureToDelete', '::AreYouSure', { messageLocalizationParams: [item.title] })
+    this.confirmation.warn('::AreYouSureToDelete', '::AreYouSure', { messageLocalizationParams: [item.title ?? ''] })
       .subscribe((s: Confirmation.Status) => {
-        if (s === Confirmation.Status.confirm) this.svc.delete(item.id).subscribe(() => this.list.get());
+        if (s === Confirmation.Status.confirm) this.svc.delete(item.id!).subscribe(() => this.list.get());
       });
   }
 }

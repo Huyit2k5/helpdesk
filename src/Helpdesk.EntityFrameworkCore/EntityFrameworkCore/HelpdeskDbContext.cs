@@ -41,6 +41,12 @@ public class HelpdeskDbContext :
     public DbSet<TicketSource> TicketSources { get; set; }
     public DbSet<CannedResponse> CannedResponses { get; set; }
 
+    // Tickets
+    public DbSet<Helpdesk.Tickets.Ticket> Tickets { get; set; }
+    public DbSet<Helpdesk.Tickets.TicketComment> TicketComments { get; set; }
+    public DbSet<Helpdesk.Tickets.TicketAttachment> TicketAttachments { get; set; }
+    public DbSet<Helpdesk.Tickets.TicketActivity> TicketActivities { get; set; }
+
     #region Entities from the modules
 
     /* Notice: We only implemented IIdentityProDbContext and ISaasDbContext

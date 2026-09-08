@@ -29,7 +29,7 @@
             <tr>
               <th>Mã</th>
               <th>Tên phòng ban</th>
-              <th>Email</th>
+              <th>Quản lý</th>
               <th class="text-center">Trạng thái</th>
               <th class="text-center" style="width: 120px">Thao tác</th>
             </tr>
@@ -42,7 +42,7 @@
                   <div class="fw-semibold">{{ item.name }}</div>
                   @if (item.description) { <small class="text-muted">{{ item.description }}</small> }
                 </td>
-                <td>{{ item.email || '—' }}</td>
+                <td>{{ item.managerName || '—' }}</td>
                 <td class="text-center">
                   @if (item.isActive) {
                     <span class="badge bg-success-subtle text-success border border-success-subtle">Hoạt động</span>
@@ -89,10 +89,6 @@
                 <label class="form-label fw-semibold">Tên phòng ban <span class="text-danger">*</span></label>
                 <input type="text" class="form-control" formControlName="name" placeholder="Tên phòng ban" id="input-dept-name" [class.is-invalid]="form.get('name')?.invalid && form.get('name')?.touched" />
                 <div class="invalid-feedback">Tên phòng ban là bắt buộc</div>
-              </div>
-              <div class="col-md-6">
-                <label class="form-label fw-semibold">Email phòng ban</label>
-                <input type="email" class="form-control" formControlName="email" placeholder="dept@company.com" />
               </div>
               <div class="col-12">
                 <label class="form-label fw-semibold">Mô tả</label>

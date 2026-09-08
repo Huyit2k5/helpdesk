@@ -1,0 +1,180 @@
+@if (isOpen) {
+  <div class="modal fade show d-block" tabindex="-1" style="background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 1055;">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content border-0 shadow-lg" style="border-radius: 12px; overflow: hidden;">
+        <div class="modal-header bg-light border-0 py-3 px-4">
+          <div class="d-flex align-items-center">
+            <div class="rounded-circle bg-primary bg-opacity-10 p-2 me-3 text-primary">
+              <i class="fas fa-ticket-alt fa-lg"></i>
+            </div>
+            <div>
+              <h5 class="modal-title fw-bold mb-0">Tạo Yêu Cầu Mới</h5>
+              <small class="text-muted">Nhập thông tin yêu cầu và người gửi</small>
+            </div>
+          </div>
+          <button type="button" class="btn-close" (click)="close()"></button>
+        </div>
+
+        <form [formGroup]="form" (ngSubmit)="save()" class="d-flex flex-column h-100">
+          <div class="modal-body p-4">
+            <!-- Section 1: Ticket Info -->
+            <div class="mb-4">
+              <h6 class="fw-bold text-uppercase text-primary small mb-3">
+                <i class="fas fa-info-circle me-1"></i> Thông Tin Sự Vụ
+              </h6>
+              <div class="row g-3">
+                <div class="col-12">
+                  <label class="form-label fw-semibold">Tiêu đề yêu cầu <span class="text-danger">*</span></label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    formControlName="title"
+                    placeholder="Tóm tắt ngắn gọn vấn đề cần hỗ trợ..."
+                    [class.is-invalid]="form.get('title')?.invalid && form.get('title')?.touched"
+                  />
+                  <div class="invalid-feedback">Tiêu đề là bắt buộc (tối đa 256 ký tự)</div>
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Danh mục <span class="text-danger">*</span></label>
+                  <select class="form-select" formControlName="categoryId" [class.is-invalid]="form.get('categoryId')?.invalid && form.get('categoryId')?.touched">
+                    <option value="" disabled>-- Chọn danh mục --</option>
+                    @for (cat of categories; track cat.id) {
+                      <option [value]="cat.id">{{ cat.name }}</option>
+                    }
+                  </select>
+                  <div class="invalid-feedback">Vui lòng chọn danh mục</div>
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Mức độ ưu tiên <span class="text-danger">*</span></label>
+                  <select class="form-select" formControlName="priorityId" [class.is-invalid]="form.get('priorityId')?.invalid && form.get('priorityId')?.touched">
+                    @for (pri of priorities; track pri.id) {
+                      <option [value]="pri.id">{{ pri.name }}</option>
+                    }
+                  </select>
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Trạng thái ban đầu <span class="text-danger">*</span></label>
+                  <select class="form-select" formControlName="statusId">
+                    @for (st of statuses; track st.id) {
+                      <option [value]="st.id">{{ st.name }}</option>
+                    }
+                  </select>
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Kênh tiếp nhận <span class="text-danger">*</span></label>
+                  <select class="form-select" formControlName="sourceId">
+                    @for (src of sources; track src.id) {
+                      <option [value]="src.id">{{ src.name }} ({{ src.code }})</option>
+                    }
+                  </select>
+                </div>
+
+                <div class="col-12">
+                  <label class="form-label fw-semibold">Mô tả chi tiết</label>
+                  <textarea
+                    class="form-control"
+                    rows="4"
+                    formControlName="description"
+                    placeholder="Mô tả chi tiết lỗi, hiện tượng hoặc yêu cầu hỗ trợ..."
+                  ></textarea>
+                </div>
+              </div>
+            </div>
+
+            <!-- Section 2: Requester Info -->
+            <div class="mb-4">
+              <h6 class="fw-bold text-uppercase text-success small mb-3">
+                <i class="fas fa-user me-1"></i> Thông Tin Khách Hàng / Người Yêu Cầu
+              </h6>
+              <div class="row g-3">
+                <div class="col-md-4">
+                  <label class="form-label fw-semibold">Họ tên người gửi <span class="text-danger">*</span></label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    formControlName="requesterName"
+                    placeholder="Họ và tên"
+                    [class.is-invalid]="form.get('requesterName')?.invalid && form.get('requesterName')?.touched"
+                  />
+                  <div class="invalid-feedback">Họ tên là bắt buộc</div>
+                </div>
+
+                <div class="col-md-4">
+                  <label class="form-label fw-semibold">Email <span class="text-danger">*</span></label>
+                  <input
+                    type="email"
+                    class="form-control"
+                    formControlName="requesterEmail"
+                    placeholder="email@domain.com"
+                    [class.is-invalid]="form.get('requesterEmail')?.invalid && form.get('requesterEmail')?.touched"
+                  />
+                  <div class="invalid-feedback">Email hợp lệ là bắt buộc</div>
+                </div>
+
+                <div class="col-md-4">
+                  <label class="form-label fw-semibold">Số điện thoại</label>
+                  <input type="tel" class="form-control" formControlName="requesterPhone" placeholder="09xxxxxxx" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Section 3: Assignment & Metadata -->
+            <div>
+              <h6 class="fw-bold text-uppercase text-secondary small mb-3">
+                <i class="fas fa-tasks me-1"></i> Phân Công & Kỳ Hạn
+              </h6>
+              <div class="row g-3">
+                <div class="col-md-4">
+                  <label class="form-label fw-semibold">Phòng ban xử lý</label>
+                  <select class="form-select" formControlName="departmentId">
+                    <option [ngValue]="null">-- Chưa chỉ định --</option>
+                    @for (dept of departments; track dept.id) {
+                      <option [value]="dept.id">{{ dept.name }}</option>
+                    }
+                  </select>
+                </div>
+
+                <div class="col-md-4">
+                  <label class="form-label fw-semibold">Người thực hiện</label>
+                  <select class="form-select" formControlName="assigneeId">
+                    <option [ngValue]="null">-- Chưa phân công --</option>
+                    @for (u of users; track u.id) {
+                      <option [value]="u.id">{{ u.name ? (u.name + ' ' + (u.surname || '')) : u.userName }} ({{ u.userName }})</option>
+                    }
+                  </select>
+                </div>
+
+                <div class="col-md-4">
+                  <label class="form-label fw-semibold">Hạn xử lý (SLA)</label>
+                  <input type="datetime-local" class="form-control" formControlName="dueDate" />
+                </div>
+
+                <div class="col-12">
+                  <label class="form-label fw-semibold">Thẻ gắn (Tags)</label>
+                  <input type="text" class="form-control" formControlName="tags" placeholder="VD: bug, payment, vnpay..." />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer bg-light border-0 py-3 px-4">
+            <button type="button" class="btn btn-outline-secondary px-4" (click)="close()" [disabled]="isSaving">
+              <i class="fas fa-times me-1"></i> Đóng
+            </button>
+            <button type="submit" class="btn btn-primary px-4 shadow-sm" [disabled]="form.invalid || isSaving">
+              @if (isSaving) {
+                <span class="spinner-border spinner-border-sm me-1"></span> Đang tạo...
+              } @else {
+                <i class="fas fa-plus me-1"></i> Tạo Yêu Cầu
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+}

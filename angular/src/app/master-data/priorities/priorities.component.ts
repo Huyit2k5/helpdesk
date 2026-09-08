@@ -4,8 +4,8 @@ import { ReactiveFormsModule, FormsModule, FormBuilder, FormGroup, Validators } 
 import { ListService } from '@abp/ng.core';
 import { ConfirmationService, Confirmation } from '@abp/ng.theme.shared';
 import { NgbPaginationModule } from '@ng-bootstrap/ng-bootstrap';
-import { PriorityDto, PriorityGetListInput, CreateUpdatePriorityDto } from '../../proxy/helpdesk/models';
-import { PriorityService } from '../../proxy/helpdesk/priority.service';
+import { PriorityDto, PriorityGetListInput, CreateUpdatePriorityDto } from '../../proxy/priorities/models';
+import { PriorityService } from '../../proxy/priorities/priority.service';
 
 @Component({
   selector: 'app-priorities',
@@ -32,12 +32,10 @@ export class PrioritiesComponent implements OnInit {
   form: FormGroup = this.fb.group({
     code: ['', [Validators.required, Validators.maxLength(50)]],
     name: ['', [Validators.required, Validators.maxLength(200)]],
-    description: ['', Validators.maxLength(500)],
-    level: [1, [Validators.required, Validators.min(1)]],
-    colorHex: ['#FFC107', Validators.required],
-    firstResponseHours: [8, [Validators.required, Validators.min(0)]],
-    resolutionHours: [24, [Validators.required, Validators.min(0)]],
-    isDefault: [false],
+    color: ['#FFC107', Validators.required],
+    order: [0, [Validators.required, Validators.min(0)]],
+    slaResponseHours: [8, [Validators.required, Validators.min(0)]],
+    slaResolutionHours: [24, [Validators.required, Validators.min(0)]],
     isActive: [true],
   });
 
@@ -56,14 +54,22 @@ export class PrioritiesComponent implements OnInit {
   openCreateModal(): void {
     this.isEditing = false;
     this.selectedId = undefined;
-    this.form.reset({ isActive: true, isDefault: false, level: 1, colorHex: '#FFC107', firstResponseHours: 8, resolutionHours: 24 });
+    this.form.reset({ isActive: true, order: 0, color: '#FFC107', slaResponseHours: 8, slaResolutionHours: 24 });
     this.isModalOpen = true;
   }
 
   openEditModal(item: PriorityDto): void {
     this.isEditing = true;
     this.selectedId = item.id;
-    this.form.patchValue(item);
+    this.form.patchValue({
+      code: item.code,
+      name: item.name,
+      color: item.color || '#FFC107',
+      order: item.order ?? 0,
+      slaResponseHours: item.slaResponseHours ?? 8,
+      slaResolutionHours: item.slaResolutionHours ?? 24,
+      isActive: item.isActive ?? true,
+    });
     this.isModalOpen = true;
   }
 
@@ -77,9 +83,9 @@ export class PrioritiesComponent implements OnInit {
   }
 
   delete(item: PriorityDto): void {
-    this.confirmation.warn('::AreYouSureToDelete', '::AreYouSure', { messageLocalizationParams: [item.name] })
+    this.confirmation.warn('::AreYouSureToDelete', '::AreYouSure', { messageLocalizationParams: [item.name ?? ''] })
       .subscribe((s: Confirmation.Status) => {
-        if (s === Confirmation.Status.confirm) this.svc.delete(item.id).subscribe(() => this.list.get());
+        if (s === Confirmation.Status.confirm && item.id) this.svc.delete(item.id).subscribe(() => this.list.get());
       });
   }
 }

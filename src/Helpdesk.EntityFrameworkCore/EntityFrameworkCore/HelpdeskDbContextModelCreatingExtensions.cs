@@ -87,5 +87,58 @@ public static class HelpdeskDbContextModelCreatingExtensions
 
             b.HasIndex(x => x.CategoryId);
         });
+
+        builder.Entity<Helpdesk.Tickets.Ticket>(b =>
+        {
+            b.ToTable(HelpdeskConsts.DbTablePrefix + "Tickets", HelpdeskConsts.DbSchema);
+            b.ConfigureByConvention();
+
+            b.Property(x => x.TicketNumber).IsRequired().HasMaxLength(Helpdesk.Tickets.TicketConsts.MaxTicketNumberLength);
+            b.Property(x => x.Title).IsRequired().HasMaxLength(Helpdesk.Tickets.TicketConsts.MaxTitleLength);
+            b.Property(x => x.RequesterName).IsRequired().HasMaxLength(Helpdesk.Tickets.TicketConsts.MaxRequesterNameLength);
+            b.Property(x => x.RequesterEmail).IsRequired().HasMaxLength(Helpdesk.Tickets.TicketConsts.MaxRequesterEmailLength);
+            b.Property(x => x.RequesterPhone).HasMaxLength(Helpdesk.Tickets.TicketConsts.MaxRequesterPhoneLength);
+            b.Property(x => x.Tags).HasMaxLength(Helpdesk.Tickets.TicketConsts.MaxTagsLength);
+
+            b.HasIndex(x => x.TicketNumber).IsUnique();
+            b.HasIndex(x => x.StatusId);
+            b.HasIndex(x => x.PriorityId);
+            b.HasIndex(x => x.CategoryId);
+            b.HasIndex(x => x.DepartmentId);
+            b.HasIndex(x => x.AssigneeId);
+            b.HasIndex(x => x.CreationTime);
+        });
+
+        builder.Entity<Helpdesk.Tickets.TicketComment>(b =>
+        {
+            b.ToTable(HelpdeskConsts.DbTablePrefix + "TicketComments", HelpdeskConsts.DbSchema);
+            b.ConfigureByConvention();
+
+            b.Property(x => x.Content).IsRequired();
+
+            b.HasIndex(x => x.TicketId);
+        });
+
+        builder.Entity<Helpdesk.Tickets.TicketAttachment>(b =>
+        {
+            b.ToTable(HelpdeskConsts.DbTablePrefix + "TicketAttachments", HelpdeskConsts.DbSchema);
+            b.ConfigureByConvention();
+
+            b.Property(x => x.FileName).IsRequired().HasMaxLength(Helpdesk.Tickets.TicketConsts.MaxAttachmentFileNameLength);
+            b.Property(x => x.ContentType).IsRequired().HasMaxLength(Helpdesk.Tickets.TicketConsts.MaxAttachmentContentTypeLength);
+            b.Property(x => x.BlobName).IsRequired();
+
+            b.HasIndex(x => x.TicketId);
+        });
+
+        builder.Entity<Helpdesk.Tickets.TicketActivity>(b =>
+        {
+            b.ToTable(HelpdeskConsts.DbTablePrefix + "TicketActivities", HelpdeskConsts.DbSchema);
+            b.ConfigureByConvention();
+
+            b.Property(x => x.Description).HasMaxLength(Helpdesk.Tickets.TicketConsts.MaxActivityDescriptionLength);
+
+            b.HasIndex(x => x.TicketId);
+        });
     }
 }

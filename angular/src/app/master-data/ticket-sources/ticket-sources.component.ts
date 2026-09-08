@@ -4,8 +4,8 @@ import { ReactiveFormsModule, FormsModule, FormBuilder, FormGroup, Validators } 
 import { ListService } from '@abp/ng.core';
 import { ConfirmationService, Confirmation } from '@abp/ng.theme.shared';
 import { NgbPaginationModule } from '@ng-bootstrap/ng-bootstrap';
-import { TicketSourceDto, TicketSourceGetListInput, CreateUpdateTicketSourceDto } from '../../proxy/helpdesk/models';
-import { TicketSourceService } from '../../proxy/helpdesk/ticket-source.service';
+import { TicketSourceDto, TicketSourceGetListInput, CreateUpdateTicketSourceDto } from '../../proxy/ticket-sources/models';
+import { TicketSourceService } from '../../proxy/ticket-sources/ticket-source.service';
 
 @Component({
   selector: 'app-ticket-sources',
@@ -32,9 +32,6 @@ export class TicketSourcesComponent implements OnInit {
   form: FormGroup = this.fb.group({
     code: ['', [Validators.required, Validators.maxLength(50)]],
     name: ['', [Validators.required, Validators.maxLength(200)]],
-    description: ['', Validators.maxLength(500)],
-    icon: ['', Validators.maxLength(100)],
-    isDefault: [false],
     isActive: [true],
   });
 
@@ -53,7 +50,7 @@ export class TicketSourcesComponent implements OnInit {
   openCreateModal(): void {
     this.isEditing = false;
     this.selectedId = undefined;
-    this.form.reset({ isActive: true, isDefault: false });
+    this.form.reset({ isActive: true });
     this.isModalOpen = true;
   }
 
@@ -74,9 +71,9 @@ export class TicketSourcesComponent implements OnInit {
   }
 
   delete(item: TicketSourceDto): void {
-    this.confirmation.warn('::AreYouSureToDelete', '::AreYouSure', { messageLocalizationParams: [item.name] })
+    this.confirmation.warn('::AreYouSureToDelete', '::AreYouSure', { messageLocalizationParams: [item.name ?? ''] })
       .subscribe((s: Confirmation.Status) => {
-        if (s === Confirmation.Status.confirm) this.svc.delete(item.id).subscribe(() => this.list.get());
+        if (s === Confirmation.Status.confirm) this.svc.delete(item.id!).subscribe(() => this.list.get());
       });
   }
 }
