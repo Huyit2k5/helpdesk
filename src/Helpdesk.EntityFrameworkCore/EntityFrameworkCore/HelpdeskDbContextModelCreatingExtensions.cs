@@ -185,5 +185,21 @@ public static class HelpdeskDbContextModelCreatingExtensions
             b.HasIndex(x => x.TicketId);
             b.HasIndex(x => x.BreachedAt);
         });
+
+        builder.Entity<Helpdesk.KnowledgeBase.KnowledgeArticle>(b =>
+        {
+            b.ToTable(HelpdeskConsts.DbTablePrefix + "KnowledgeArticles", HelpdeskConsts.DbSchema);
+            b.ConfigureByConvention();
+
+            b.Property(x => x.Title).IsRequired().HasMaxLength(256);
+            b.Property(x => x.Slug).IsRequired().HasMaxLength(256);
+            b.Property(x => x.Summary).HasMaxLength(1000);
+            b.Property(x => x.Content).IsRequired();
+            b.Property(x => x.Tags).HasMaxLength(500);
+
+            b.HasIndex(x => x.Slug);
+            b.HasIndex(x => x.CategoryId);
+            b.HasIndex(x => x.IsPublished);
+        });
     }
 }

@@ -203,6 +203,32 @@
 
     "Permission:Dashboard": "Dashboard & Analytics",
 
+    "Permission:KnowledgeBase": "Knowledge Base Management",
+    "Permission:KnowledgeBase.Create": "Create Article",
+    "Permission:KnowledgeBase.Edit": "Edit Article",
+    "Permission:KnowledgeBase.Delete": "Delete Article",
+    "Permission:KnowledgeBase.Manage": "Manage All Articles",
+
+    "Permission:CustomerPortal": "Customer Portal",
+    "Permission:CustomerPortal.CreateTicket": "Create Ticket in Portal",
+
+    "Menu:KnowledgeBase": "Knowledge Base",
+    "Menu:CustomerPortal": "Customer Portal",
+
+    "KnowledgeArticle": "Knowledge Base Article",
+    "KnowledgeArticles": "Knowledge Base",
+    "KnowledgeArticle:Title": "Title",
+    "KnowledgeArticle:Slug": "Slug",
+    "KnowledgeArticle:Category": "Category",
+    "KnowledgeArticle:Summary": "Summary",
+    "KnowledgeArticle:Content": "Content",
+    "KnowledgeArticle:Tags": "Tags",
+    "KnowledgeArticle:IsPublished": "Published",
+    "KnowledgeArticle:ViewCount": "Views",
+    "KnowledgeArticle:HelpfulCount": "Helpful",
+    "KnowledgeArticle:CreateNew": "New Article",
+    "KnowledgeArticle:Edit": "Edit Article",
+
     "Menu:Dashboard": "Dashboard",
 
     "Search": "Search",

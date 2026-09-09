@@ -29,6 +29,7 @@ public class HelpdeskDataSeedContributor : IDataSeedContributor, ITransientDepen
     private readonly Volo.Abp.Domain.Repositories.IRepository<Helpdesk.Sla.SlaPolicy, Guid> _slaPolicyRepository;
     private readonly Volo.Abp.Domain.Repositories.IRepository<Helpdesk.Tickets.Ticket, Guid> _ticketRepository;
     private readonly Volo.Abp.Domain.Repositories.IRepository<Helpdesk.Tickets.TicketActivity, Guid> _ticketActivityRepository;
+    private readonly Volo.Abp.Domain.Repositories.IRepository<Helpdesk.KnowledgeBase.KnowledgeArticle, Guid> _articleRepository;
     private readonly Volo.Abp.Identity.IdentityRoleManager _roleManager;
     private readonly Volo.Abp.Identity.IdentityUserManager _userManager;
     private readonly Volo.Abp.PermissionManagement.IPermissionDataSeeder _permissionDataSeeder;
@@ -44,6 +45,7 @@ public class HelpdeskDataSeedContributor : IDataSeedContributor, ITransientDepen
         Volo.Abp.Domain.Repositories.IRepository<Helpdesk.Sla.SlaPolicy, Guid> slaPolicyRepository,
         Volo.Abp.Domain.Repositories.IRepository<Helpdesk.Tickets.Ticket, Guid> ticketRepository,
         Volo.Abp.Domain.Repositories.IRepository<Helpdesk.Tickets.TicketActivity, Guid> ticketActivityRepository,
+        Volo.Abp.Domain.Repositories.IRepository<Helpdesk.KnowledgeBase.KnowledgeArticle, Guid> articleRepository,
         Volo.Abp.Identity.IdentityRoleManager roleManager,
         Volo.Abp.Identity.IdentityUserManager userManager,
         Volo.Abp.PermissionManagement.IPermissionDataSeeder permissionDataSeeder,
@@ -59,6 +61,7 @@ public class HelpdeskDataSeedContributor : IDataSeedContributor, ITransientDepen
         _slaPolicyRepository = slaPolicyRepository;
         _ticketRepository = ticketRepository;
         _ticketActivityRepository = ticketActivityRepository;
+        _articleRepository = articleRepository;
         _roleManager = roleManager;
         _userManager = userManager;
         _permissionDataSeeder = permissionDataSeeder;
@@ -77,6 +80,7 @@ public class HelpdeskDataSeedContributor : IDataSeedContributor, ITransientDepen
         await SeedSlaPoliciesAsync();
         await SeedTicketsAsync();
         await SeedRolesAndUsersAsync();
+        await SeedKnowledgeArticlesAsync();
     }
 
     private async Task SeedPrioritiesAsync()
@@ -286,6 +290,8 @@ public class HelpdeskDataSeedContributor : IDataSeedContributor, ITransientDepen
             "Helpdesk.TicketStatuses", "Helpdesk.TicketStatuses.Create", "Helpdesk.TicketStatuses.Edit", "Helpdesk.TicketStatuses.Delete",
             "Helpdesk.TicketSources", "Helpdesk.TicketSources.Create", "Helpdesk.TicketSources.Edit", "Helpdesk.TicketSources.Delete",
             "Helpdesk.CannedResponses", "Helpdesk.CannedResponses.Create", "Helpdesk.CannedResponses.Edit", "Helpdesk.CannedResponses.Delete",
+            "Helpdesk.KnowledgeBase", "Helpdesk.KnowledgeBase.Create", "Helpdesk.KnowledgeBase.Edit", "Helpdesk.KnowledgeBase.Delete", "Helpdesk.KnowledgeBase.Manage",
+            "Helpdesk.CustomerPortal", "Helpdesk.CustomerPortal.CreateTicket",
             "AbpIdentity.Users"
         };
 
@@ -294,6 +300,8 @@ public class HelpdeskDataSeedContributor : IDataSeedContributor, ITransientDepen
             "Helpdesk.Dashboard",
             "Helpdesk.Tickets", "Helpdesk.Tickets.Create", "Helpdesk.Tickets.Edit", "Helpdesk.Tickets.Assign", "Helpdesk.Tickets.ChangeStatus", "Helpdesk.Tickets.AddComment",
             "Helpdesk.CannedResponses", "Helpdesk.CannedResponses.Create", "Helpdesk.CannedResponses.Edit",
+            "Helpdesk.KnowledgeBase", "Helpdesk.KnowledgeBase.Create", "Helpdesk.KnowledgeBase.Edit",
+            "Helpdesk.CustomerPortal",
             "Helpdesk.Categories",
             "Helpdesk.Priorities",
             "Helpdesk.Departments",
@@ -304,7 +312,8 @@ public class HelpdeskDataSeedContributor : IDataSeedContributor, ITransientDepen
 
         var customerPermissions = new List<string>
         {
-            "Helpdesk.Tickets", "Helpdesk.Tickets.Create", "Helpdesk.Tickets.AddComment",
+            "Helpdesk.CustomerPortal", "Helpdesk.CustomerPortal.CreateTicket",
+            "Helpdesk.KnowledgeBase",
             "Helpdesk.Categories",
             "Helpdesk.Priorities",
             "Helpdesk.TicketStatuses",
@@ -325,6 +334,87 @@ public class HelpdeskDataSeedContributor : IDataSeedContributor, ITransientDepen
         await CreateUserAsync("agent1", "agent1@helpdesk.com", "Kỹ Thuật 1", "Nguyễn", "Huy123@", "SupportAgent");
         await CreateUserAsync("agent2", "agent2@helpdesk.com", "Kỹ Thuật 2", "Lê", "Huy123@", "SupportAgent");
         await CreateUserAsync("customer", "customer@company.com", "Khách Hàng", "Phạm", "Huy123@", "Customer");
+    }
+
+    private async Task SeedKnowledgeArticlesAsync()
+    {
+        if (await _articleRepository.GetCountAsync() > 0) return;
+
+        var categories = await _categoryRepository.GetListAsync();
+        if (categories.Count == 0) return;
+
+        var net = categories.FirstOrDefault(c => c.Code == "NETWORK") ?? categories[0];
+        var acc = categories.FirstOrDefault(c => c.Code == "ACCOUNT") ?? categories[0];
+        var hw = categories.FirstOrDefault(c => c.Code == "HARDWARE") ?? categories[0];
+        var sw = categories.FirstOrDefault(c => c.Code == "SOFTWARE") ?? categories[0];
+        var gen = categories.FirstOrDefault(c => c.Code == "GENERAL") ?? categories[0];
+
+        var articles = new List<Helpdesk.KnowledgeBase.KnowledgeArticle>
+        {
+            new Helpdesk.KnowledgeBase.KnowledgeArticle(
+                _guidGenerator.Create(),
+                "Hướng dẫn cài đặt và kết nối VPN FortiClient từ xa",
+                "huong-dan-cai-dat-va-ket-noi-vpn-forticlient-tu-xa",
+                net.Id,
+                "### 1. Chuẩn bị thông tin kết nối\n- **Địa chỉ máy chủ VPN:** `vpn.company.com`\n- **Cổng kết nối:** `10443`\n- **Tên đăng nhập:** Tài khoản email công ty (bỏ phần @company.com)\n\n### 2. Các bước cài đặt\n1. Tải phần mềm FortiClient VPN phiên bản 7.2 từ trang chủ hoặc kho phần mềm nội bộ.\n2. Chạy tệp cài đặt và làm theo hướng dẫn trên màn hình.\n3. Khởi động lại máy tính nếu được yêu cầu.\n\n### 3. Cấu hình kết nối\n1. Mở ứng dụng FortiClient, chọn **Config VPN**.\n2. Chọn loại kết nối: **SSL-VPN**.\n3. Điền Tên kết nối: `Company VPN`, Remote Gateway: `vpn.company.com:10443`.\n4. Bấm **Save** và đăng nhập bằng tài khoản và mật khẩu của bạn.\n5. Nhập mã xác thực OTP từ ứng dụng Google Authenticator nếu được kích hoạt 2FA.",
+                "Hướng dẫn chi tiết từng bước tải, cài đặt và cấu hình VPN FortiClient giúp nhân viên kết nối mạng nội bộ từ xa an toàn.",
+                "VPN, Remote, Fortinet, Network",
+                true
+            ),
+            new Helpdesk.KnowledgeBase.KnowledgeArticle(
+                _guidGenerator.Create(),
+                "Quy trình tự khôi phục mật khẩu tài khoản nội bộ (Self-Service Password Reset)",
+                "quy-trinh-tu-khoi-phuc-mat-khau-tai-khoan-noi-bo",
+                acc.Id,
+                "### Trường hợp 1: Bạn vẫn đăng nhập được vào máy tính\n1. Nhấn tổ hợp phím `Ctrl + Alt + Delete`.\n2. Chọn **Đổi mật khẩu (Change a password)**.\n3. Nhập mật khẩu cũ và nhập mật khẩu mới 2 lần.\n*Lưu ý: Mật khẩu mới phải có tối thiểu 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt.*\n\n### Trường hợp 2: Bạn quên mật khẩu hoàn toàn\n1. Truy cập cổng khôi phục tài khoản: `https://password.company.com`.\n2. Nhập email nhân viên công ty của bạn.\n3. Chọn phương thức xác thực qua SMS số điện thoại đã đăng ký với phòng Nhân Sự.\n4. Nhập mã OTP gồm 6 chữ số được gửi về điện thoại và tiến hành đặt lại mật khẩu mới.",
+                "Cách đặt lại mật khẩu tài khoản hệ thống khi bị quên hoặc hết hạn định kỳ 90 ngày mà không cần chờ IT can thiệp thủ công.",
+                "Password, Account, Reset, Security",
+                true
+            ),
+            new Helpdesk.KnowledgeBase.KnowledgeArticle(
+                _guidGenerator.Create(),
+                "Khắc phục sự cố máy in văn phòng (Kẹt giấy, Offline, Không nhận lệnh in)",
+                "khac-phuc-su-co-may-in-van-phong",
+                hw.Id,
+                "### 1. Máy in hiển thị trạng thái Offline hoặc Paused\n- Kiểm tra dây mạng LAN cắm sau lưng máy in xem đèn có nhấp nháy xanh không.\n- Vào **Settings > Bluetooth & devices > Printers & scanners**.\n- Nhấp vào máy in đang dùng, chọn **Open print queue**, mở menu **Printer** và bỏ chọn dòng **Use Printer Offline**.\n\n### 2. Máy in báo kẹt giấy (Paper Jam)\n- Tắt nguồn máy in bằng công tắc phía trước.\n- Mở nắp khay lấy giấy và nắp khoang chứa hộp mực (cartridge).\n- Dùng hai tay kéo nhẹ nhàng tờ giấy bị kẹt theo chiều thoát giấy thông thường (tránh giật mạnh làm rách vụn giấy kẹt lại trong trục cuốn).\n- Đóng nắp máy in cẩn thận và bật nguồn lại.",
+                "Tổng hợp các bước xử lý nhanh lỗi máy in không in được, kẹt giấy hoặc máy in bị chuyển sang chế độ Offline.",
+                "Printer, Hardware, May in, Paper Jam",
+                true
+            ),
+            new Helpdesk.KnowledgeBase.KnowledgeArticle(
+                _guidGenerator.Create(),
+                "Hướng dẫn thiết lập hòm thư Outlook Microsoft 365 trên máy tính và điện thoại",
+                "huong-dan-thiet-lap-hom-thu-outlook-microsoft-365",
+                sw.Id,
+                "### Cấu hình trên máy tính Windows (Outlook Desktop)\n1. Mở ứng dụng **Outlook** trên máy tính.\n2. Nếu là lần đầu mở, hộp thoại đăng nhập sẽ xuất hiện. Nhập địa chỉ email công ty dạng `ten.ho@company.com`.\n3. Bấm **Connect**.\n4. Trình duyệt xác thực tài khoản Microsoft 365 sẽ hiện ra, nhập mật khẩu và hoàn tất 2FA.\n5. Bỏ tích ô 'Cho phép tổ chức quản lý thiết bị của tôi' nếu đây là máy tính cá nhân (BYOD), rồi bấm **OK**.\n\n### Cấu hình trên Smartphone (iOS / Android)\n1. Tải ứng dụng chính thức **Microsoft Outlook** từ App Store hoặc Google Play.\n2. Chọn **Thêm tài khoản** và nhập email công ty.\n3. Đăng nhập và chấp nhận quyền thông báo để nhận email kịp thời.",
+                "Hướng dẫn đăng nhập và đồng bộ email công ty Microsoft 365 trên máy tính cá nhân và thiết bị di động thông minh.",
+                "Outlook, Email, Microsoft 365, Setup",
+                true
+            ),
+            new Helpdesk.KnowledgeBase.KnowledgeArticle(
+                _guidGenerator.Create(),
+                "Quy trình xin cấp phát và bàn giao thiết bị CNTT (Laptop, Màn hình, Bàn phím)",
+                "quy-trinh-xin-cap-phat-va-ban-giao-thiet-bi-cntt",
+                gen.Id,
+                "### 1. Đối tượng áp dụng\n- Nhân viên mới gia nhập công ty (Onboarding).\n- Nhân viên có nhu cầu nâng cấp hoặc đổi thiết bị do hư hỏng / khấu hao quá hạn.\n\n### 2. Các bước yêu cầu\n1. Tạo yêu cầu (Ticket) trên **Customer Portal** thuộc danh mục `General` hoặc `Hardware`.\n2. Ghi rõ lý do và đính kèm phê duyệt từ Trưởng bộ phận (Manager Approval) qua email hoặc văn bản.\n3. Bộ phận IT Helpdesk sẽ tiếp nhận, kiểm tra tồn kho và phản hồi thời gian hẹn bàn giao trong vòng 24 giờ làm việc.\n4. Khi nhận máy, nhân viên kiểm tra tình trạng vật lý, ký biên bản bàn giao thiết bị tài sản công ty.",
+                "Quy chuẩn và các bước phê duyệt cần thiết khi nhân viên xin cấp mới laptop, màn hình rời hoặc phụ kiện công nghệ.",
+                "Hardware, Equipment, Onboarding, IT Asset",
+                true
+            )
+        };
+
+        foreach (var art in articles)
+        {
+            art.Vote(true);
+            art.Vote(true);
+            art.Vote(true);
+            art.IncrementViewCount();
+            art.IncrementViewCount();
+            art.IncrementViewCount();
+            art.IncrementViewCount();
+            art.IncrementViewCount();
+            await _articleRepository.InsertAsync(art);
+        }
     }
 
     private async Task CreateRoleWithPermissionsAsync(string roleName, IEnumerable<string> permissions)

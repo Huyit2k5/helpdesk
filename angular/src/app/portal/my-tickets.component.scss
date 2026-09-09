@@ -1,0 +1,87 @@
+.my-tickets-page {
+  background-color: #f8fafc;
+  min-height: 100vh;
+}
+
+.customer-ticket-card {
+  background: #ffffff;
+  border-radius: 1rem;
+  border: 1px solid #e2e8f0;
+  padding: 1.5rem;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.08) !important;
+  }
+
+  .ticket-heading {
+    font-size: 1.15rem;
+    font-weight: 700;
+
+    a {
+      color: #0f172a;
+      text-decoration: none;
+      transition: color 0.15s ease;
+
+      &:hover {
+        color: #2563eb;
+      }
+    }
+  }
+}
+
+.empty-icon-box {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.deflection-alert {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+}
+
+.custom-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 1050;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.custom-modal-dialog {
+  width: 100%;
+  max-width: 720px;
+  animation: modalFadeIn 0.2s ease-out;
+}
+
+.custom-modal-content {
+  background: #ffffff;
+  border-radius: 1.25rem;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

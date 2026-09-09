@@ -1,0 +1,198 @@
+<div class="manage-kb-page p-4">
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+      <div class="d-flex align-items-center gap-2 mb-1">
+        <a routerLink="/knowledge-base" class="text-decoration-none text-muted small">
+          <i class="fas fa-arrow-left me-1"></i> Cơ Sở Tri Thức
+        </a>
+      </div>
+      <h3 class="fw-bold mb-0 text-dark">
+        <i class="fas fa-edit text-primary me-2"></i>Quản Lý Bài Viết Cẩm Nang
+      </h3>
+    </div>
+    <div class="d-flex gap-2">
+      <button class="btn btn-primary rounded-pill px-3 shadow-sm" (click)="openCreateModal()">
+        <i class="fas fa-plus me-1"></i> Thêm Bài Viết Mới
+      </button>
+    </div>
+  </div>
+
+  <!-- Filter Bar -->
+  <div class="card border-0 shadow-sm rounded-4 mb-4">
+    <div class="card-body p-3">
+      <div class="row g-2">
+        <div class="col-md-6">
+          <div class="input-group">
+            <span class="input-group-text bg-light border-0"><i class="fas fa-search text-muted"></i></span>
+            <input
+              type="text"
+              class="form-control bg-light border-0"
+              placeholder="Tìm theo tiêu đề, tóm tắt hoặc thẻ..."
+              [(ngModel)]="searchTerm"
+              (keyup.enter)="loadArticles()"
+            />
+          </div>
+        </div>
+        <div class="col-md-2">
+          <button class="btn btn-outline-primary w-100 rounded-pill" (click)="loadArticles()">
+            Tìm kiếm
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Articles Table -->
+  <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th style="width: 40%;">Tiêu đề bài viết</th>
+            <th>Danh mục</th>
+            <th>Trạng thái</th>
+            <th class="text-center">Lượt xem</th>
+            <th class="text-center">Hữu ích</th>
+            <th>Ngày tạo</th>
+            <th class="text-end pe-4">Thao tác</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="isLoading">
+            <td colspan="7" class="text-center py-5">
+              <div class="spinner-border text-primary" role="status"></div>
+              <p class="text-muted small mt-2 mb-0">Đang tải dữ liệu...</p>
+            </td>
+          </tr>
+          <tr *ngIf="!isLoading && articles.length === 0">
+            <td colspan="7" class="text-center py-5 text-muted">
+              Không có bài viết nào được tìm thấy.
+            </td>
+          </tr>
+          <tr *ngFor="let a of articles">
+            <td>
+              <div class="fw-bold text-dark">{{ a.title }}</div>
+              <div class="text-muted small text-truncate" style="max-width: 420px;">
+                {{ a.summary || a.slug }}
+              </div>
+            </td>
+            <td>
+              <span class="badge bg-light text-dark border">
+                {{ a.categoryName || 'Chung' }}
+              </span>
+            </td>
+            <td>
+              <button 
+                class="badge rounded-pill border-0 px-2 py-1 cursor-pointer"
+                [ngClass]="a.isPublished ? 'bg-success-subtle text-success' : 'bg-secondary-subtle text-secondary'"
+                (click)="togglePublish(a)"
+                title="Bấm để bật/tắt xuất bản">
+                <i class="fas fa-circle fa-xs me-1"></i>
+                {{ a.isPublished ? 'Đã xuất bản' : 'Bản nháp' }}
+              </button>
+            </td>
+            <td class="text-center fw-semibold text-secondary">
+              <i class="fas fa-eye fa-xs me-1 text-muted"></i>{{ a.viewCount }}
+            </td>
+            <td class="text-center fw-semibold text-success">
+              <i class="fas fa-thumbs-up fa-xs me-1"></i>{{ a.helpfulCount }}
+            </td>
+            <td class="text-muted small">
+              {{ a.creationTime | date:'dd/MM/yyyy' }}
+            </td>
+            <td class="text-end pe-4">
+              <div class="btn-group btn-group-sm">
+                <a [routerLink]="['/knowledge-base', a.slug]" class="btn btn-outline-secondary" title="Xem bài viết">
+                  <i class="fas fa-external-link-alt"></i>
+                </a>
+                <button class="btn btn-outline-primary" (click)="openEditModal(a)" title="Sửa bài viết">
+                  <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn btn-outline-danger" (click)="deleteArticle(a)" title="Xóa bài viết">
+                  <i class="fas fa-trash-alt"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Create / Edit Modal -->
+  <div *ngIf="isModalOpen" class="custom-modal-backdrop">
+    <div class="custom-modal-dialog">
+      <div class="custom-modal-content">
+        <div class="modal-header p-3 border-bottom d-flex justify-content-between align-items-center">
+          <h5 class="modal-title fw-bold mb-0">
+            <i class="fas text-primary me-2" [ngClass]="isEditMode ? 'fa-edit' : 'fa-plus-circle'"></i>
+            {{ isEditMode ? 'Chỉnh Sửa Bài Viết' : 'Tạo Bài Viết Mới' }}
+          </h5>
+          <button type="button" class="btn-close" (click)="closeModal()"></button>
+        </div>
+
+        <form [formGroup]="form" (ngSubmit)="save()">
+          <div class="modal-body p-4" style="max-height: 75vh; overflow-y: auto;">
+            <!-- Title -->
+            <div class="mb-3">
+              <label class="form-label fw-bold">Tiêu đề bài viết <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" formControlName="title" placeholder="Nhập tiêu đề hướng dẫn..." />
+              <div *ngIf="form.get('title')?.touched && form.get('title')?.invalid" class="text-danger small mt-1">
+                Tiêu đề không được để trống (tối đa 256 ký tự).
+              </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+              <!-- Category -->
+              <div class="col-md-6">
+                <label class="form-label fw-bold">Danh mục <span class="text-danger">*</span></label>
+                <select class="form-select" formControlName="categoryId">
+                  <option value="" disabled>-- Chọn danh mục --</option>
+                  <option *ngFor="let cat of categories" [value]="cat.id">{{ cat.name }}</option>
+                </select>
+              </div>
+
+              <!-- Published status -->
+              <div class="col-md-6 d-flex align-items-end">
+                <div class="form-check form-switch mb-2">
+                  <input class="form-check-input" type="checkbox" id="isPublishedSwitch" formControlName="isPublished" />
+                  <label class="form-check-label fw-semibold ms-2" for="isPublishedSwitch">
+                    Xuất bản ngay cho người dùng
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Summary -->
+            <div class="mb-3">
+              <label class="form-label fw-bold">Tóm tắt ngắn</label>
+              <textarea class="form-control" formControlName="summary" rows="2" placeholder="Tóm tắt 1-2 câu nội dung để người dùng nhanh chóng nắm bắt..."></textarea>
+            </div>
+
+            <!-- Tags -->
+            <div class="mb-3">
+              <label class="form-label fw-bold">Thẻ / Từ khóa gợi ý (Tags)</label>
+              <input type="text" class="form-control" formControlName="tags" placeholder="vd: VPN, Remote, Fortinet, Wifi (cách nhau bởi dấu phẩy)" />
+            </div>
+
+            <!-- Content -->
+            <div class="mb-3">
+              <label class="form-label fw-bold">Nội dung chi tiết (Hỗ trợ định dạng Markdown) <span class="text-danger">*</span></label>
+              <textarea class="form-control font-monospace" formControlName="content" rows="12" placeholder="Nhập nội dung hướng dẫn các bước xử lý sự cố..."></textarea>
+              <div class="text-muted small mt-1">
+                <i class="fab fa-markdown me-1"></i> Có thể sử dụng # Tiêu đề, **in đậm**, - danh sách hoặc `code`.
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer p-3 border-top d-flex justify-content-end gap-2 bg-light">
+            <button type="button" class="btn btn-secondary rounded-pill px-4" (click)="closeModal()">Hủy</button>
+            <button type="submit" class="btn btn-primary rounded-pill px-4 shadow-sm" [disabled]="form.invalid">
+              <i class="fas fa-save me-1"></i> Lưu Bài Viết
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

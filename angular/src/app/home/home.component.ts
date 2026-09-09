@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
-import { AuthService, LocalizationPipe } from '@abp/ng.core';
+import { AuthService, LocalizationPipe, PermissionService } from '@abp/ng.core';
 import { Router } from '@angular/router';
 
 @Component({
@@ -11,6 +11,7 @@ import { Router } from '@angular/router';
 })
 export class HomeComponent implements OnInit {
   private authService = inject(AuthService);
+  private permissionService = inject(PermissionService);
   private router = inject(Router);
 
   get hasLoggedIn(): boolean {
@@ -19,7 +20,11 @@ export class HomeComponent implements OnInit {
 
   ngOnInit(): void {
     if (this.hasLoggedIn) {
-      this.router.navigate(['/dashboard']);
+      if (this.permissionService.getGrantedPolicy('Helpdesk.Dashboard')) {
+        this.router.navigate(['/dashboard']);
+      } else {
+        this.router.navigate(['/portal']);
+      }
     }
   }
 

@@ -1,0 +1,103 @@
+<div class="article-detail-page py-4">
+  <div class="container" style="max-width: 900px;">
+    <!-- Breadcrumb & Back button -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <a routerLink="/knowledge-base" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+        <i class="fas fa-arrow-left me-1"></i> Quay lại Cơ Sở Tri Thức
+      </a>
+      <span class="text-muted small" *ngIf="article">
+        <i class="fas fa-folder text-primary me-1"></i> {{ article.categoryName || 'Chung' }}
+      </span>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div *ngIf="isLoading" class="text-center py-5">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p class="text-muted mt-2">Đang tải nội dung bài viết...</p>
+    </div>
+
+    <!-- Not Found -->
+    <div *ngIf="!isLoading && !article" class="card shadow-sm border-0 rounded-4 p-5 text-center">
+      <div class="text-warning mb-3">
+        <i class="fas fa-exclamation-triangle fa-3x"></i>
+      </div>
+      <h4>Không tìm thấy bài viết</h4>
+      <p class="text-muted">Bài viết này có thể đã bị xóa hoặc chưa được xuất bản.</p>
+      <a routerLink="/knowledge-base" class="btn btn-primary rounded-pill px-4 mx-auto mt-2">
+        Về trang Cơ Sở Tri Thức
+      </a>
+    </div>
+
+    <!-- Article Content Card -->
+    <div *ngIf="!isLoading && article" class="article-paper shadow-sm">
+      <!-- Article Header -->
+      <div class="article-header border-bottom pb-4 mb-4">
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-1 fw-semibold">
+            {{ article.categoryName || 'Chung' }}
+          </span>
+          <span class="text-muted small">
+            <i class="far fa-calendar-alt me-1"></i> Cập nhật: {{ article.creationTime | date:'dd/MM/yyyy' }}
+          </span>
+        </div>
+
+        <h1 class="article-main-title">{{ article.title }}</h1>
+
+        <div class="article-metadata d-flex align-items-center gap-3 mt-3 flex-wrap">
+          <span class="meta-item">
+            <i class="fas fa-eye text-muted me-1"></i> {{ article.viewCount }} lượt xem
+          </span>
+          <span class="meta-item">
+            <i class="fas fa-thumbs-up text-success me-1"></i> {{ article.helpfulCount }} người thấy hữu ích
+          </span>
+        </div>
+
+        <div *ngIf="article.summary" class="article-summary-box mt-3">
+          <i class="fas fa-info-circle text-primary me-2"></i>
+          <span>{{ article.summary }}</span>
+        </div>
+      </div>
+
+      <!-- Article Body -->
+      <div class="article-body-content" [innerHTML]="formatContent(article.content)"></div>
+
+      <!-- Tags -->
+      <div *ngIf="article.tags" class="article-tags-section border-top pt-3 mt-5">
+        <span class="text-muted small me-2"><i class="fas fa-tags me-1"></i> Từ khóa liên quan:</span>
+        <span *ngFor="let t of article.tags.split(',')" class="badge bg-light text-secondary me-1 px-2 py-1">
+          #{{ t.trim() }}
+        </span>
+      </div>
+
+      <!-- Feedback / Helpful Voting Section -->
+      <div class="article-voting-box text-center mt-5 p-4 rounded-4">
+        <h5 class="fw-bold mb-2">Bài viết này có hữu ích đối với bạn không?</h5>
+        <p class="text-muted small mb-3">Đánh giá của bạn giúp đội ngũ IT không ngừng nâng cao chất lượng tài liệu hỗ trợ.</p>
+        
+        <div *ngIf="!hasVoted" class="d-flex justify-content-center gap-3">
+          <button class="btn btn-outline-success rounded-pill px-4 py-2" (click)="vote(true)">
+            <i class="fas fa-thumbs-up me-2"></i> Có, rất hữu ích ({{ article.helpfulCount }})
+          </button>
+          <button class="btn btn-outline-secondary rounded-pill px-4 py-2" (click)="vote(false)">
+            <i class="fas fa-thumbs-down me-2"></i> Chưa giúp được tôi
+          </button>
+        </div>
+
+        <div *ngIf="hasVoted" class="alert alert-success rounded-pill py-2 px-4 d-inline-block mb-0 animate__animated animate__fadeIn">
+          <i class="fas fa-check-circle me-1"></i> {{ voteSuccessMessage }}
+        </div>
+      </div>
+
+      <!-- Still need help card -->
+      <div class="still-need-help mt-4 p-4 rounded-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+          <h6 class="fw-bold mb-1"><i class="fas fa-life-ring text-primary me-2"></i> Vẫn cần thêm sự trợ giúp từ IT?</h6>
+          <p class="text-muted small mb-0">Tạo phiếu hỗ trợ để nhân viên kỹ thuật trực tiếp kiểm tra và hỗ trợ bạn.</p>
+        </div>
+        <a routerLink="/portal/my-tickets" [queryParams]="{ create: 'true' }" class="btn btn-primary rounded-pill px-4 shadow-sm">
+          <i class="fas fa-ticket-alt me-1"></i> Gửi Yêu Cầu Hỗ Trợ
+        </a>
+      </div>
+    </div>
+  </div>
+</div>

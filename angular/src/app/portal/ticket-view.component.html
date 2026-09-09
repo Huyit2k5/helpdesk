@@ -1,0 +1,169 @@
+<div class="ticket-view-page py-4">
+  <div class="container" style="max-width: 960px;">
+    <!-- Breadcrumb & Back button -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <a routerLink="/portal/my-tickets" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+        <i class="fas fa-arrow-left me-1"></i> Quay lại danh sách yêu cầu
+      </a>
+      <span class="text-muted small" *ngIf="ticket">
+        Mã vé: <strong class="text-dark font-monospace">{{ ticket.ticketNumber }}</strong>
+      </span>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div *ngIf="isLoading" class="text-center py-5">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p class="text-muted small mt-2">Đang tải chi tiết yêu cầu...</p>
+    </div>
+
+    <!-- Main Ticket Detail Content -->
+    <div *ngIf="!isLoading && ticket" class="row g-4">
+      <div class="col-lg-8">
+        <!-- Ticket Header Card -->
+        <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
+          <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
+              <div class="d-flex align-items-center gap-2">
+                <span class="badge rounded-pill px-3 py-1" [style.background-color]="ticket.statusColor + '20'" [style.color]="ticket.statusColor">
+                  <i class="fas fa-circle fa-xs me-1"></i> {{ ticket.statusName }}
+                </span>
+                <span class="badge rounded-pill px-2 py-1" [style.background-color]="ticket.priorityColor + '20'" [style.color]="ticket.priorityColor">
+                  {{ ticket.priorityName }}
+                </span>
+              </div>
+              <span class="text-muted small">
+                <i class="far fa-clock me-1"></i> {{ ticket.creationTime | date:'dd/MM/yyyy HH:mm' }}
+              </span>
+            </div>
+
+            <h3 class="fw-bold text-dark mb-3">{{ ticket.title }}</h3>
+
+            <!-- Initial Description Box -->
+            <div class="initial-desc-box p-3 rounded-3 bg-light">
+              <div class="fw-semibold text-secondary small mb-1">
+                <i class="fas fa-user-circle me-1"></i> Nội dung yêu cầu ban đầu của bạn:
+              </div>
+              <div class="desc-content text-dark" style="white-space: pre-line;">{{ ticket.description }}</div>
+
+              <!-- Attachments if any -->
+              <div *ngIf="ticket.attachments.length > 0" class="mt-3 pt-2 border-top">
+                <div class="small fw-semibold text-secondary mb-1">
+                  <i class="fas fa-paperclip me-1"></i> Tệp đính kèm ({{ ticket.attachments.length }}):
+                </div>
+                <div class="d-flex flex-wrap gap-2">
+                  <a *ngFor="let att of ticket.attachments" [href]="getDownloadUrl(att.id)" target="_blank" class="attachment-chip text-decoration-none">
+                    <i class="fas fa-file-download text-primary me-1"></i> {{ att.fileName }}
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Conversation Timeline -->
+        <div class="conversation-section mb-4">
+          <h5 class="fw-bold mb-3 text-dark">
+            <i class="fas fa-comments text-primary me-2"></i>Tiến Trình Trao Đổi
+          </h5>
+
+          <div *ngIf="ticket.comments.length === 0" class="text-center p-4 bg-white rounded-4 border text-muted small">
+            <i class="far fa-comment-dots fa-2x mb-2 text-secondary"></i>
+            <div>Chưa có tin nhắn trao đổi mới nào. Nhân viên kỹ thuật sẽ phản hồi bạn trong thời gian sớm nhất.</div>
+          </div>
+
+          <!-- Message Bubbles -->
+          <div *ngFor="let c of ticket.comments" class="message-card mb-3" [class.support-message]="c.isFromSupport" [class.customer-message]="!c.isFromSupport">
+            <div class="message-header d-flex justify-content-between align-items-center mb-1">
+              <div class="d-flex align-items-center gap-2">
+                <span class="user-avatar" [class.bg-primary]="c.isFromSupport" [class.bg-success]="!c.isFromSupport">
+                  <i class="fas" [ngClass]="c.isFromSupport ? 'fa-headset' : 'fa-user'"></i>
+                </span>
+                <span class="fw-bold text-dark">{{ c.creatorName }}</span>
+                <span *ngIf="c.isFromSupport" class="badge bg-primary-subtle text-primary rounded-pill small">
+                  <i class="fas fa-check-circle me-1"></i> Đội ngũ Hỗ Trợ
+                </span>
+              </div>
+              <span class="text-muted small">
+                {{ c.creationTime | date:'dd/MM/yyyy HH:mm' }}
+              </span>
+            </div>
+
+            <div class="message-body text-dark" style="white-space: pre-line;">{{ c.content }}</div>
+
+            <div *ngIf="c.attachments && c.attachments.length > 0" class="mt-2 pt-2 border-top">
+              <a *ngFor="let att of c.attachments" [href]="getDownloadUrl(att.id)" target="_blank" class="attachment-chip text-decoration-none me-2">
+                <i class="fas fa-download text-primary me-1"></i> {{ att.fileName }}
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Reply Box (if not final status) -->
+        <div *ngIf="!ticket.isFinal" class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+          <h6 class="fw-bold mb-2 text-dark">
+            <i class="fas fa-reply text-primary me-1"></i> Gửi Phản Hồi Thêm
+          </h6>
+          <textarea
+            class="form-control mb-3"
+            rows="4"
+            placeholder="Nhập nội dung bạn muốn phản hồi hoặc bổ sung thông tin cho kỹ thuật viên..."
+            [(ngModel)]="replyContent"
+          ></textarea>
+          <div class="d-flex justify-content-end">
+            <button class="btn btn-primary rounded-pill px-4 shadow-sm" (click)="sendReply()" [disabled]="!replyContent.trim() || isSubmittingReply">
+              <span *ngIf="isSubmittingReply" class="spinner-border spinner-border-sm me-1"></span>
+              <i *ngIf="!isSubmittingReply" class="fas fa-paper-plane me-1"></i> Gửi Tin Nhắn
+            </button>
+          </div>
+        </div>
+
+        <div *ngIf="ticket.isFinal" class="alert alert-secondary rounded-4 text-center p-3">
+          <i class="fas fa-lock me-1"></i> Yêu cầu này đã được đóng hoặc hoàn thành. Nếu bạn vẫn gặp sự cố, vui lòng gửi một yêu cầu hỗ trợ mới.
+        </div>
+      </div>
+
+      <!-- Ticket Metadata Sidebar -->
+      <div class="col-lg-4">
+        <div class="card border-0 shadow-sm rounded-4 p-4 sticky-top" style="top: 1.5rem;">
+          <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">
+            <i class="fas fa-info-circle text-primary me-1"></i> Thông Tin Phiếu
+          </h6>
+
+          <div class="info-row mb-3">
+            <div class="text-muted small">Danh mục</div>
+            <div class="fw-semibold text-dark">{{ ticket.categoryName }}</div>
+          </div>
+
+          <div class="info-row mb-3">
+            <div class="text-muted small">Trạng thái</div>
+            <div>
+              <span class="badge rounded-pill" [style.background-color]="ticket.statusColor + '20'" [style.color]="ticket.statusColor">
+                {{ ticket.statusName }}
+              </span>
+            </div>
+          </div>
+
+          <div class="info-row mb-3">
+            <div class="text-muted small">Mức độ ưu tiên</div>
+            <div class="fw-semibold text-dark">{{ ticket.priorityName }}</div>
+          </div>
+
+          <div class="info-row mb-3" *ngIf="ticket.dueDate">
+            <div class="text-muted small">Thời hạn dự kiến hoàn thành</div>
+            <div class="fw-semibold text-dark">{{ ticket.dueDate | date:'dd/MM/yyyy HH:mm' }}</div>
+          </div>
+
+          <div class="info-row mb-3" *ngIf="ticket.resolvedAt">
+            <div class="text-muted small">Thời gian giải quyết</div>
+            <div class="fw-semibold text-success">{{ ticket.resolvedAt | date:'dd/MM/yyyy HH:mm' }}</div>
+          </div>
+
+          <div class="info-row">
+            <div class="text-muted small">Thời gian tạo</div>
+            <div class="fw-semibold text-dark">{{ ticket.creationTime | date:'dd/MM/yyyy HH:mm' }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

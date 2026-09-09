@@ -1,0 +1,182 @@
+<div class="kb-container">
+  <!-- Hero Section -->
+  <div class="kb-hero">
+    <div class="hero-content">
+      <div class="badge-pill mb-2">
+        <i class="fas fa-book-reader me-1"></i> Trung Tâm Hỗ Trợ Kỹ Thuật
+      </div>
+      <h1 class="hero-title">Cơ Sở Tri Thức & Hướng Dẫn</h1>
+      <p class="hero-subtitle">Tìm kiếm giải pháp nhanh cho sự cố công nghệ, hướng dẫn phần mềm và quy trình hỗ trợ nội bộ.</p>
+      
+      <!-- Search Box -->
+      <div class="search-wrapper">
+        <i class="fas fa-search search-icon"></i>
+        <input
+          type="text"
+          class="search-input"
+          placeholder="Nhập từ khóa tìm kiếm (vd: vpn, mật khẩu, máy in, outlook...)"
+          [ngModel]="searchTerm"
+          (ngModelChange)="onSearchChange($event)"
+        />
+        <button *ngIf="searchTerm" class="btn-clear" (click)="clearFilters()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <div class="d-flex justify-content-center gap-2 mt-3 flex-wrap">
+        <span class="text-white-50 small align-self-center">Gợi ý tìm kiếm:</span>
+        <button class="btn btn-sm btn-outline-light rounded-pill px-3" (click)="onSearchChange('vpn')">VPN Fortinet</button>
+        <button class="btn btn-sm btn-outline-light rounded-pill px-3" (click)="onSearchChange('mật khẩu')">Khôi phục mật khẩu</button>
+        <button class="btn btn-sm btn-outline-light rounded-pill px-3" (click)="onSearchChange('máy in')">Sự cố máy in</button>
+        <button class="btn btn-sm btn-outline-light rounded-pill px-3" (click)="onSearchChange('outlook')">Cấu hình Outlook</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="container-fluid px-4 py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+      <!-- Category Filter Pills -->
+      <div class="category-pills">
+        <button
+          class="pill-btn"
+          [class.active]="selectedCategoryId === null"
+          (click)="selectCategory(null)">
+          <i class="fas fa-th-large me-1"></i> Tất cả danh mục
+        </button>
+        <button
+          *ngFor="let cat of categories"
+          class="pill-btn"
+          [class.active]="selectedCategoryId === cat.id"
+          (click)="selectCategory(cat.id || null)">
+          {{ cat.name }}
+        </button>
+      </div>
+
+      <!-- Action buttons -->
+      <div class="d-flex gap-2">
+        <a *ngIf="canManage" routerLink="/knowledge-base/manage" class="btn btn-primary shadow-sm rounded-pill px-3">
+          <i class="fas fa-cog me-1"></i> Quản Lý Bài Viết
+        </a>
+      </div>
+    </div>
+
+    <!-- Active Filter Alert -->
+    <div *ngIf="selectedTag || searchTerm" class="alert alert-info py-2 px-3 rounded-3 d-flex justify-content-between align-items-center mb-4">
+      <span>
+        <i class="fas fa-filter me-2"></i>
+        Đang lọc theo: 
+        <strong *ngIf="searchTerm">Từ khóa: "{{ searchTerm }}"</strong>
+        <strong *ngIf="selectedTag">Thẻ: #{{ selectedTag }}</strong>
+      </span>
+      <button class="btn btn-sm btn-link text-decoration-none text-info fw-bold p-0" (click)="clearFilters()">
+        Xóa bộ lọc
+      </button>
+    </div>
+
+    <div class="row g-4">
+      <!-- Main Content (Articles Grid) -->
+      <div class="col-lg-8">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h4 class="fw-bold mb-0 text-dark">
+            <i class="fas fa-file-alt text-primary me-2"></i>Danh Sách Bài Viết
+            <span class="badge bg-primary-subtle text-primary ms-2 fs-6 rounded-pill">{{ totalCount }}</span>
+          </h4>
+        </div>
+
+        <!-- Loading spinner -->
+        <div *ngIf="isLoading" class="text-center py-5">
+          <div class="spinner-border text-primary" role="status"></div>
+          <p class="text-muted mt-2">Đang tải danh sách bài viết...</p>
+        </div>
+
+        <!-- Empty state -->
+        <div *ngIf="!isLoading && articles.length === 0" class="empty-card text-center py-5">
+          <div class="empty-icon-circle mx-auto mb-3">
+            <i class="fas fa-search fa-2x text-muted"></i>
+          </div>
+          <h5>Không tìm thấy bài viết nào phù hợp</h5>
+          <p class="text-muted">Hãy thử tìm với từ khóa khác hoặc xóa bộ lọc hiện tại.</p>
+          <button class="btn btn-outline-primary rounded-pill px-4 mt-2" (click)="clearFilters()">
+            Xóa bộ lọc
+          </button>
+        </div>
+
+        <!-- Articles Grid -->
+        <div *ngIf="!isLoading && articles.length > 0" class="row g-3">
+          <div *ngFor="let item of articles" class="col-12">
+            <div class="article-card shadow-sm">
+              <div class="article-body">
+                <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                  <span class="cat-badge">
+                    <i class="fas fa-folder me-1"></i>{{ item.categoryName || 'Chung' }}
+                  </span>
+                  <div class="article-stats">
+                    <span class="stat-item" title="Lượt xem">
+                      <i class="fas fa-eye me-1 text-muted"></i>{{ item.viewCount }}
+                    </span>
+                    <span class="stat-item" title="Đánh giá hữu ích">
+                      <i class="fas fa-thumbs-up me-1 text-success"></i>{{ item.helpfulCount }}
+                    </span>
+                  </div>
+                </div>
+
+                <h3 class="article-title">
+                  <a [routerLink]="['/knowledge-base', item.slug]">{{ item.title }}</a>
+                </h3>
+
+                <p class="article-summary text-muted mb-3">{{ item.summary }}</p>
+
+                <div class="article-footer d-flex justify-content-between align-items-center flex-wrap gap-2 pt-2 border-top">
+                  <div class="tags-container">
+                    <span *ngFor="let tag of (item.tags?.split(',') || [])" 
+                          class="tag-badge" 
+                          (click)="selectTag(tag.trim())">
+                      #{{ tag.trim() }}
+                    </span>
+                  </div>
+                  <a [routerLink]="['/knowledge-base', item.slug]" class="btn-read-more">
+                    Đọc hướng dẫn <i class="fas fa-arrow-right ms-1"></i>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sidebar: Popular Articles & Quick Deflection Help -->
+      <div class="col-lg-4">
+        <!-- Popular Articles Widget -->
+        <div class="side-widget shadow-sm mb-4">
+          <div class="widget-header">
+            <i class="fas fa-fire text-warning me-2"></i> Bài Viết Xem Nhiều Nhất
+          </div>
+          <div class="widget-body p-0">
+            <div *ngFor="let pop of popularArticles; let i = index" class="popular-item">
+              <div class="popular-num">{{ i + 1 }}</div>
+              <div class="popular-info">
+                <a [routerLink]="['/knowledge-base', pop.slug]" class="popular-title">{{ pop.title }}</a>
+                <div class="popular-meta">
+                  <span><i class="fas fa-eye me-1"></i>{{ pop.viewCount }} lượt xem</span>
+                  <span class="ms-2"><i class="fas fa-thumbs-up me-1 text-success"></i>{{ pop.helpfulCount }} hữu ích</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Need More Help Widget -->
+        <div class="support-card shadow-sm text-center">
+          <div class="support-icon-box mx-auto mb-3">
+            <i class="fas fa-headset fa-2x text-primary"></i>
+          </div>
+          <h5 class="fw-bold">Chưa tìm thấy giải pháp?</h5>
+          <p class="text-muted small">Đội ngũ IT Helpdesk luôn sẵn sàng hỗ trợ trực tiếp và giải quyết vấn đề của bạn.</p>
+          <a routerLink="/portal/my-tickets" [queryParams]="{ create: 'true' }" class="btn btn-primary rounded-pill w-100 py-2 shadow-sm">
+            <i class="fas fa-plus-circle me-1"></i> Gửi Yêu Cầu Hỗ Trợ Mới
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

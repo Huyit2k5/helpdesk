@@ -42,4 +42,14 @@ export const APP_ROUTES: Routes = [
     loadComponent: () =>
       import('./dashboard/dashboard.component').then(c => c.DashboardComponent),
   },
+  {
+    path: 'portal',
+    loadChildren: () =>
+      import('./portal/portal.routes').then(m => m.PORTAL_ROUTES),
+  },
+  {
+    path: 'knowledge-base',
+    loadChildren: () =>
+      import('./knowledge-base/knowledge-base.routes').then(m => m.KNOWLEDGE_BASE_ROUTES),
+  },
 ];

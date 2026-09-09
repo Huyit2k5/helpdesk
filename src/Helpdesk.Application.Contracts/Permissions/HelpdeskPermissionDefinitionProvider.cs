@@ -64,6 +64,17 @@ public class HelpdeskPermissionDefinitionProvider : PermissionDefinitionProvider
 
         // Dashboard
         helpdeskGroup.AddPermission(HelpdeskPermissions.Dashboard.Default, L("Permission:Dashboard"));
+
+        // Knowledge Base
+        var kbPermission = helpdeskGroup.AddPermission(HelpdeskPermissions.KnowledgeBase.Default, L("Permission:KnowledgeBase"));
+        kbPermission.AddChild(HelpdeskPermissions.KnowledgeBase.Create, L("Permission:KnowledgeBase.Create"));
+        kbPermission.AddChild(HelpdeskPermissions.KnowledgeBase.Edit, L("Permission:KnowledgeBase.Edit"));
+        kbPermission.AddChild(HelpdeskPermissions.KnowledgeBase.Delete, L("Permission:KnowledgeBase.Delete"));
+        kbPermission.AddChild(HelpdeskPermissions.KnowledgeBase.Manage, L("Permission:KnowledgeBase.Manage"));
+
+        // Customer Portal
+        var portalPermission = helpdeskGroup.AddPermission(HelpdeskPermissions.CustomerPortal.Default, L("Permission:CustomerPortal"));
+        portalPermission.AddChild(HelpdeskPermissions.CustomerPortal.CreateTicket, L("Permission:CustomerPortal.CreateTicket"));
     }
 
     private static LocalizableString L(string name)

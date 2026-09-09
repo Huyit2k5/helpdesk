@@ -75,4 +75,19 @@ public static class HelpdeskPermissions
     {
         public const string Default = GroupName + ".Dashboard";
     }
+
+    public static class KnowledgeBase
+    {
+        public const string Default = GroupName + ".KnowledgeBase";
+        public const string Create = Default + ".Create";
+        public const string Edit = Default + ".Edit";
+        public const string Delete = Default + ".Delete";
+        public const string Manage = Default + ".Manage";
+    }
+
+    public static class CustomerPortal
+    {
+        public const string Default = GroupName + ".CustomerPortal";
+        public const string CreateTicket = Default + ".CreateTicket";
+    }
 }

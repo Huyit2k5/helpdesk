@@ -1,0 +1,131 @@
+.portal-home-page {
+  background-color: #f8fafc;
+  min-height: 100vh;
+}
+
+.portal-hero {
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+  color: #ffffff;
+  padding: 3rem 0;
+
+  .portal-badge {
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.15);
+    padding: 0.35rem 1rem;
+    border-radius: 50rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #93c5fd;
+  }
+
+  .portal-title {
+    font-size: 2.25rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    margin-bottom: 0.75rem;
+  }
+
+  .portal-desc {
+    font-size: 1.05rem;
+    color: #e2e8f0;
+    max-width: 600px;
+    line-height: 1.6;
+  }
+}
+
+.hero-quick-card {
+  background: #ffffff;
+  color: #1e293b;
+  border: 1px solid #e2e8f0;
+}
+
+.action-card {
+  background: #ffffff;
+  border-radius: 1.25rem;
+  border: 1px solid #e2e8f0;
+  padding: 2rem 1.75rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  display: flex;
+  flex-direction: column;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 15px 30px -10px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  .action-icon-box {
+    width: 60px;
+    height: 60px;
+    border-radius: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.25rem;
+
+    &.bg-blue-subtle { background: #eff6ff; }
+    &.bg-green-subtle { background: #f0fdf4; }
+    &.bg-purple-subtle { background: #faf5ff; }
+  }
+
+  .text-purple {
+    color: #9333ea;
+  }
+
+  .action-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 0.5rem;
+  }
+
+  .action-desc {
+    color: #64748b;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    flex-grow: 1;
+    margin-bottom: 1.5rem;
+  }
+
+  .action-link {
+    font-weight: 600;
+    color: #2563eb;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    transition: transform 0.15s ease;
+
+    &:hover {
+      color: #1d4ed8;
+      transform: translateX(4px);
+    }
+  }
+}
+
+.content-panel {
+  background: #ffffff;
+  border-radius: 1.25rem;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+
+  .panel-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid #f1f5f9;
+    background: #ffffff;
+  }
+
+  .ticket-row, .kb-row {
+    transition: background 0.15s ease;
+
+    &:last-child {
+      border-bottom: none !important;
+    }
+
+    &:hover {
+      background: #f8fafc;
+    }
+  }
+}
+
+.hover-primary:hover {
+  color: #2563eb !important;
+}

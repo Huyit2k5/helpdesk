@@ -1,0 +1,156 @@
+<div class="portal-home-page">
+  <!-- Hero Section -->
+  <div class="portal-hero">
+    <div class="container py-4">
+      <div class="row align-items-center">
+        <div class="col-lg-8 text-lg-start text-center">
+          <div class="portal-badge mb-2">
+            <i class="fas fa-shield-alt me-1"></i> Cổng Tự Phục Vụ Dành Cho Khách Hàng & Nhân Viên
+          </div>
+          <h1 class="portal-title">Chào mừng đến với Cổng Hỗ Trợ IT!</h1>
+          <p class="portal-desc">
+            Chúng tôi luôn sẵn sàng hỗ trợ bạn khắc phục sự cố kỹ thuật, cấp quyền tài khoản và hướng dẫn sử dụng hệ thống.
+          </p>
+        </div>
+        <div class="col-lg-4 text-center mt-3 mt-lg-0">
+          <div class="hero-quick-card p-4 rounded-4 shadow">
+            <i class="fas fa-ticket-alt fa-3x text-primary mb-3"></i>
+            <h5 class="fw-bold mb-2">Gặp sự cố công nghệ?</h5>
+            <p class="text-muted small mb-3">Tạo phiếu yêu cầu ngay để nhận hỗ trợ kịp thời từ chuyên viên IT.</p>
+            <a routerLink="/portal/my-tickets" [queryParams]="{ create: 'true' }" class="btn btn-primary rounded-pill w-100 py-2 shadow-sm">
+              <i class="fas fa-plus-circle me-1"></i> Gửi Yêu Cầu Hỗ Trợ Mới
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container py-5">
+    <!-- Quick Action Cards Grid -->
+    <div class="row g-4 mb-5">
+      <div class="col-md-4">
+        <div class="action-card shadow-sm h-100">
+          <div class="action-icon-box bg-blue-subtle text-primary">
+            <i class="fas fa-paper-plane fa-2x"></i>
+          </div>
+          <h4 class="action-title">Gửi Yêu Cầu Hỗ Trợ</h4>
+          <p class="action-desc">Mô tả sự cố bạn đang gặp phải. Đội ngũ IT sẽ phản hồi nhanh chóng theo cam kết SLA.</p>
+          <a routerLink="/portal/my-tickets" [queryParams]="{ create: 'true' }" class="action-link">
+            Tạo phiếu mới <i class="fas fa-arrow-right ms-1"></i>
+          </a>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="action-card shadow-sm h-100">
+          <div class="action-icon-box bg-green-subtle text-success">
+            <i class="fas fa-tasks fa-2x"></i>
+          </div>
+          <h4 class="action-title">Theo Dõi Tiến Độ</h4>
+          <p class="action-desc">Xem trạng thái các yêu cầu đang xử lý, trao đổi trực tiếp với kỹ thuật viên phụ trách.</p>
+          <a routerLink="/portal/my-tickets" class="action-link">
+            Xem yêu cầu của tôi <i class="fas fa-arrow-right ms-1"></i>
+          </a>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="action-card shadow-sm h-100">
+          <div class="action-icon-box bg-purple-subtle text-purple">
+            <i class="fas fa-book-open fa-2x"></i>
+          </div>
+          <h4 class="action-title">Cơ Sở Tri Thức & FAQ</h4>
+          <p class="action-desc">Tự khắc phục nhanh các sự cố thông thường với kho bài viết hướng dẫn từng bước.</p>
+          <a routerLink="/knowledge-base" class="action-link">
+            Tra cứu hướng dẫn <i class="fas fa-arrow-right ms-1"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Tickets & Recommended Articles -->
+    <div class="row g-4">
+      <!-- Recent Tickets Section -->
+      <div class="col-lg-7">
+        <div class="content-panel shadow-sm">
+          <div class="panel-header d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0">
+              <i class="fas fa-history text-primary me-2"></i>Yêu Cầu Hỗ Trợ Gần Đây Của Bạn
+            </h5>
+            <a routerLink="/portal/my-tickets" class="small fw-semibold text-primary text-decoration-none">
+              Xem tất cả <i class="fas fa-chevron-right ms-1"></i>
+            </a>
+          </div>
+
+          <div class="panel-body p-0">
+            <div *ngIf="isLoading" class="text-center py-4">
+              <div class="spinner-border spinner-border-sm text-primary"></div>
+            </div>
+
+            <div *ngIf="!isLoading && recentTickets.length === 0" class="text-center py-5">
+              <i class="fas fa-check-circle fa-3x text-success mb-2"></i>
+              <h6>Bạn hiện không có yêu cầu nào đang chờ xử lý</h6>
+              <p class="text-muted small">Nếu bạn cần hỗ trợ, hãy bấm nút "Gửi Yêu Cầu Hỗ Trợ Mới".</p>
+            </div>
+
+            <div *ngFor="let t of recentTickets" class="ticket-row p-3 border-bottom d-flex justify-content-between align-items-center">
+              <div>
+                <div class="d-flex align-items-center gap-2 mb-1">
+                  <span class="badge bg-light text-dark border font-monospace">{{ t.ticketNumber }}</span>
+                  <span class="badge rounded-pill" [style.background-color]="t.statusColor + '20'" [style.color]="t.statusColor">
+                    {{ t.statusName }}
+                  </span>
+                  <span class="badge rounded-pill" [style.background-color]="t.priorityColor + '20'" [style.color]="t.priorityColor">
+                    {{ t.priorityName }}
+                  </span>
+                </div>
+                <h6 class="mb-1 fw-bold">
+                  <a [routerLink]="['/portal/tickets', t.id]" class="text-dark text-decoration-none hover-primary">
+                    {{ t.title }}
+                  </a>
+                </h6>
+                <div class="text-muted small">
+                  <span><i class="far fa-clock me-1"></i>{{ t.creationTime | date:'dd/MM/yyyy HH:mm' }}</span>
+                  <span class="ms-3"><i class="far fa-comments me-1"></i>{{ t.commentCount }} phản hồi</span>
+                </div>
+              </div>
+              <a [routerLink]="['/portal/tickets', t.id]" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                Chi tiết
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Popular KB Articles Section -->
+      <div class="col-lg-5">
+        <div class="content-panel shadow-sm">
+          <div class="panel-header d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0">
+              <i class="fas fa-lightbulb text-warning me-2"></i>Giải Pháp Phổ Biến
+            </h5>
+            <a routerLink="/knowledge-base" class="small fw-semibold text-primary text-decoration-none">
+              Kho tri thức <i class="fas fa-chevron-right ms-1"></i>
+            </a>
+          </div>
+
+          <div class="panel-body p-0">
+            <div *ngFor="let a of popularArticles" class="kb-row p-3 border-bottom">
+              <span class="badge bg-light text-muted small mb-1">{{ a.categoryName || 'Chung' }}</span>
+              <h6 class="mb-1 fw-semibold">
+                <a [routerLink]="['/knowledge-base', a.slug]" class="text-dark text-decoration-none hover-primary">
+                  {{ a.title }}
+                </a>
+              </h6>
+              <div class="text-muted small d-flex justify-content-between mt-2">
+                <span><i class="fas fa-eye me-1"></i>{{ a.viewCount }} xem</span>
+                <span><i class="fas fa-thumbs-up text-success me-1"></i>{{ a.helpfulCount }} hữu ích</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
