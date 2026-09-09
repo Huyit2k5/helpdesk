@@ -40,4 +40,24 @@ export class CustomerPortalService {
       body: input,
     },
     { apiName: this.apiName, ...config });
+
+  uploadMyAttachment = (ticketId: string, file: File, commentId?: string, config?: Partial<Rest.Config>) => {
+    const formData = new FormData();
+    formData.append('file', file, file.name);
+    return this.restService.request<any, any>({
+      method: 'POST',
+      url: '/api/app/customer-portal/upload-my-attachment',
+      params: { ticketId, commentId },
+      body: formData,
+    },
+    { apiName: this.apiName, ...config });
+  };
+
+  downloadMyAttachment = (attachmentId: string, config?: Partial<Rest.Config>) =>
+    this.restService.request<any, Blob>({
+      method: 'POST',
+      responseType: 'blob',
+      url: `/api/app/customer-portal/download-my-attachment/${attachmentId}`,
+    },
+    { apiName: this.apiName, ...config });
 }

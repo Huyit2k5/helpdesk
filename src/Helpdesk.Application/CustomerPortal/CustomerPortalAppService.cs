@@ -15,6 +15,8 @@ using Microsoft.AspNetCore.Authorization;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
+using Volo.Abp.BlobStoring;
+using Volo.Abp.Content;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Identity;
 using Volo.Abp.Users;
@@ -33,6 +35,7 @@ public class CustomerPortalAppService : ApplicationService, ICustomerPortalAppSe
     private readonly IRepository<TicketStatus, Guid> _statusRepository;
     private readonly IRepository<TicketSource, Guid> _sourceRepository;
     private readonly IRepository<IdentityUser, Guid> _userRepository;
+    private readonly Volo.Abp.BlobStoring.IBlobContainer _blobContainer;
     private readonly TicketManager _ticketManager;
     private readonly SlaManager _slaManager;
 
@@ -46,6 +49,7 @@ public class CustomerPortalAppService : ApplicationService, ICustomerPortalAppSe
         IRepository<TicketStatus, Guid> statusRepository,
         IRepository<TicketSource, Guid> sourceRepository,
         IRepository<IdentityUser, Guid> userRepository,
+        Volo.Abp.BlobStoring.IBlobContainer blobContainer,
         TicketManager ticketManager,
         SlaManager slaManager)
     {
@@ -58,6 +62,7 @@ public class CustomerPortalAppService : ApplicationService, ICustomerPortalAppSe
         _statusRepository = statusRepository;
         _sourceRepository = sourceRepository;
         _userRepository = userRepository;
+        _blobContainer = blobContainer;
         _ticketManager = ticketManager;
         _slaManager = slaManager;
     }
@@ -350,6 +355,62 @@ public class CustomerPortalAppService : ApplicationService, ICustomerPortalAppSe
             IsFromSupport = false,
             Attachments = attachments
         };
+    }
+
+    public async Task<TicketAttachmentDto> UploadMyAttachmentAsync(Guid ticketId, Volo.Abp.Content.IRemoteStreamContent file, Guid? commentId = null)
+    {
+        if (file == null || file.ContentLength == 0)
+        {
+            throw new UserFriendlyException("Tệp tải lên không hợp lệ hoặc trống.");
+        }
+
+        const long maxSizeBytes = 10 * 1024 * 1024; // 10MB
+        if (file.ContentLength > maxSizeBytes)
+        {
+            throw new UserFriendlyException("Dung lượng tệp vượt quá giới hạn cho phép (tối đa 10 MB).");
+        }
+
+        var ticket = await _ticketRepository.GetAsync(ticketId);
+        CheckCustomerAccess(ticket);
+
+        var ext = System.IO.Path.GetExtension(file.FileName);
+        var blobName = $"{ticket.Id}/{GuidGenerator.Create():N}{ext}";
+
+        using var memoryStream = new System.IO.MemoryStream();
+        await file.GetStream().CopyToAsync(memoryStream);
+        memoryStream.Seek(0, System.IO.SeekOrigin.Begin);
+
+        await _blobContainer.SaveAsync(blobName, memoryStream.ToArray(), overrideExisting: true);
+
+        var attachment = new TicketAttachment(
+            GuidGenerator.Create(),
+            ticket.Id,
+            file.FileName,
+            file.ContentLength ?? memoryStream.Length,
+            string.IsNullOrWhiteSpace(file.ContentType) ? "application/octet-stream" : file.ContentType,
+            blobName,
+            commentId);
+
+        await _attachmentRepository.InsertAsync(attachment, autoSave: true);
+
+        var activity = new TicketActivity(
+            GuidGenerator.Create(),
+            ticket.Id,
+            TicketActivityType.AttachmentAdded,
+            description: $"Khách hàng đã đính kèm tệp: {file.FileName}");
+        await _activityRepository.InsertAsync(activity);
+
+        return MapAttachmentDto(attachment);
+    }
+
+    public async Task<IRemoteStreamContent> DownloadMyAttachmentAsync(Guid attachmentId)
+    {
+        var attachment = await _attachmentRepository.GetAsync(attachmentId);
+        var ticket = await _ticketRepository.GetAsync(attachment.TicketId);
+        CheckCustomerAccess(ticket);
+
+        var stream = await _blobContainer.GetAsync(attachment.BlobName);
+        return new RemoteStreamContent(stream, attachment.FileName, attachment.ContentType);
     }
 
     private void CheckCustomerAccess(Ticket ticket)

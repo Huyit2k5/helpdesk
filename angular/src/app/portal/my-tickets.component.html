@@ -204,9 +204,40 @@
               <textarea
                 class="form-control"
                 formControlName="description"
-                rows="6"
+                rows="5"
                 placeholder="Hãy mô tả chi tiết: Sự cố xảy ra khi nào? Có mã lỗi nào xuất hiện không? Bạn đã thử thao tác gì chưa?..."
               ></textarea>
+            </div>
+
+            <!-- Attachments / Screenshots -->
+            <div class="mb-3">
+              <label class="form-label fw-bold">
+                <i class="fas fa-paperclip text-primary me-1"></i> Đính kèm ảnh chụp màn hình / tài liệu lỗi
+              </label>
+              <div class="upload-dropzone p-3 rounded-3 text-center mb-2">
+                <input
+                  type="file"
+                  id="ticketFileInput"
+                  multiple
+                  accept=".png,.jpg,.jpeg,.gif,.webp,.pdf,.doc,.docx,.zip"
+                  class="d-none"
+                  (change)="onFilesSelected($event)"
+                />
+                <label for="ticketFileInput" class="btn btn-outline-primary btn-sm rounded-pill px-3 cursor-pointer mb-1">
+                  <i class="fas fa-cloud-upload-alt me-1"></i> Chọn ảnh hoặc tệp tin
+                </label>
+                <div class="text-muted small">Hỗ trợ ảnh chụp màn hình: PNG, JPG, JPEG, GIF, PDF... (tối đa 10 MB/tệp)</div>
+              </div>
+
+              <!-- Selected Files List -->
+              <div *ngIf="selectedFiles.length > 0" class="selected-files-list d-flex flex-wrap gap-2 mt-2">
+                <div *ngFor="let file of selectedFiles; let i = index" class="file-chip badge bg-light text-dark border p-2 d-flex align-items-center gap-2">
+                  <i class="fas" [ngClass]="file.type.startsWith('image/') ? 'fa-image text-success' : 'fa-file-alt text-primary'"></i>
+                  <span class="file-name text-truncate" style="max-width: 200px;">{{ file.name }}</span>
+                  <span class="text-muted small">({{ formatBytes(file.size) }})</span>
+                  <button type="button" class="btn-close" style="font-size: 0.65rem;" (click)="removeSelectedFile(i)"></button>
+                </div>
+              </div>
             </div>
           </div>
 

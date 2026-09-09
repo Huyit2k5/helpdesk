@@ -47,13 +47,39 @@
 
               <!-- Attachments if any -->
               <div *ngIf="ticket.attachments.length > 0" class="mt-3 pt-2 border-top">
-                <div class="small fw-semibold text-secondary mb-1">
-                  <i class="fas fa-paperclip me-1"></i> Tệp đính kèm ({{ ticket.attachments.length }}):
+                <div class="small fw-semibold text-secondary mb-2">
+                  <i class="fas fa-paperclip me-1"></i> Tệp và ảnh đính kèm ({{ ticket.attachments.length }}):
                 </div>
                 <div class="d-flex flex-wrap gap-2">
-                  <a *ngFor="let att of ticket.attachments" [href]="getDownloadUrl(att.id)" target="_blank" class="attachment-chip text-decoration-none">
-                    <i class="fas fa-file-download text-primary me-1"></i> {{ att.fileName }}
-                  </a>
+                  <div *ngFor="let att of ticket.attachments" class="attachment-item">
+                    <!-- Image Card -->
+                    <div *ngIf="isImageFile(att.fileName)" class="image-attachment-card">
+                      <img
+                        *ngIf="getImageUrl(att.id)"
+                        [src]="getImageUrl(att.id)"
+                        alt="Ảnh đính kèm"
+                        class="img-thumbnail cursor-pointer"
+                        style="height: 90px; width: 120px; object-fit: cover;"
+                        (click)="openImagePreview(att.id, att.fileName)"
+                      />
+                      <div class="attachment-item-info d-flex align-items-center justify-content-between p-1">
+                        <span class="text-truncate small" style="max-width: 80px;" [title]="att.fileName">{{ att.fileName }}</span>
+                        <button type="button" class="btn btn-sm btn-link p-0 text-primary" (click)="downloadAttachment(att.id, att.fileName)" title="Tải về">
+                          <i class="fas fa-download"></i>
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- Regular File Chip -->
+                    <div *ngIf="!isImageFile(att.fileName)" class="attachment-chip d-flex align-items-center gap-2">
+                      <i class="fas fa-file-alt text-primary"></i>
+                      <span class="small fw-medium">{{ att.fileName }}</span>
+                      <span class="text-muted small">({{ formatBytes(att.fileSize) }})</span>
+                      <button type="button" class="btn btn-sm btn-link p-0 text-primary" (click)="downloadAttachment(att.id, att.fileName)" title="Tải về">
+                        <i class="fas fa-download"></i>
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -90,10 +116,39 @@
 
             <div class="message-body text-dark" style="white-space: pre-line;">{{ c.content }}</div>
 
+            <!-- Attached files inside message -->
             <div *ngIf="c.attachments && c.attachments.length > 0" class="mt-2 pt-2 border-top">
-              <a *ngFor="let att of c.attachments" [href]="getDownloadUrl(att.id)" target="_blank" class="attachment-chip text-decoration-none me-2">
-                <i class="fas fa-download text-primary me-1"></i> {{ att.fileName }}
-              </a>
+              <div class="d-flex flex-wrap gap-2">
+                <div *ngFor="let att of c.attachments" class="attachment-item">
+                  <!-- Inline image preview -->
+                  <div *ngIf="isImageFile(att.fileName)" class="image-attachment-card">
+                    <img
+                      *ngIf="getImageUrl(att.id)"
+                      [src]="getImageUrl(att.id)"
+                      alt="Ảnh lỗi"
+                      class="img-thumbnail cursor-pointer"
+                      style="height: 80px; width: 110px; object-fit: cover;"
+                      (click)="openImagePreview(att.id, att.fileName)"
+                    />
+                    <div class="attachment-item-info d-flex align-items-center justify-content-between p-1">
+                      <span class="text-truncate small" style="max-width: 75px;" [title]="att.fileName">{{ att.fileName }}</span>
+                      <button type="button" class="btn btn-sm btn-link p-0 text-primary" (click)="downloadAttachment(att.id, att.fileName)" title="Tải về">
+                        <i class="fas fa-download"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- File chip -->
+                  <div *ngIf="!isImageFile(att.fileName)" class="attachment-chip d-flex align-items-center gap-2">
+                    <i class="fas fa-file-alt text-primary"></i>
+                    <span class="small fw-medium">{{ att.fileName }}</span>
+                    <span class="text-muted small">({{ formatBytes(att.fileSize) }})</span>
+                    <button type="button" class="btn btn-sm btn-link p-0 text-primary" (click)="downloadAttachment(att.id, att.fileName)" title="Tải về">
+                      <i class="fas fa-download"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -104,13 +159,42 @@
             <i class="fas fa-reply text-primary me-1"></i> Gửi Phản Hồi Thêm
           </h6>
           <textarea
-            class="form-control mb-3"
-            rows="4"
+            class="form-control mb-2"
+            rows="3"
             placeholder="Nhập nội dung bạn muốn phản hồi hoặc bổ sung thông tin cho kỹ thuật viên..."
             [(ngModel)]="replyContent"
           ></textarea>
-          <div class="d-flex justify-content-end">
-            <button class="btn btn-primary rounded-pill px-4 shadow-sm" (click)="sendReply()" [disabled]="!replyContent.trim() || isSubmittingReply">
+
+          <!-- Selected Reply Attachments Chips -->
+          <div *ngIf="selectedReplyFiles.length > 0" class="d-flex flex-wrap gap-2 mb-2 p-2 rounded-3 bg-light border">
+            <div *ngFor="let file of selectedReplyFiles; let i = index" class="badge bg-white text-dark border d-flex align-items-center gap-2 p-2">
+              <i class="fas" [ngClass]="isImageFile(file.name) ? 'fa-image text-success' : 'fa-file text-primary'"></i>
+              <span class="fw-normal">{{ file.name }}</span>
+              <span class="text-muted small">({{ formatBytes(file.size) }})</span>
+              <button type="button" class="btn-close btn-close-sm" (click)="removeReplyFile(i)"></button>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <label class="btn btn-sm btn-outline-secondary rounded-pill px-3 cursor-pointer">
+                <i class="fas fa-paperclip me-1 text-primary"></i> Đính kèm ảnh lỗi / tệp tin
+                <input
+                  type="file"
+                  class="d-none"
+                  multiple
+                  accept=".png,.jpg,.jpeg,.gif,.webp,.pdf,.docx,.zip,.txt"
+                  (change)="onReplyFilesSelected($event)"
+                />
+              </label>
+              <span class="text-muted small ms-2 d-none d-sm-inline">Tối đa 10 MB/tệp</span>
+            </div>
+
+            <button
+              class="btn btn-primary rounded-pill px-4 shadow-sm"
+              (click)="sendReply()"
+              [disabled]="(!replyContent.trim() && selectedReplyFiles.length === 0) || isSubmittingReply"
+            >
               <span *ngIf="isSubmittingReply" class="spinner-border spinner-border-sm me-1"></span>
               <i *ngIf="!isSubmittingReply" class="fas fa-paper-plane me-1"></i> Gửi Tin Nhắn
             </button>
@@ -162,6 +246,31 @@
             <div class="text-muted small">Thời gian tạo</div>
             <div class="fw-semibold text-dark">{{ ticket.creationTime | date:'dd/MM/yyyy HH:mm' }}</div>
           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Image Lightbox Modal -->
+  <div *ngIf="previewModalUrl" class="custom-modal-backdrop" (click)="closeImagePreview()">
+    <div class="custom-modal-dialog" style="max-width: 900px;" (click)="$event.stopPropagation()">
+      <div class="custom-modal-content p-3 bg-white rounded-4 shadow-lg">
+        <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+          <span class="fw-bold text-dark text-truncate" style="max-width: 80%;">
+            <i class="fas fa-image text-primary me-2"></i>{{ previewModalTitle }}
+          </span>
+          <button type="button" class="btn-close" (click)="closeImagePreview()"></button>
+        </div>
+        <div class="text-center p-2 bg-dark rounded-3" style="max-height: 75vh; overflow: auto;">
+          <img [src]="previewModalUrl" alt="Chi tiết ảnh lỗi" style="max-width: 100%; height: auto; object-fit: contain;" />
+        </div>
+        <div class="d-flex justify-content-end mt-3">
+          <a [href]="previewModalUrl" [download]="previewModalTitle" class="btn btn-outline-primary rounded-pill px-3 btn-sm me-2">
+            <i class="fas fa-download me-1"></i> Tải ảnh gốc
+          </a>
+          <button type="button" class="btn btn-secondary rounded-pill px-3 btn-sm" (click)="closeImagePreview()">
+            Đóng
+          </button>
         </div>
       </div>
     </div>

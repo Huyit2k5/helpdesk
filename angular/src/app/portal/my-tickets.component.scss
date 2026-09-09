@@ -85,3 +85,20 @@
     transform: scale(1);
   }
 }
+
+.upload-dropzone {
+  border: 2px dashed #cbd5e1;
+  background-color: #f8fafc;
+  border-radius: 0.75rem;
+  padding: 1.25rem 1rem;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: #3b82f6;
+    background-color: #eff6ff;
+  }
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}

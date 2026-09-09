@@ -6,7 +6,7 @@ import { CustomerPortalService, CustomerTicketDto, CreateCustomerTicketDto } fro
 import { KnowledgeArticleService, KnowledgeArticleSuggestionDto } from '../proxy/knowledge-base';
 import { CategoryService, CategoryLookupDto } from '../proxy/categories';
 import { PriorityService, PriorityDto } from '../proxy/priorities';
-import { Subject } from 'rxjs';
+import { Subject, forkJoin } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 @Component({
@@ -145,6 +145,8 @@ export class MyTicketsComponent implements OnInit {
     });
   }
 
+  selectedFiles: File[] = [];
+
   openCreateModal(): void {
     this.createForm.reset({
       title: '',
@@ -153,15 +155,45 @@ export class MyTicketsComponent implements OnInit {
       description: ''
     });
     this.suggestions = [];
+    this.selectedFiles = [];
     this.isCreateModalOpen = true;
   }
 
   closeCreateModal(): void {
     this.isCreateModalOpen = false;
+    this.selectedFiles = [];
+  }
+
+  onFilesSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      const newFiles = Array.from(input.files);
+      const validFiles = newFiles.filter(f => {
+        if (f.size > 10 * 1024 * 1024) {
+          alert(`Tệp "${f.name}" vượt quá dung lượng tối đa 10 MB.`);
+          return false;
+        }
+        return true;
+      });
+      this.selectedFiles.push(...validFiles);
+      this.cdr.detectChanges();
+    }
+  }
+
+  removeSelectedFile(index: number): void {
+    this.selectedFiles.splice(index, 1);
+    this.cdr.detectChanges();
+  }
+
+  formatBytes(bytes: number): string {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
   }
 
   resolveWithDeflection(): void {
-    // Customer found an answer from suggested articles!
     this.closeCreateModal();
     alert('Tuyệt vời! Chúng tôi rất vui vì bài viết hướng dẫn đã giúp giải quyết vấn đề của bạn.');
   }
@@ -173,16 +205,34 @@ export class MyTicketsComponent implements OnInit {
     const val: CreateCustomerTicketDto = this.createForm.value;
 
     this.portalService.createMyTicket(val).subscribe({
-      next: () => {
-        this.isSubmitting = false;
-        this.closeCreateModal();
-        this.loadTickets();
-        this.cdr.detectChanges();
+      next: (createdTicket) => {
+        if (this.selectedFiles.length > 0 && createdTicket && createdTicket.id) {
+          const uploads = this.selectedFiles.map(f =>
+            this.portalService.uploadMyAttachment(createdTicket.id!, f)
+          );
+          forkJoin(uploads).subscribe({
+            next: () => {
+              this.finishSubmit();
+            },
+            error: () => {
+              this.finishSubmit();
+            }
+          });
+        } else {
+          this.finishSubmit();
+        }
       },
       error: () => {
         this.isSubmitting = false;
         this.cdr.detectChanges();
       }
     });
+  }
+
+  private finishSubmit(): void {
+    this.isSubmitting = false;
+    this.closeCreateModal();
+    this.loadTickets();
+    this.cdr.detectChanges();
   }
 }
