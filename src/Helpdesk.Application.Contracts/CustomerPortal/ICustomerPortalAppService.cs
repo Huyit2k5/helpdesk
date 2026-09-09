@@ -21,4 +21,6 @@ public interface ICustomerPortalAppService : IApplicationService
     Task<TicketAttachmentDto> UploadMyAttachmentAsync(Guid ticketId, IRemoteStreamContent file, Guid? commentId = null);
 
     Task<IRemoteStreamContent> DownloadMyAttachmentAsync(Guid attachmentId);
+
+    Task<CustomerTicketDetailDto> SubmitTicketFeedbackAsync(Guid ticketId, SubmitTicketFeedbackDto input);
 }

@@ -38,4 +38,6 @@ public interface ITicketAppService : IApplicationService
     Task DeleteAttachmentAsync(Guid attachmentId);
 
     Task<Volo.Abp.Content.IRemoteStreamContent> ExportExcelAsync(GetTicketListInput input);
+
+    Task<TicketDetailDto> AutoAssignAsync(Guid id);
 }

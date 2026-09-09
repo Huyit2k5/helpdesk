@@ -31,6 +31,15 @@ export class TicketService {
     { apiName: this.apiName,...config });
   
 
+  autoAssign = (id: string, config?: Partial<Rest.Config>) =>
+    this.restService.request<any, TicketDetailDto>({
+      method: 'POST',
+      headers: { Accept: 'application/json' },
+      url: `/api/app/ticket/${id}/auto-assign`,
+    },
+    { apiName: this.apiName,...config });
+  
+
   changeStatus = (id: string, input: ChangeTicketStatusInput, config?: Partial<Rest.Config>) =>
     this.restService.request<any, TicketDetailDto>({
       method: 'POST',

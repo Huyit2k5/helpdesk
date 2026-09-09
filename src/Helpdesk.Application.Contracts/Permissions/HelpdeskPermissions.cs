@@ -90,4 +90,13 @@ public static class HelpdeskPermissions
         public const string Default = GroupName + ".CustomerPortal";
         public const string CreateTicket = Default + ".CreateTicket";
     }
+
+    public static class AssignmentRules
+    {
+        public const string Default = GroupName + ".AssignmentRules";
+        public const string Create = Default + ".Create";
+        public const string Edit = Default + ".Edit";
+        public const string Delete = Default + ".Delete";
+        public const string Manage = Default + ".Manage";
+    }
 }

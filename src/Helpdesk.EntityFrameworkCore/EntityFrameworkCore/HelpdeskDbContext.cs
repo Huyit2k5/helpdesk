@@ -57,6 +57,10 @@ public class HelpdeskDbContext :
     // Knowledge Base
     public DbSet<Helpdesk.KnowledgeBase.KnowledgeArticle> KnowledgeArticles { get; set; }
 
+    // Assignment Rules
+    public DbSet<Helpdesk.AssignmentRules.AssignmentRule> AssignmentRules { get; set; }
+    public DbSet<Helpdesk.AssignmentRules.AssignmentRuleAgent> AssignmentRuleAgents { get; set; }
+
     #region Entities from the modules
 
     /* Notice: We only implemented IIdentityProDbContext and ISaasDbContext

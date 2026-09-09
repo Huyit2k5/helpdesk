@@ -23,6 +23,9 @@ public class CustomerTicketDetailDto : EntityDto<Guid>
     public DateTime? LastModificationTime { get; set; }
     public DateTime? DueDate { get; set; }
     public DateTime? ResolvedAt { get; set; }
+    public int? CsatRating { get; set; }
+    public string? CsatComment { get; set; }
+    public DateTime? CsatSubmittedAt { get; set; }
     public List<TicketAttachmentDto> Attachments { get; set; } = new();
     public List<CustomerCommentDto> Comments { get; set; } = new();
 }

@@ -1,4 +1,4 @@
-import type { AddCustomerCommentDto, CreateCustomerTicketDto, CustomerCommentDto, CustomerTicketDetailDto, CustomerTicketDto, GetCustomerTicketListInput } from './models';
+import type { AddCustomerCommentDto, CreateCustomerTicketDto, CustomerCommentDto, CustomerTicketDetailDto, CustomerTicketDto, GetCustomerTicketListInput, SubmitTicketFeedbackDto } from './models';
 import { RestService, Rest } from '@abp/ng.core';
 import type { PagedResultDto } from '@abp/ng.core';
 import { Injectable, inject } from '@angular/core';
@@ -58,6 +58,15 @@ export class CustomerPortalService {
       method: 'POST',
       responseType: 'blob',
       url: `/api/app/customer-portal/download-my-attachment/${attachmentId}`,
+    },
+    { apiName: this.apiName, ...config });
+
+  submitTicketFeedback = (ticketId: string, input: SubmitTicketFeedbackDto, config?: Partial<Rest.Config>) =>
+    this.restService.request<any, CustomerTicketDetailDto>({
+      method: 'POST',
+      url: '/api/app/customer-portal/submit-ticket-feedback',
+      params: { ticketId },
+      body: input,
     },
     { apiName: this.apiName, ...config });
 }

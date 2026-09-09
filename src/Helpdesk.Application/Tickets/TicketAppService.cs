@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Linq.Dynamic.Core;
 using System.Threading.Tasks;
+using Helpdesk.AssignmentRules;
 using Helpdesk.CannedResponses;
 using Helpdesk.Categories;
 using Helpdesk.Departments;
@@ -43,6 +44,7 @@ public class TicketAppService : ApplicationService, ITicketAppService
     private readonly IRepository<SlaPolicy, Guid> _slaPolicyRepository;
     private readonly TicketManager _ticketManager;
     private readonly SlaManager _slaManager;
+    private readonly AutoAssignmentManager _autoAssignmentManager;
 
     public TicketAppService(
         IRepository<Ticket, Guid> ticketRepository,
@@ -58,7 +60,8 @@ public class TicketAppService : ApplicationService, ITicketAppService
         IRepository<IdentityUser, Guid> userRepository,
         IRepository<SlaPolicy, Guid> slaPolicyRepository,
         TicketManager ticketManager,
-        SlaManager slaManager)
+        SlaManager slaManager,
+        AutoAssignmentManager autoAssignmentManager)
     {
         _ticketRepository = ticketRepository;
         _commentRepository = commentRepository;
@@ -74,6 +77,7 @@ public class TicketAppService : ApplicationService, ITicketAppService
         _slaPolicyRepository = slaPolicyRepository;
         _ticketManager = ticketManager;
         _slaManager = slaManager;
+        _autoAssignmentManager = autoAssignmentManager;
     }
 
     public async Task<PagedResultDto<TicketListDto>> GetListAsync(GetTicketListInput input)
@@ -295,6 +299,9 @@ public class TicketAppService : ApplicationService, ITicketAppService
             IsFirstResponseBreached = ticket.IsFirstResponseBreached,
             IsResolutionBreached = ticket.IsResolutionBreached,
             Tags = ticket.Tags,
+            CsatRating = ticket.CsatRating,
+            CsatComment = ticket.CsatComment,
+            CsatSubmittedAt = ticket.CsatSubmittedAt,
             Comments = comments.OrderBy(c => c.CreationTime).Select(c => new TicketCommentDto
             {
                 Id = c.Id,
@@ -366,9 +373,27 @@ public class TicketAppService : ApplicationService, ITicketAppService
         );
 
         await _slaManager.CalculateSlaDatesAsync(ticket);
+
+        if (!ticket.AssigneeId.HasValue || ticket.AssigneeId.Value == Guid.Empty)
+        {
+            await _autoAssignmentManager.TryAssignTicketAsync(ticket);
+        }
+
         await _ticketRepository.InsertAsync(ticket);
 
         return await GetAsync(ticket.Id);
+    }
+
+    [Authorize(HelpdeskPermissions.Tickets.Assign)]
+    public async Task<TicketDetailDto> AutoAssignAsync(Guid id)
+    {
+        var ticket = await _ticketRepository.GetAsync(id);
+        var assigned = await _autoAssignmentManager.TryAssignTicketAsync(ticket);
+        if (assigned)
+        {
+            await _ticketRepository.UpdateAsync(ticket, autoSave: true);
+        }
+        return await GetAsync(id);
     }
 
     [Authorize(HelpdeskPermissions.Tickets.Edit)]

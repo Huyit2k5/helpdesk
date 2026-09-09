@@ -54,6 +54,11 @@
 
           <!-- Quick Action Buttons -->
           <div class="d-flex gap-2">
+            @if (!ticket.assigneeId) {
+              <button class="btn btn-outline-success" (click)="onAutoAssign()" id="btn-auto-assign" title="Tự động phân công theo quy tắc">
+                <i class="fas fa-random me-1"></i> Tự động phân công
+              </button>
+            }
             <button class="btn btn-primary" (click)="openChangeStatusModal()" id="btn-change-status">
               <i class="fas fa-exchange-alt me-1"></i> Đổi trạng thái
             </button>
@@ -466,6 +471,37 @@
             </div>
           </div>
         </div>
+
+        <!-- Customer CSAT Rating Card (if rated) -->
+        @if (ticket.csatRating) {
+          <div class="card border-0 shadow-sm mb-4 border-start border-4 border-warning">
+            <div class="card-header bg-white border-0 py-3 px-4 d-flex justify-content-between align-items-center">
+              <h6 class="fw-bold text-uppercase small mb-0 text-dark">
+                <i class="fas fa-star text-warning me-1"></i> Đánh Giá Của Khách Hàng
+              </h6>
+              <span class="badge bg-warning-subtle text-dark fw-bold px-2 py-1 rounded-pill">
+                {{ ticket.csatRating }}/5 sao
+              </span>
+            </div>
+            <div class="card-body p-4 pt-0">
+              <div class="d-flex align-items-center gap-1 text-warning fs-5 mb-2">
+                @for (s of [1, 2, 3, 4, 5]; track s) {
+                  <i class="fa-star" [class.fas]="s <= ticket.csatRating" [class.far]="s > ticket.csatRating"></i>
+                }
+              </div>
+              @if (ticket.csatComment) {
+                <div class="p-2 bg-light rounded-3 text-secondary small fst-italic mb-2">
+                  "{{ ticket.csatComment }}"
+                </div>
+              }
+              @if (ticket.csatSubmittedAt) {
+                <small class="text-muted d-block" style="font-size: 0.75rem;">
+                  <i class="far fa-clock me-1"></i>Đánh giá lúc: {{ ticket.csatSubmittedAt | date:'dd/MM/yyyy HH:mm' }}
+                </small>
+              }
+            </div>
+          </div>
+        }
 
         <!-- Assignment Card -->
         <div class="card border-0 shadow-sm mb-4">

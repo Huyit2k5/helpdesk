@@ -52,6 +52,10 @@ public class TicketDetailDto : FullAuditedEntityDto<Guid>
 
     public string? Tags { get; set; }
 
+    public int? CsatRating { get; set; }
+    public string? CsatComment { get; set; }
+    public DateTime? CsatSubmittedAt { get; set; }
+
     public List<TicketCommentDto> Comments { get; set; } = new();
 
     public List<TicketActivityDto> Activities { get; set; } = new();

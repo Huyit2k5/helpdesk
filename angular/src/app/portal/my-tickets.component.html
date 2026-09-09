@@ -96,6 +96,12 @@
               <span class="badge rounded-pill px-2 py-1" [style.background-color]="t.priorityColor + '20'" [style.color]="t.priorityColor">
                 {{ t.priorityName }}
               </span>
+              <span *ngIf="t.csatRating" class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill px-2 py-1">
+                <i class="fas fa-star text-warning me-1"></i> {{ t.csatRating }}/5 sao
+              </span>
+              <span *ngIf="t.isFinal && !t.csatRating" class="badge bg-primary-subtle text-primary rounded-pill px-2 py-1">
+                <i class="far fa-star text-warning me-1"></i> Chờ đánh giá
+              </span>
             </div>
 
             <span class="text-muted small">

@@ -13,6 +13,7 @@ export interface CustomerTicketDto extends EntityDto<string> {
   creationTime: string;
   lastModificationTime?: string;
   commentCount: number;
+  csatRating?: number;
 }
 
 export interface GetCustomerTicketListInput extends PagedAndSortedResultRequestDto {
@@ -63,6 +64,9 @@ export interface CustomerTicketDetailDto extends EntityDto<string> {
   lastModificationTime?: string;
   dueDate?: string;
   resolvedAt?: string;
+  csatRating?: number;
+  csatComment?: string;
+  csatSubmittedAt?: string;
   attachments: TicketAttachmentDto[];
   comments: CustomerCommentDto[];
 }
@@ -70,4 +74,9 @@ export interface CustomerTicketDetailDto extends EntityDto<string> {
 export interface AddCustomerCommentDto {
   content: string;
   attachments?: CreateAttachmentInput[];
+}
+
+export interface SubmitTicketFeedbackDto {
+  rating: number;
+  comment?: string;
 }

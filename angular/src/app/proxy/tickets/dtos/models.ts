@@ -109,6 +109,9 @@ export interface TicketDetailDto extends FullAuditedEntityDto<string> {
   isFirstResponseBreached?: boolean;
   isResolutionBreached?: boolean;
   tags?: string | null;
+  csatRating?: number | null;
+  csatComment?: string | null;
+  csatSubmittedAt?: string | null;
   comments?: TicketCommentDto[];
   activities?: TicketActivityDto[];
   attachments?: TicketAttachmentDto[];

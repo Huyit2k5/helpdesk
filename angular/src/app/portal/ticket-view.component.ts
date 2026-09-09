@@ -30,6 +30,13 @@ export class TicketViewComponent implements OnInit {
   previewModalUrl: string | null = null;
   previewModalTitle = '';
 
+  // CSAT Survey state
+  csatRating = 5;
+  csatHoverRating = 0;
+  csatComment = '';
+  isSubmittingCsat = false;
+  csatSubmittedSuccess = false;
+
   getImageUrl(attachmentId?: string): string | null {
     return attachmentId ? this.imageBlobUrls[attachmentId] || null : null;
   }
@@ -205,5 +212,43 @@ export class TicketViewComponent implements OnInit {
     this.previewModalUrl = null;
     this.previewModalTitle = '';
     this.cdr.detectChanges();
+  }
+
+  setCsatRating(rating: number): void {
+    this.csatRating = rating;
+    this.cdr.detectChanges();
+  }
+
+  getRatingLabel(rating: number): string {
+    switch (rating) {
+      case 1: return '1/5 sao - Rất không hài lòng';
+      case 2: return '2/5 sao - Chưa hài lòng';
+      case 3: return '3/5 sao - Bình thường / Tạm ổn';
+      case 4: return '4/5 sao - Hài lòng & nhiệt tình';
+      case 5: return '5/5 sao - Rất tuyệt vời / Xuất sắc!';
+      default: return '';
+    }
+  }
+
+  submitCsatFeedback(): void {
+    if (this.isSubmittingCsat) return;
+
+    this.isSubmittingCsat = true;
+    this.portalService.submitTicketFeedback(this.ticketId, {
+      rating: this.csatRating,
+      comment: this.csatComment.trim()
+    }).subscribe({
+      next: (updatedTicket) => {
+        this.ticket = updatedTicket;
+        this.isSubmittingCsat = false;
+        this.csatSubmittedSuccess = true;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        alert('Không thể gửi đánh giá hài lòng. Vui lòng thử lại.');
+        this.isSubmittingCsat = false;
+        this.cdr.detectChanges();
+      }
+    });
   }
 }

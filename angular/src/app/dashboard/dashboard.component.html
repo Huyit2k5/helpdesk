@@ -233,9 +233,9 @@
       </div>
     </div>
 
-    <!-- SLA Compliance Row -->
+    <!-- SLA Compliance & CSAT Row -->
     <div class="row g-3 mb-4">
-      <div class="col-xl-6">
+      <div class="col-xl-4 col-md-6">
         <div class="card border-0 shadow-sm h-100">
           <div class="card-body">
             <h6 class="fw-bold mb-3">
@@ -263,7 +263,7 @@
         </div>
       </div>
 
-      <div class="col-xl-6">
+      <div class="col-xl-4 col-md-6">
         <div class="card border-0 shadow-sm h-100">
           <div class="card-body">
             <h6 class="fw-bold mb-3">
@@ -287,6 +287,39 @@
               </span>
             </div>
             <p class="text-muted small mb-0">Tỷ lệ giải quyết đúng hạn SLA</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- CSAT Customer Satisfaction -->
+      <div class="col-xl-4 col-md-12">
+        <div class="card border-0 shadow-sm h-100" style="border-top: 3px solid #f59e0b !important;">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h6 class="fw-bold mb-0">
+                <i class="fas fa-star me-2 text-warning"></i>
+                Hài Lòng Khách Hàng (CSAT)
+              </h6>
+              <span class="badge bg-warning-subtle text-dark fw-bold px-2 py-1 rounded-pill">
+                ⭐ {{ stats.avgCsatRating || 5.0 }}/5.0
+              </span>
+            </div>
+            <div class="d-flex align-items-center mb-2">
+              <div class="flex-grow-1 me-3">
+                <div class="progress" style="height: 12px; border-radius: 6px;">
+                  <div class="progress-bar bg-warning" role="progressbar"
+                    [style.width.%]="stats.csatSatisfactionRate || 100"
+                    style="border-radius: 6px; transition: width 0.8s ease;">
+                  </div>
+                </div>
+              </div>
+              <span class="fw-bold fs-5 text-dark">
+                {{ stats.csatSatisfactionRate || 100 }}%
+              </span>
+            </div>
+            <p class="text-muted small mb-0">
+              Tỷ lệ hài lòng ({{ stats.totalRatedTickets || 0 }} lượt khảo sát)
+            </p>
           </div>
         </div>
       </div>
@@ -317,6 +350,7 @@
                     <th class="text-center">Đã giải quyết</th>
                     <th class="text-center">TB giải quyết</th>
                     <th class="text-center">SLA</th>
+                    <th class="text-center">CSAT ⭐</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -359,10 +393,18 @@
                           {{ agent.slaComplianceRate }}%
                         </span>
                       </td>
+                      <td class="text-center">
+                        <span class="badge bg-warning-subtle text-dark fw-bold px-2 py-1 rounded-pill">
+                          ⭐ {{ agent.avgCsatRating || 5.0 }}
+                          @if (agent.ratedTicketsCount) {
+                            <small class="text-muted fw-normal">({{ agent.ratedTicketsCount }})</small>
+                          }
+                        </span>
+                      </td>
                     </tr>
                   } @empty {
                     <tr>
-                      <td colspan="6" class="text-center py-4 text-muted">
+                      <td colspan="7" class="text-center py-4 text-muted">
                         <i class="fas fa-users fa-2x mb-2 d-block text-secondary"></i>
                         Chưa có dữ liệu nhân viên
                       </td>

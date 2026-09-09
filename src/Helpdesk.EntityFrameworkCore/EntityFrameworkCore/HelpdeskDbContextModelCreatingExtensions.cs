@@ -99,6 +99,7 @@ public static class HelpdeskDbContextModelCreatingExtensions
             b.Property(x => x.RequesterEmail).IsRequired().HasMaxLength(Helpdesk.Tickets.TicketConsts.MaxRequesterEmailLength);
             b.Property(x => x.RequesterPhone).HasMaxLength(Helpdesk.Tickets.TicketConsts.MaxRequesterPhoneLength);
             b.Property(x => x.Tags).HasMaxLength(Helpdesk.Tickets.TicketConsts.MaxTagsLength);
+            b.Property(x => x.CsatComment).HasMaxLength(1000);
 
             b.HasIndex(x => x.TicketNumber).IsUnique();
             b.HasIndex(x => x.StatusId);
@@ -107,6 +108,7 @@ public static class HelpdeskDbContextModelCreatingExtensions
             b.HasIndex(x => x.DepartmentId);
             b.HasIndex(x => x.AssigneeId);
             b.HasIndex(x => x.CreationTime);
+            b.HasIndex(x => x.CsatRating);
         });
 
         builder.Entity<Helpdesk.Tickets.TicketComment>(b =>
@@ -200,6 +202,42 @@ public static class HelpdeskDbContextModelCreatingExtensions
             b.HasIndex(x => x.Slug);
             b.HasIndex(x => x.CategoryId);
             b.HasIndex(x => x.IsPublished);
+        });
+
+        builder.Entity<Helpdesk.AssignmentRules.AssignmentRule>(b =>
+        {
+            b.ToTable(HelpdeskConsts.DbTablePrefix + "AssignmentRules", HelpdeskConsts.DbSchema);
+            b.ConfigureByConvention();
+
+            b.Property(x => x.Name).IsRequired().HasMaxLength(Helpdesk.AssignmentRules.AssignmentRuleConsts.MaxNameLength);
+            b.Property(x => x.Description).HasMaxLength(Helpdesk.AssignmentRules.AssignmentRuleConsts.MaxDescriptionLength);
+            b.Property(x => x.Order).IsRequired().HasDefaultValue(0);
+            b.Property(x => x.IsActive).IsRequired().HasDefaultValue(true);
+            b.Property(x => x.RoutingStrategy).IsRequired().HasDefaultValue(Helpdesk.AssignmentRules.AssignmentStrategy.RoundRobin);
+
+            b.HasMany(x => x.RuleAgents)
+                .WithOne()
+                .HasForeignKey(x => x.RuleId)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Cascade);
+
+            b.HasIndex(x => x.Order);
+            b.HasIndex(x => x.IsActive);
+            b.HasIndex(x => x.CategoryId);
+            b.HasIndex(x => x.PriorityId);
+            b.HasIndex(x => x.DepartmentId);
+        });
+
+        builder.Entity<Helpdesk.AssignmentRules.AssignmentRuleAgent>(b =>
+        {
+            b.ToTable(HelpdeskConsts.DbTablePrefix + "AssignmentRuleAgents", HelpdeskConsts.DbSchema);
+            b.ConfigureByConvention();
+
+            b.Property(x => x.RuleId).IsRequired();
+            b.Property(x => x.UserId).IsRequired();
+            b.Property(x => x.Order).IsRequired().HasDefaultValue(0);
+
+            b.HasIndex(x => new { x.RuleId, x.UserId }).IsUnique();
         });
     }
 }

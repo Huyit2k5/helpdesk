@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Helpdesk.AssignmentRules;
 using Helpdesk.Categories;
 using Helpdesk.CustomerPortal.Dtos;
 using Helpdesk.Permissions;
@@ -38,6 +39,7 @@ public class CustomerPortalAppService : ApplicationService, ICustomerPortalAppSe
     private readonly Volo.Abp.BlobStoring.IBlobContainer _blobContainer;
     private readonly TicketManager _ticketManager;
     private readonly SlaManager _slaManager;
+    private readonly AutoAssignmentManager _autoAssignmentManager;
 
     public CustomerPortalAppService(
         IRepository<Ticket, Guid> ticketRepository,
@@ -51,7 +53,8 @@ public class CustomerPortalAppService : ApplicationService, ICustomerPortalAppSe
         IRepository<IdentityUser, Guid> userRepository,
         Volo.Abp.BlobStoring.IBlobContainer blobContainer,
         TicketManager ticketManager,
-        SlaManager slaManager)
+        SlaManager slaManager,
+        AutoAssignmentManager autoAssignmentManager)
     {
         _ticketRepository = ticketRepository;
         _commentRepository = commentRepository;
@@ -65,6 +68,7 @@ public class CustomerPortalAppService : ApplicationService, ICustomerPortalAppSe
         _blobContainer = blobContainer;
         _ticketManager = ticketManager;
         _slaManager = slaManager;
+        _autoAssignmentManager = autoAssignmentManager;
     }
 
     public async Task<PagedResultDto<CustomerTicketDto>> GetMyTicketsAsync(GetCustomerTicketListInput input)
@@ -142,7 +146,8 @@ public class CustomerPortalAppService : ApplicationService, ICustomerPortalAppSe
             IsFinal = item.IsFinal,
             CreationTime = item.Ticket.CreationTime,
             LastModificationTime = item.Ticket.LastModificationTime,
-            CommentCount = commentCounts.GetValueOrDefault(item.Ticket.Id, 0)
+            CommentCount = commentCounts.GetValueOrDefault(item.Ticket.Id, 0),
+            CsatRating = item.Ticket.CsatRating
         }).ToList();
 
         return new PagedResultDto<CustomerTicketDto>(totalCount, dtos);
@@ -153,11 +158,33 @@ public class CustomerPortalAppService : ApplicationService, ICustomerPortalAppSe
         var ticket = await _ticketRepository.GetAsync(id);
         CheckCustomerAccess(ticket);
 
-        var category = await _categoryRepository.FindAsync(ticket.CategoryId);
-        var priority = await _priorityRepository.FindAsync(ticket.PriorityId);
-        var status = await _statusRepository.FindAsync(ticket.StatusId);
+        var category = ticket.CategoryId != Guid.Empty
+            ? await _categoryRepository.FindAsync(ticket.CategoryId)
+            : null;
 
-        // Fetch ONLY non-internal comments
+        var priority = ticket.PriorityId != Guid.Empty
+            ? await _priorityRepository.FindAsync(ticket.PriorityId)
+            : null;
+
+        var status = ticket.StatusId != Guid.Empty
+            ? await _statusRepository.FindAsync(ticket.StatusId)
+            : null;
+
+        var attachmentQuery = await _attachmentRepository.GetQueryableAsync();
+        var attachments = await AsyncExecuter.ToListAsync(
+            attachmentQuery.Where(a => a.TicketId == id)
+        );
+
+        var ticketAttachments = attachments
+            .Where(a => a.CommentId == null)
+            .Select(MapAttachmentDto)
+            .ToList();
+
+        var commentAttachments = attachments
+            .Where(a => a.CommentId != null)
+            .GroupBy(a => a.CommentId!.Value)
+            .ToDictionary(g => g.Key, g => g.Select(MapAttachmentDto).ToList());
+
         var commentQuery = await _commentRepository.GetQueryableAsync();
         var comments = await AsyncExecuter.ToListAsync(
             commentQuery
@@ -165,34 +192,30 @@ public class CustomerPortalAppService : ApplicationService, ICustomerPortalAppSe
                 .OrderBy(c => c.CreationTime)
         );
 
-        // Fetch attachments for ticket and public comments
-        var attachmentQuery = await _attachmentRepository.GetQueryableAsync();
-        var attachments = await AsyncExecuter.ToListAsync(
-            attachmentQuery
-                .Where(a => a.TicketId == id)
-                .OrderBy(a => a.CreationTime)
-        );
+        var userIds = comments
+            .Where(c => c.CreatorId.HasValue)
+            .Select(c => c.CreatorId!.Value)
+            .Distinct()
+            .ToList();
 
-        var creatorIds = comments.Where(c => c.CreatorId.HasValue).Select(c => c.CreatorId!.Value).Distinct().ToList();
-        var users = await _userRepository.GetListAsync(u => creatorIds.Contains(u.Id));
-        var userDict = users.ToDictionary(u => u.Id, u => u.UserName);
+        var userQuery = await _userRepository.GetQueryableAsync();
+        var users = await AsyncExecuter.ToListAsync(
+            userQuery.Where(u => userIds.Contains(u.Id))
+        );
+        var userDict = users.ToDictionary(u => u.Id, u => u.Name ?? u.UserName);
 
         var currentUserId = CurrentUser.GetId();
-
         var commentDtos = comments.Select(c => new CustomerCommentDto
         {
             Id = c.Id,
+            TicketId = c.TicketId,
             Content = c.Content,
             CreationTime = c.CreationTime,
             CreatorId = c.CreatorId,
-            CreatorName = c.CreatorId == currentUserId
-                ? "Tôi"
-                : (c.CreatorId.HasValue && userDict.ContainsKey(c.CreatorId.Value) ? userDict[c.CreatorId.Value] : "Hỗ trợ viên"),
+            CreatorName = c.CreatorId.HasValue ? userDict.GetValueOrDefault(c.CreatorId.Value, "Nhân viên hỗ trợ") : "Hệ thống",
             IsFromSupport = c.CreatorId != currentUserId,
-            Attachments = attachments.Where(a => a.CommentId == c.Id).Select(MapAttachmentDto).ToList()
+            Attachments = commentAttachments.GetValueOrDefault(c.Id, new List<TicketAttachmentDto>())
         }).ToList();
-
-        var ticketAttachments = attachments.Where(a => a.CommentId == null).Select(MapAttachmentDto).ToList();
 
         return new CustomerTicketDetailDto
         {
@@ -213,6 +236,9 @@ public class CustomerPortalAppService : ApplicationService, ICustomerPortalAppSe
             LastModificationTime = ticket.LastModificationTime,
             DueDate = ticket.DueDate,
             ResolvedAt = ticket.ResolvedAt,
+            CsatRating = ticket.CsatRating,
+            CsatComment = ticket.CsatComment,
+            CsatSubmittedAt = ticket.CsatSubmittedAt,
             Attachments = ticketAttachments,
             Comments = commentDtos
         };
@@ -279,6 +305,7 @@ public class CustomerPortalAppService : ApplicationService, ICustomerPortalAppSe
         );
 
         await _slaManager.CalculateSlaDatesAsync(ticket);
+        await _autoAssignmentManager.TryAssignTicketAsync(ticket);
         await _ticketRepository.InsertAsync(ticket, autoSave: true);
 
         // Handle initial attachments
@@ -411,6 +438,46 @@ public class CustomerPortalAppService : ApplicationService, ICustomerPortalAppSe
 
         var stream = await _blobContainer.GetAsync(attachment.BlobName);
         return new RemoteStreamContent(stream, attachment.FileName, attachment.ContentType);
+    }
+
+    public async Task<CustomerTicketDetailDto> SubmitTicketFeedbackAsync(Guid ticketId, SubmitTicketFeedbackDto input)
+    {
+        var ticket = await _ticketRepository.GetAsync(ticketId);
+        CheckCustomerAccess(ticket);
+
+        var status = await _statusRepository.GetAsync(ticket.StatusId);
+        var isResolvedOrClosed = ticket.ResolvedAt.HasValue || status.IsFinal;
+        if (!isResolvedOrClosed)
+        {
+            throw new UserFriendlyException("Bạn chỉ có thể đánh giá dịch vụ khi yêu cầu hỗ trợ đã được giải quyết hoặc đóng.");
+        }
+
+        if (input.Rating < 1 || input.Rating > 5)
+        {
+            throw new UserFriendlyException("Điểm đánh giá phải từ 1 đến 5 sao.");
+        }
+
+        ticket.CsatRating = input.Rating;
+        ticket.CsatComment = input.Comment?.Trim();
+        ticket.CsatSubmittedAt = Clock.Now;
+
+        await _ticketRepository.UpdateAsync(ticket, autoSave: true);
+
+        var stars = new string('⭐', input.Rating);
+        var activityDesc = $"Khách hàng đã đánh giá dịch vụ: {input.Rating}/5 sao {stars}";
+        if (!string.IsNullOrWhiteSpace(input.Comment))
+        {
+            activityDesc += $". Nhận xét: \"{input.Comment}\"";
+        }
+
+        var activity = new TicketActivity(
+            GuidGenerator.Create(),
+            ticket.Id,
+            TicketActivityType.CommentAdded,
+            description: activityDesc);
+        await _activityRepository.InsertAsync(activity);
+
+        return await GetMyTicketAsync(ticket.Id);
     }
 
     private void CheckCustomerAccess(Ticket ticket)

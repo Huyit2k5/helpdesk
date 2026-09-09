@@ -54,6 +54,15 @@ export const MASTER_DATA_ROUTES: Routes = [
             c => c.CannedResponsesComponent
           ),
       },
+      {
+        path: 'assignment-rules',
+        canActivate: [permissionGuard],
+        data: { requiredPolicy: 'Helpdesk.AssignmentRules' },
+        loadComponent: () =>
+          import('./assignment-rules/assignment-rules.component').then(
+            c => c.AssignmentRulesComponent
+          ),
+      },
     ],
   },
 ];

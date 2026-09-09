@@ -23,6 +23,9 @@ interface DashboardStats {
   resolutionComplianceRate: number;
   slaBreachedCount: number;
   overdueTicketCount: number;
+  avgCsatRating?: number;
+  totalRatedTickets?: number;
+  csatSatisfactionRate?: number;
   ticketTrend: TrendItem[];
   categoryDistribution: CategoryItem[];
   agentPerformance: AgentItem[];
@@ -50,6 +53,8 @@ interface AgentItem {
   resolvedCount: number;
   avgResolutionMinutes: number;
   slaComplianceRate: number;
+  avgCsatRating?: number;
+  ratedTicketsCount?: number;
 }
 
 interface ActivityItem {

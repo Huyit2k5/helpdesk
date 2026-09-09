@@ -75,6 +75,13 @@ public class HelpdeskPermissionDefinitionProvider : PermissionDefinitionProvider
         // Customer Portal
         var portalPermission = helpdeskGroup.AddPermission(HelpdeskPermissions.CustomerPortal.Default, L("Permission:CustomerPortal"));
         portalPermission.AddChild(HelpdeskPermissions.CustomerPortal.CreateTicket, L("Permission:CustomerPortal.CreateTicket"));
+
+        // Assignment Rules
+        var rulesPermission = helpdeskGroup.AddPermission(HelpdeskPermissions.AssignmentRules.Default, L("Permission:AssignmentRules"));
+        rulesPermission.AddChild(HelpdeskPermissions.AssignmentRules.Create, L("Permission:AssignmentRules.Create"));
+        rulesPermission.AddChild(HelpdeskPermissions.AssignmentRules.Edit, L("Permission:AssignmentRules.Edit"));
+        rulesPermission.AddChild(HelpdeskPermissions.AssignmentRules.Delete, L("Permission:AssignmentRules.Delete"));
+        rulesPermission.AddChild(HelpdeskPermissions.AssignmentRules.Manage, L("Permission:AssignmentRules.Manage"));
     }
 
     private static LocalizableString L(string name)

@@ -89,6 +89,13 @@ public class DashboardAppService : ApplicationService, IDashboardAppService
         double firstResponseRate = totalSla > 0 ? Math.Round((double)(totalSla - firstResponseBreached) / totalSla * 100, 1) : 100;
         double resolutionRate = totalSla > 0 ? Math.Round((double)(totalSla - resolutionBreached) / totalSla * 100, 1) : 100;
 
+        // === CSAT Metrics ===
+        var ratedTickets = allTickets.Where(t => t.CsatRating.HasValue).ToList();
+        int totalRated = ratedTickets.Count;
+        double avgCsat = totalRated > 0 ? Math.Round(ratedTickets.Average(t => t.CsatRating!.Value), 1) : 5.0;
+        int satisfiedCount = ratedTickets.Count(t => t.CsatRating!.Value >= 4);
+        double satisfactionRate = totalRated > 0 ? Math.Round((double)satisfiedCount / totalRated * 100, 1) : 100.0;
+
         // === Ticket Trend ===
         var trendDays = input.TrendDays > 0 ? input.TrendDays : 30;
         var trendStartDate = today.AddDays(-trendDays + 1);
@@ -114,6 +121,9 @@ public class DashboardAppService : ApplicationService, IDashboardAppService
             FirstResponseComplianceRate = firstResponseRate,
             ResolutionComplianceRate = resolutionRate,
             SlaBreachedCount = firstResponseBreached + resolutionBreached,
+            AvgCsatRating = avgCsat,
+            TotalRatedTickets = totalRated,
+            CsatSatisfactionRate = satisfactionRate,
             OverdueTicketCount = overdueTicketCount,
             TicketTrend = trend,
             CategoryDistribution = categoryDistribution,
@@ -234,6 +244,9 @@ public class DashboardAppService : ApplicationService, IDashboardAppService
                 ? Math.Round((double)(slaTickets.Count - slaBreached) / slaTickets.Count * 100, 1)
                 : 100;
 
+            var agentRated = agentTickets.Where(t => t.CsatRating.HasValue).ToList();
+            double agentAvgCsat = agentRated.Count > 0 ? Math.Round(agentRated.Average(t => t.CsatRating!.Value), 1) : 5.0;
+
             return new AgentPerformanceDto
             {
                 UserId = agentId,
@@ -241,7 +254,9 @@ public class DashboardAppService : ApplicationService, IDashboardAppService
                 AssignedCount = agentTickets.Count,
                 ResolvedCount = resolved.Count,
                 AvgResolutionMinutes = Math.Round(avgResolution, 0),
-                SlaComplianceRate = slaRate
+                SlaComplianceRate = slaRate,
+                AvgCsatRating = agentAvgCsat,
+                RatedTicketsCount = agentRated.Count
             };
         })
         .OrderByDescending(x => x.ResolvedCount)

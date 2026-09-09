@@ -251,6 +251,21 @@ export class TicketDetailComponent implements OnInit {
     }
   }
 
+  onAutoAssign(): void {
+    if (!this.ticketId) return;
+    this.ticketSvc.autoAssign(this.ticketId).subscribe({
+      next: updated => {
+        this.ticket = updated;
+        this.buildTimeline();
+        this.toaster.success('Đã tự động phân công vé thành công!', 'Thành công');
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.toaster.error('Không tìm thấy quy tắc phân công phù hợp hoặc có lỗi xảy ra.', 'Thông báo');
+      }
+    });
+  }
+
   downloadAttachment(attachment: TicketAttachmentDto): void {
     if (!attachment.id) return;
     this.ticketSvc.downloadAttachment(attachment.id).subscribe({

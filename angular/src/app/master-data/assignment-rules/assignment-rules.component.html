@@ -1,0 +1,373 @@
+<div class="container-fluid py-3">
+  <!-- Page Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+      <h3 class="mb-1 text-dark fw-bold d-flex align-items-center gap-2">
+        <i class="fas fa-random text-primary"></i>
+        <span>Quy Tắc Phân Công Tự Động</span>
+      </h3>
+      <p class="text-muted mb-0 small">
+        Tự động điều phối yêu cầu hỗ trợ (Tickets) cho kỹ thuật viên theo thuật toán Round-Robin hoặc Cân bằng tải.
+      </p>
+    </div>
+    <div>
+      <button class="btn btn-primary d-inline-flex align-items-center gap-2 px-3 py-2 shadow-sm rounded-pill" (click)="openCreateModal()">
+        <i class="fas fa-plus"></i>
+        <span>Thêm Quy Tắc Mới</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Content Card -->
+  <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+    <!-- Search Bar -->
+    <div class="card-header bg-white border-bottom p-3">
+      <div class="row g-2 align-items-center">
+        <div class="col-md-5 col-12">
+          <div class="input-group">
+            <span class="input-group-text bg-light border-end-0">
+              <i class="fas fa-search text-muted"></i>
+            </span>
+            <input
+              type="text"
+              class="form-control bg-light border-start-0 ps-0"
+              placeholder="Tìm kiếm theo tên quy tắc hoặc mô tả..."
+              [(ngModel)]="filterText"
+              (keyup.enter)="onFilter()"
+            />
+            <button class="btn btn-outline-secondary" type="button" (click)="onFilter()">
+              Tìm
+            </button>
+          </div>
+        </div>
+        <div class="col-md-7 col-12 text-md-end text-muted small">
+          <span>Tổng số: <strong class="text-dark">{{ totalCount }}</strong> quy tắc</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="bg-light text-muted small text-uppercase fw-semibold">
+          <tr>
+            <th class="ps-4" style="width: 70px;">Thứ Tự</th>
+            <th>Tên Quy Tắc</th>
+            <th>Chiến Lược</th>
+            <th>Điều Kiện</th>
+            <th>Phòng Ban</th>
+            <th>Kỹ Thuật Viên Nhận Vé</th>
+            <th class="text-center" style="width: 120px;">Trạng Thái</th>
+            <th class="text-end pe-4" style="width: 130px;">Thao Tác</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of items">
+            <!-- Order -->
+            <td class="ps-4">
+              <span class="badge bg-light text-dark border px-2 py-1 fw-bold">#{{ item.order }}</span>
+            </td>
+
+            <!-- Name & Description -->
+            <td>
+              <div class="fw-semibold text-dark">{{ item.name }}</div>
+              <div *ngIf="item.description" class="text-muted small text-truncate" style="max-width: 250px;">
+                {{ item.description }}
+              </div>
+            </td>
+
+            <!-- Strategy -->
+            <td>
+              <span [class]="getStrategyBadgeClass(item.routingStrategy)" class="d-inline-flex align-items-center gap-1 px-2 py-1 rounded-pill">
+                <i [class]="getStrategyIcon(item.routingStrategy)"></i>
+                <span>{{ item.routingStrategyName }}</span>
+              </span>
+            </td>
+
+            <!-- Conditions -->
+            <td>
+              <div class="small">
+                <div *ngIf="item.categoryName" class="text-muted">
+                  <i class="fas fa-tag me-1 text-primary"></i>{{ item.categoryName }}
+                </div>
+                <div *ngIf="item.priorityName" class="text-muted">
+                  <i class="fas fa-flag me-1 text-danger"></i>{{ item.priorityName }}
+                </div>
+                <div *ngIf="!item.categoryName && !item.priorityName" class="text-muted fst-italic">
+                  Mặc định (Tất cả)
+                </div>
+              </div>
+            </td>
+
+            <!-- Department -->
+            <td>
+              <span *ngIf="item.departmentName" class="badge bg-info-subtle text-info-emphasis border border-info-subtle px-2 py-1 rounded-pill">
+                <i class="fas fa-building me-1"></i>{{ item.departmentName }}
+              </span>
+              <span *ngIf="!item.departmentName" class="text-muted small fst-italic">--</span>
+            </td>
+
+            <!-- Agents -->
+            <td>
+              <div *ngIf="item.routingStrategy === AssignmentStrategy.DirectAssign">
+                <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2 py-1 rounded-pill">
+                  <i class="fas fa-user-check me-1"></i>{{ item.directAssigneeName || 'Chưa gán' }}
+                </span>
+              </div>
+              <div *ngIf="item.routingStrategy !== AssignmentStrategy.DirectAssign">
+                <div class="d-flex flex-wrap gap-1 align-items-center" *ngIf="item.agents && item.agents.length > 0">
+                  <span *ngFor="let agent of item.agents" class="badge bg-secondary-subtle text-secondary-emphasis border px-2 py-1 rounded-pill small">
+                    <i class="fas fa-user-tie me-1"></i>{{ agent.userName }}
+                  </span>
+                </div>
+                <span *ngIf="!item.agents || item.agents.length === 0" class="text-danger small fst-italic">
+                  <i class="fas fa-exclamation-triangle me-1"></i>Chưa chọn nhân viên
+                </span>
+              </div>
+            </td>
+
+            <!-- Active Toggle -->
+            <td class="text-center">
+              <div class="form-check form-switch d-inline-block">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  role="switch"
+                  [checked]="item.isActive"
+                  (change)="toggleActive(item)"
+                  title="Bật/Tắt quy tắc"
+                />
+              </div>
+            </td>
+
+            <!-- Actions -->
+            <td class="text-end pe-4">
+              <button class="btn btn-sm btn-outline-primary me-1 rounded-circle p-1" style="width: 32px; height: 32px;" (click)="openEditModal(item)" title="Chỉnh sửa">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="btn btn-sm btn-outline-danger rounded-circle p-1" style="width: 32px; height: 32px;" (click)="delete(item)" title="Xóa quy tắc">
+                <i class="fas fa-trash-alt"></i>
+              </button>
+            </td>
+          </tr>
+
+          <tr *ngIf="items.length === 0">
+            <td colspan="8" class="text-center py-5 text-muted">
+              <i class="fas fa-random fa-3x mb-3 text-secondary opacity-50"></i>
+              <p class="mb-0">Chưa có quy tắc phân công nào phù hợp.</p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="card-footer bg-white border-top p-3 d-flex justify-content-between align-items-center flex-wrap gap-2" *ngIf="totalCount > 0">
+      <span class="text-muted small">
+        Hiển thị trang {{ list.page + 1 }} / {{ totalCount }} bản ghi
+      </span>
+      <ngb-pagination
+        [page]="list.page + 1"
+        [pageSize]="list.maxResultCount"
+        [collectionSize]="totalCount"
+        (pageChange)="list.page = $event - 1"
+        [maxSize]="5"
+        class="mb-0"
+      />
+    </div>
+  </div>
+</div>
+
+<!-- Modal Thêm / Sửa Quy Tắc -->
+<div class="modal fade show d-block" *ngIf="isModalOpen" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+      <!-- Header -->
+      <div class="modal-header bg-light border-bottom p-3">
+        <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2">
+          <i class="fas fa-random text-primary"></i>
+          <span>{{ isEditing ? 'Cập Nhật Quy Tắc Phân Công' : 'Thêm Quy Tắc Phân Công Mới' }}</span>
+        </h5>
+        <button type="button" class="btn-close" (click)="closeModal()"></button>
+      </div>
+
+      <!-- Body -->
+      <div class="modal-body p-4">
+        <form [formGroup]="form">
+          <!-- Tên quy tắc & Thứ tự -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-9 col-12">
+              <label class="form-label fw-semibold">Tên Quy Tắc <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" formControlName="name" placeholder="Ví dụ: Tự động phân bổ IT Support" />
+              <div *ngIf="form.get('name')?.invalid && form.get('name')?.touched" class="text-danger small mt-1">
+                Tên quy tắc là bắt buộc (tối đa 128 ký tự).
+              </div>
+            </div>
+            <div class="col-md-3 col-12">
+              <label class="form-label fw-semibold">Thứ Tự Ưu Tiên <span class="text-danger">*</span></label>
+              <input type="number" class="form-control" formControlName="order" min="1" />
+              <small class="text-muted">Số nhỏ ưu tiên trước</small>
+            </div>
+          </div>
+
+          <!-- Mô tả -->
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Mô Tả Quy Tắc</label>
+            <textarea class="form-control" formControlName="description" rows="2" placeholder="Ghi chú thêm về quy tắc này..."></textarea>
+          </div>
+
+          <!-- Chiến Lược Phân Bổ (Routing Strategy) -->
+          <div class="mb-4">
+            <label class="form-label fw-semibold">Chiến Lược Phân Bổ <span class="text-danger">*</span></label>
+            <div class="row g-2">
+              <div class="col-md-4 col-12">
+                <div
+                  class="border rounded-3 p-3 h-100 cursor-pointer transition-all"
+                  [class.border-primary]="form.get('routingStrategy')?.value === AssignmentStrategy.RoundRobin"
+                  [class.bg-primary-subtle]="form.get('routingStrategy')?.value === AssignmentStrategy.RoundRobin"
+                  (click)="form.patchValue({ routingStrategy: AssignmentStrategy.RoundRobin })"
+                  style="cursor: pointer;"
+                >
+                  <div class="d-flex align-items-center gap-2 mb-1">
+                    <i class="fas fa-sync-alt text-primary fs-5"></i>
+                    <span class="fw-bold text-dark">Round-Robin</span>
+                  </div>
+                  <p class="text-muted small mb-0">Chia đều lần lượt xoay vòng cho các kỹ thuật viên.</p>
+                </div>
+              </div>
+
+              <div class="col-md-4 col-12">
+                <div
+                  class="border rounded-3 p-3 h-100 cursor-pointer transition-all"
+                  [class.border-success]="form.get('routingStrategy')?.value === AssignmentStrategy.LeastBusy"
+                  [class.bg-success-subtle]="form.get('routingStrategy')?.value === AssignmentStrategy.LeastBusy"
+                  (click)="form.patchValue({ routingStrategy: AssignmentStrategy.LeastBusy })"
+                  style="cursor: pointer;"
+                >
+                  <div class="d-flex align-items-center gap-2 mb-1">
+                    <i class="fas fa-balance-scale text-success fs-5"></i>
+                    <span class="fw-bold text-dark">Least Busy</span>
+                  </div>
+                  <p class="text-muted small mb-0">Gán cho người đang có ít vé chưa hoàn thành nhất.</p>
+                </div>
+              </div>
+
+              <div class="col-md-4 col-12">
+                <div
+                  class="border rounded-3 p-3 h-100 cursor-pointer transition-all"
+                  [class.border-warning]="form.get('routingStrategy')?.value === AssignmentStrategy.DirectAssign"
+                  [class.bg-warning-subtle]="form.get('routingStrategy')?.value === AssignmentStrategy.DirectAssign"
+                  (click)="form.patchValue({ routingStrategy: AssignmentStrategy.DirectAssign })"
+                  style="cursor: pointer;"
+                >
+                  <div class="d-flex align-items-center gap-2 mb-1">
+                    <i class="fas fa-user-check text-warning fs-5"></i>
+                    <span class="fw-bold text-dark">Chỉ Định Cố Định</span>
+                  </div>
+                  <p class="text-muted small mb-0">Luôn gán thẳng cho 1 kỹ thuật viên được chọn.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Điều Kiện & Phòng Ban -->
+          <div class="card bg-light border-0 rounded-3 p-3 mb-4">
+            <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+              <i class="fas fa-filter text-secondary"></i>
+              <span>Điều Kiện Kích Hoạt & Phòng Ban</span>
+            </h6>
+            <div class="row g-3">
+              <div class="col-md-4 col-12">
+                <label class="form-label small fw-semibold">Danh Mục Sự Cố</label>
+                <select class="form-select form-select-sm" formControlName="categoryId">
+                  <option [ngValue]="null">-- Tất cả danh mục --</option>
+                  <option *ngFor="let cat of categories" [ngValue]="cat.id">{{ cat.name }}</option>
+                </select>
+              </div>
+              <div class="col-md-4 col-12">
+                <label class="form-label small fw-semibold">Mức Độ Ưu Tiên</label>
+                <select class="form-select form-select-sm" formControlName="priorityId">
+                  <option [ngValue]="null">-- Tất cả mức ưu tiên --</option>
+                  <option *ngFor="let pri of priorities" [ngValue]="pri.id">{{ pri.name }}</option>
+                </select>
+              </div>
+              <div class="col-md-4 col-12">
+                <label class="form-label small fw-semibold">Phòng Ban Điều Phối</label>
+                <select class="form-select form-select-sm" formControlName="departmentId">
+                  <option [ngValue]="null">-- Không gán phòng ban --</option>
+                  <option *ngFor="let dept of departments" [ngValue]="dept.id">{{ dept.name }}</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Kỹ Thuật Viên Chỉ Định (Nếu là DirectAssign) -->
+          <div class="mb-4" *ngIf="form.get('routingStrategy')?.value === AssignmentStrategy.DirectAssign">
+            <label class="form-label fw-semibold">Kỹ Thuật Viên Chỉ Định <span class="text-danger">*</span></label>
+            <select class="form-select" formControlName="directAssigneeId">
+              <option [ngValue]="null">-- Chọn kỹ thuật viên --</option>
+              <option *ngFor="let agent of agents" [ngValue]="agent.id">{{ agent.displayName }}</option>
+            </select>
+          </div>
+
+          <!-- Danh Sách Kỹ Thuật Viên Tham Gia (Nếu là Round-Robin hoặc Least Busy) -->
+          <div class="mb-3" *ngIf="form.get('routingStrategy')?.value !== AssignmentStrategy.DirectAssign">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <label class="form-label fw-semibold mb-0">
+                Kỹ Thuật Viên Tiếp Nhận Vé
+                <span class="badge bg-primary-subtle text-primary border ms-1">
+                  {{ (form.get('selectedAgentIds')?.value || []).length }} đã chọn
+                </span>
+              </label>
+              <div class="btn-group btn-group-sm">
+                <button type="button" class="btn btn-outline-secondary btn-sm" (click)="selectAllAgents()">Chọn Tất Cả</button>
+                <button type="button" class="btn btn-outline-secondary btn-sm" (click)="deselectAllAgents()">Bỏ Chọn</button>
+              </div>
+            </div>
+
+            <div class="border rounded-3 p-3 bg-white" style="max-height: 180px; overflow-y: auto;">
+              <div class="row g-2">
+                <div class="col-md-6 col-12" *ngFor="let agent of agents">
+                  <div
+                    class="form-check p-2 rounded border transition-all"
+                    [class.bg-light]="isAgentSelected(agent.id)"
+                    style="cursor: pointer;"
+                    (click)="toggleAgentSelection(agent.id)"
+                  >
+                    <input
+                      class="form-check-input ms-0 me-2"
+                      type="checkbox"
+                      [checked]="isAgentSelected(agent.id)"
+                      (click)="$event.stopPropagation(); toggleAgentSelection(agent.id)"
+                      [id]="'agent_' + agent.id"
+                    />
+                    <label class="form-check-label w-100" [for]="'agent_' + agent.id" style="cursor: pointer;">
+                      <span class="fw-semibold text-dark">{{ agent.name || agent.userName }}</span>
+                      <small class="text-muted d-block">@{{ agent.userName }}</small>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Kích hoạt -->
+          <div class="form-check form-switch mt-3">
+            <input class="form-check-input" type="checkbox" role="switch" formControlName="isActive" id="isActiveSwitch" />
+            <label class="form-check-label fw-semibold" for="isActiveSwitch">Kích hoạt quy tắc này ngay lập tức</label>
+          </div>
+        </form>
+      </div>
+
+      <!-- Footer -->
+      <div class="modal-footer bg-light border-top p-3">
+        <button type="button" class="btn btn-outline-secondary px-4 rounded-pill" (click)="closeModal()">
+          Đóng
+        </button>
+        <button type="button" class="btn btn-primary px-4 rounded-pill shadow-sm" [disabled]="form.invalid" (click)="save()">
+          <i class="fas fa-save me-1"></i> Lưu Quy Tắc
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -7,6 +7,7 @@ namespace Helpdesk.CustomerPortal.Dtos;
 public class CustomerCommentDto
 {
     public Guid Id { get; set; }
+    public Guid TicketId { get; set; }
     public string Content { get; set; } = null!;
     public DateTime CreationTime { get; set; }
     public Guid? CreatorId { get; set; }

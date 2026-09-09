@@ -72,5 +72,14 @@ function configureMasterDataRoutes() {
       layout: eLayoutType.application,
       requiredPolicy: 'Helpdesk.CannedResponses',
     },
+    {
+      path: '/master-data/assignment-rules',
+      name: 'Quy tắc phân công',
+      parentName: '::Menu:MasterData',
+      iconClass: 'fas fa-random',
+      order: 7,
+      layout: eLayoutType.application,
+      requiredPolicy: 'Helpdesk.AssignmentRules',
+    },
   ]);
 }
