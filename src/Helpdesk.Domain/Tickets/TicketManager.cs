@@ -3,6 +3,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Helpdesk.Categories;
 using Helpdesk.TicketStatuses;
+using Volo.Abp;
+using Volo.Abp.Data;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Domain.Services;
 using Volo.Abp.Timing;
@@ -14,15 +16,18 @@ public class TicketManager : DomainService
     private readonly IRepository<Ticket, Guid> _ticketRepository;
     private readonly IRepository<TicketActivity, Guid> _activityRepository;
     private readonly IClock _clock;
+    private readonly IDataFilter _dataFilter;
 
     public TicketManager(
         IRepository<Ticket, Guid> ticketRepository,
         IRepository<TicketActivity, Guid> activityRepository,
-        IClock clock)
+        IClock clock,
+        IDataFilter dataFilter)
     {
         _ticketRepository = ticketRepository;
         _activityRepository = activityRepository;
         _clock = clock;
+        _dataFilter = dataFilter;
     }
 
     /// <summary>
@@ -32,21 +37,26 @@ public class TicketManager : DomainService
     {
         var now = _clock.Now;
         var prefix = $"TK-{now:yyyyMM}-";
-        
-        var queryable = await _ticketRepository.GetQueryableAsync();
-        var countThisMonth = queryable.Count(t => t.TicketNumber.StartsWith(prefix));
-        
-        var nextSeq = countThisMonth + 1;
-        var candidate = $"{prefix}{nextSeq:D4}";
 
-        // Đảm bảo không trùng lặp nếu có concurrent request
-        while (queryable.Any(t => t.TicketNumber == candidate))
+        // Tạm tắt bộ lọc soft-delete để tính cả những vé đã bị xóa mềm,
+        // tránh sinh lại một mã vé đã tồn tại vật lý trong DB (vi phạm unique constraint IX_AppTickets_TicketNumber).
+        using (_dataFilter.Disable<ISoftDelete>())
         {
-            nextSeq++;
-            candidate = $"{prefix}{nextSeq:D4}";
-        }
+            var queryable = await _ticketRepository.GetQueryableAsync();
+            var countThisMonth = queryable.Count(t => t.TicketNumber.StartsWith(prefix));
 
-        return candidate;
+            var nextSeq = countThisMonth + 1;
+            var candidate = $"{prefix}{nextSeq:D4}";
+
+            // Đảm bảo không trùng lặp nếu có concurrent request
+            while (queryable.Any(t => t.TicketNumber == candidate))
+            {
+                nextSeq++;
+                candidate = $"{prefix}{nextSeq:D4}";
+            }
+
+            return candidate;
+        }
     }
 
     /// <summary>

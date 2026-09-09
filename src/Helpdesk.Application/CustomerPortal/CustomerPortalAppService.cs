@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Helpdesk.AssignmentRules;
 using Helpdesk.Categories;
 using Helpdesk.CustomerPortal.Dtos;
+using Helpdesk.Notifications;
 using Helpdesk.Permissions;
 using Helpdesk.Priorities;
 using Helpdesk.Sla;
@@ -40,6 +41,7 @@ public class CustomerPortalAppService : ApplicationService, ICustomerPortalAppSe
     private readonly TicketManager _ticketManager;
     private readonly SlaManager _slaManager;
     private readonly AutoAssignmentManager _autoAssignmentManager;
+    private readonly NotificationManager _notificationManager;
 
     public CustomerPortalAppService(
         IRepository<Ticket, Guid> ticketRepository,
@@ -54,7 +56,8 @@ public class CustomerPortalAppService : ApplicationService, ICustomerPortalAppSe
         Volo.Abp.BlobStoring.IBlobContainer blobContainer,
         TicketManager ticketManager,
         SlaManager slaManager,
-        AutoAssignmentManager autoAssignmentManager)
+        AutoAssignmentManager autoAssignmentManager,
+        NotificationManager notificationManager)
     {
         _ticketRepository = ticketRepository;
         _commentRepository = commentRepository;
@@ -69,6 +72,7 @@ public class CustomerPortalAppService : ApplicationService, ICustomerPortalAppSe
         _ticketManager = ticketManager;
         _slaManager = slaManager;
         _autoAssignmentManager = autoAssignmentManager;
+        _notificationManager = notificationManager;
     }
 
     public async Task<PagedResultDto<CustomerTicketDto>> GetMyTicketsAsync(GetCustomerTicketListInput input)
@@ -371,6 +375,17 @@ public class CustomerPortalAppService : ApplicationService, ICustomerPortalAppSe
             description: $"Khách hàng đã phản hồi: \"{(input.Content.Length > 50 ? input.Content[..50] + "..." : input.Content)}\""
         );
         await _activityRepository.InsertAsync(activity);
+
+        if (ticket.AssigneeId.HasValue)
+        {
+            await _notificationManager.CreateAsync(
+                ticket.AssigneeId.Value,
+                NotificationType.CommentAdded,
+                "Khách hàng vừa phản hồi",
+                $"Vé {ticket.TicketNumber} \"{ticket.Title}\" vừa nhận được phản hồi mới từ khách hàng.",
+                ticket.Id
+            );
+        }
 
         return new CustomerCommentDto
         {

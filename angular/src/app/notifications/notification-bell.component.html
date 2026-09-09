@@ -1,0 +1,33 @@
+<ng-container *ngIf="isAuthenticated">
+  <div class="notif-bell-wrapper">
+    <button class="notif-bell-btn" (click)="toggle()" title="Thông báo">
+      <i class="fas fa-bell"></i>
+      <span class="notif-badge" *ngIf="unreadCount > 0">{{ unreadCount > 99 ? '99+' : unreadCount }}</span>
+    </button>
+
+    <div class="notif-panel" *ngIf="isOpen">
+      <div class="notif-panel-header">
+        <span>Thông báo</span>
+        <button class="btn-mark-all" (click)="markAllAsRead()" *ngIf="unreadCount > 0">Đánh dấu đã đọc tất cả</button>
+      </div>
+
+      <div class="notif-panel-body">
+        <div *ngIf="isLoading" class="notif-loading">Đang tải...</div>
+
+        <div *ngIf="!isLoading && notifications.length === 0" class="notif-empty">
+          Chưa có thông báo nào.
+        </div>
+
+        <div
+          *ngFor="let n of notifications"
+          class="notif-item"
+          [class.unread]="!n.isRead"
+          (click)="onNotificationClick(n)">
+          <div class="notif-item-title">{{ n.title }}</div>
+          <div class="notif-item-message">{{ n.message }}</div>
+          <div class="notif-item-time">{{ n.creationTime | date: 'dd/MM/yyyy HH:mm' }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</ng-container>

@@ -239,5 +239,20 @@ public static class HelpdeskDbContextModelCreatingExtensions
 
             b.HasIndex(x => new { x.RuleId, x.UserId }).IsUnique();
         });
+
+        builder.Entity<Helpdesk.Notifications.Notification>(b =>
+        {
+            b.ToTable(HelpdeskConsts.DbTablePrefix + "Notifications", HelpdeskConsts.DbSchema);
+            b.ConfigureByConvention();
+
+            b.Property(x => x.Title).IsRequired().HasMaxLength(256);
+            b.Property(x => x.Message).IsRequired().HasMaxLength(1000);
+            b.Property(x => x.Type).IsRequired();
+            b.Property(x => x.IsRead).IsRequired().HasDefaultValue(false);
+
+            b.HasIndex(x => x.RecipientUserId);
+            b.HasIndex(x => x.IsRead);
+            b.HasIndex(x => x.TicketId);
+        });
     }
 }

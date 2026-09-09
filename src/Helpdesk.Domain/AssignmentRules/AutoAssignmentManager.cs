@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Helpdesk.Categories;
 using Helpdesk.Departments;
+using Helpdesk.Notifications;
 using Helpdesk.Tickets;
 using Helpdesk.TicketStatuses;
 using Volo.Abp.Domain.Repositories;
@@ -24,6 +25,7 @@ public class AutoAssignmentManager : DomainService
     private readonly IRepository<TicketActivity, Guid> _activityRepository;
     private readonly IRepository<IdentityUser, Guid> _userRepository;
     private readonly IRepository<Department, Guid> _departmentRepository;
+    private readonly NotificationManager _notificationManager;
 
     public AutoAssignmentManager(
         IRepository<AssignmentRule, Guid> ruleRepository,
@@ -32,7 +34,8 @@ public class AutoAssignmentManager : DomainService
         IRepository<TicketStatus, Guid> statusRepository,
         IRepository<TicketActivity, Guid> activityRepository,
         IRepository<IdentityUser, Guid> userRepository,
-        IRepository<Department, Guid> departmentRepository)
+        IRepository<Department, Guid> departmentRepository,
+        NotificationManager notificationManager)
     {
         _ruleRepository = ruleRepository;
         _agentRepository = agentRepository;
@@ -41,6 +44,7 @@ public class AutoAssignmentManager : DomainService
         _activityRepository = activityRepository;
         _userRepository = userRepository;
         _departmentRepository = departmentRepository;
+        _notificationManager = notificationManager;
     }
 
     /// <summary>
@@ -181,6 +185,15 @@ public class AutoAssignmentManager : DomainService
                 );
 
                 await _activityRepository.InsertAsync(activity, autoSave: true);
+
+                await _notificationManager.CreateAsync(
+                    chosenUserId.Value,
+                    NotificationType.TicketAssigned,
+                    "Bạn được giao vé mới",
+                    $"Vé {ticket.TicketNumber} \"{ticket.Title}\" vừa được tự động phân công cho bạn theo quy tắc '{rule.Name}'.",
+                    ticket.Id
+                );
+
                 return true;
             }
         }

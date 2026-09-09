@@ -8,6 +8,7 @@ using Helpdesk.AssignmentRules;
 using Helpdesk.CannedResponses;
 using Helpdesk.Categories;
 using Helpdesk.Departments;
+using Helpdesk.Notifications;
 using Helpdesk.Permissions;
 using Helpdesk.Priorities;
 using Helpdesk.Tickets.Dtos;
@@ -22,6 +23,7 @@ using Volo.Abp.Application.Services;
 using Volo.Abp.BlobStoring;
 using Volo.Abp.Content;
 using Volo.Abp.Domain.Repositories;
+using Volo.Abp.Emailing;
 using Volo.Abp.Identity;
 using Volo.Abp.Linq;
 
@@ -45,6 +47,8 @@ public class TicketAppService : ApplicationService, ITicketAppService
     private readonly TicketManager _ticketManager;
     private readonly SlaManager _slaManager;
     private readonly AutoAssignmentManager _autoAssignmentManager;
+    private readonly NotificationManager _notificationManager;
+    private readonly IEmailSender _emailSender;
 
     public TicketAppService(
         IRepository<Ticket, Guid> ticketRepository,
@@ -61,7 +65,9 @@ public class TicketAppService : ApplicationService, ITicketAppService
         IRepository<SlaPolicy, Guid> slaPolicyRepository,
         TicketManager ticketManager,
         SlaManager slaManager,
-        AutoAssignmentManager autoAssignmentManager)
+        AutoAssignmentManager autoAssignmentManager,
+        NotificationManager notificationManager,
+        IEmailSender emailSender)
     {
         _ticketRepository = ticketRepository;
         _commentRepository = commentRepository;
@@ -78,6 +84,8 @@ public class TicketAppService : ApplicationService, ITicketAppService
         _ticketManager = ticketManager;
         _slaManager = slaManager;
         _autoAssignmentManager = autoAssignmentManager;
+        _notificationManager = notificationManager;
+        _emailSender = emailSender;
     }
 
     public async Task<PagedResultDto<TicketListDto>> GetListAsync(GetTicketListInput input)
@@ -448,6 +456,27 @@ public class TicketAppService : ApplicationService, ITicketAppService
         await _ticketManager.AssignAsync(ticket, input.AssigneeId, assigneeName, input.DepartmentId, departmentName);
         await _ticketRepository.UpdateAsync(ticket);
 
+        if (input.AssigneeId.HasValue)
+        {
+            await _notificationManager.CreateAsync(
+                input.AssigneeId.Value,
+                NotificationType.TicketAssigned,
+                "Bạn được giao vé mới",
+                $"Vé {ticket.TicketNumber} \"{ticket.Title}\" vừa được phân công cho bạn.",
+                ticket.Id
+            );
+
+            var assigneeUser = await _userRepository.FindAsync(input.AssigneeId.Value);
+            if (!string.IsNullOrWhiteSpace(assigneeUser?.Email))
+            {
+                await _emailSender.SendAsync(
+                    assigneeUser.Email,
+                    $"[Helpdesk] Bạn được giao vé {ticket.TicketNumber}",
+                    $"Vé \"{ticket.Title}\" vừa được phân công cho bạn. Vui lòng đăng nhập hệ thống để xử lý."
+                );
+            }
+        }
+
         return await GetAsync(id);
     }
 
@@ -459,8 +488,9 @@ public class TicketAppService : ApplicationService, ITicketAppService
         var newStatus = await _statusRepository.GetAsync(input.StatusId);
 
         await _ticketManager.ChangeStatusAsync(ticket, oldStatus, newStatus);
-        
-        if (newStatus.IsFinal || newStatus.StatusGroup == StatusGroup.Closed)
+
+        var isResolved = newStatus.IsFinal || newStatus.StatusGroup == StatusGroup.Closed;
+        if (isResolved)
         {
             await _slaManager.OnTicketResolvedAsync(ticket);
         }
@@ -476,6 +506,26 @@ public class TicketAppService : ApplicationService, ITicketAppService
                 isInternal: false
             );
             await _commentRepository.InsertAsync(comment);
+        }
+
+        if (ticket.RequesterId.HasValue)
+        {
+            await _notificationManager.CreateAsync(
+                ticket.RequesterId.Value,
+                NotificationType.StatusChanged,
+                "Trạng thái vé đã thay đổi",
+                $"Vé {ticket.TicketNumber} \"{ticket.Title}\" đã chuyển sang trạng thái \"{newStatus.Name}\".",
+                ticket.Id
+            );
+        }
+
+        if (isResolved && !string.IsNullOrWhiteSpace(ticket.RequesterEmail))
+        {
+            await _emailSender.SendAsync(
+                ticket.RequesterEmail,
+                $"[Helpdesk] Vé {ticket.TicketNumber} đã được giải quyết",
+                $"Vé \"{ticket.Title}\" của bạn đã chuyển sang trạng thái \"{newStatus.Name}\". Cảm ơn bạn đã sử dụng dịch vụ hỗ trợ."
+            );
         }
 
         return await GetAsync(id);
@@ -506,6 +556,17 @@ public class TicketAppService : ApplicationService, ITicketAppService
 
         await _slaManager.OnCommentAddedAsync(ticket, input.IsInternal);
         await _ticketRepository.UpdateAsync(ticket);
+
+        if (!input.IsInternal && ticket.RequesterId.HasValue)
+        {
+            await _notificationManager.CreateAsync(
+                ticket.RequesterId.Value,
+                NotificationType.CommentAdded,
+                "Có phản hồi mới trên vé của bạn",
+                $"Vé {ticket.TicketNumber} \"{ticket.Title}\" vừa nhận được phản hồi mới từ đội hỗ trợ.",
+                ticket.Id
+            );
+        }
 
         return new TicketCommentDto
         {

@@ -40,6 +40,7 @@ using Volo.Abp.Swashbuckle;
 using Volo.Abp.Studio.Client.AspNetCore;
 using Volo.Abp.Security.Claims;
 using Volo.Abp.BackgroundWorkers;
+using Volo.Abp.AspNetCore.SignalR;
 
 namespace Helpdesk;
 
@@ -54,7 +55,8 @@ namespace Helpdesk;
     typeof(AbpAccountWebOpenIddictModule),
     typeof(AbpSwashbuckleModule),
     typeof(AbpAspNetCoreSerilogModule),
-    typeof(AbpBackgroundWorkersModule)
+    typeof(AbpBackgroundWorkersModule),
+    typeof(AbpAspNetCoreSignalRModule)
     )]
 public class HelpdeskHttpApiHostModule : AbpModule
 {
@@ -302,7 +304,10 @@ public class HelpdeskHttpApiHostModule : AbpModule
         });
         app.UseAuditing();
         app.UseAbpSerilogEnrichers();
-        app.UseConfiguredEndpoints();
+        app.UseConfiguredEndpoints(endpoints =>
+        {
+            endpoints.MapHub<Helpdesk.Notifications.NotificationHub>("/signalr-hubs/notifications");
+        });
     }
 
     public override async System.Threading.Tasks.Task OnApplicationInitializationAsync(ApplicationInitializationContext context)

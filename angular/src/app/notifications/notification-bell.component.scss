@@ -1,0 +1,130 @@
+.notif-bell-wrapper {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 1050;
+  font-family: inherit;
+}
+
+.notif-bell-btn {
+  position: relative;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: none;
+  background: #3b82f6;
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background: #2563eb;
+  }
+}
+
+.notif-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #ef4444;
+  color: #fff;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  min-width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  border: 2px solid #fff;
+}
+
+.notif-panel {
+  position: absolute;
+  bottom: 62px;
+  right: 0;
+  width: 340px;
+  max-height: 420px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  color: #1f2937;
+}
+
+.notif-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  font-weight: 600;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.btn-mark-all {
+  border: none;
+  background: none;
+  color: #3b82f6;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.notif-panel-body {
+  overflow-y: auto;
+  max-height: 360px;
+}
+
+.notif-loading,
+.notif-empty {
+  padding: 24px 14px;
+  text-align: center;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.notif-item {
+  padding: 10px 14px;
+  border-bottom: 1px solid #f3f4f6;
+  cursor: pointer;
+
+  &:hover {
+    background: #f9fafb;
+  }
+
+  &.unread {
+    background: #eff6ff;
+
+    .notif-item-title {
+      font-weight: 700;
+    }
+  }
+}
+
+.notif-item-title {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.notif-item-message {
+  font-size: 12px;
+  color: #4b5563;
+  margin-bottom: 4px;
+}
+
+.notif-item-time {
+  font-size: 11px;
+  color: #9ca3af;
+}

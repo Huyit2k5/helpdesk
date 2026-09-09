@@ -61,6 +61,9 @@ public class HelpdeskDbContext :
     public DbSet<Helpdesk.AssignmentRules.AssignmentRule> AssignmentRules { get; set; }
     public DbSet<Helpdesk.AssignmentRules.AssignmentRuleAgent> AssignmentRuleAgents { get; set; }
 
+    // Notifications
+    public DbSet<Helpdesk.Notifications.Notification> Notifications { get; set; }
+
     #region Entities from the modules
 
     /* Notice: We only implemented IIdentityProDbContext and ISaasDbContext
