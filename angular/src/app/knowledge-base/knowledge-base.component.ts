@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -19,6 +19,7 @@ export class KnowledgeBaseComponent implements OnInit {
   private articleService = inject(KnowledgeArticleService);
   private categoryService = inject(CategoryService);
   private permissionService = inject(PermissionService);
+  private cdr = inject(ChangeDetectorRef);
 
   articles: KnowledgeArticleDto[] = [];
   popularArticles: KnowledgeArticleDto[] = [];
@@ -53,12 +54,14 @@ export class KnowledgeBaseComponent implements OnInit {
   loadCategories(): void {
     this.categoryService.getLookup().subscribe(res => {
       this.categories = res.items || [];
+      this.cdr.detectChanges();
     });
   }
 
   loadPopularArticles(): void {
     this.articleService.getPopularArticles(5).subscribe(res => {
       this.popularArticles = res || [];
+      this.cdr.detectChanges();
     });
   }
 
@@ -76,9 +79,11 @@ export class KnowledgeBaseComponent implements OnInit {
         this.articles = res.items || [];
         this.totalCount = res.totalCount || 0;
         this.isLoading = false;
+        this.cdr.detectChanges();
       },
       error: () => {
         this.isLoading = false;
+        this.cdr.detectChanges();
       }
     });
   }

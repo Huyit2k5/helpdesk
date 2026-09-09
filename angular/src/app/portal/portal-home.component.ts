@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '@abp/ng.core';
@@ -16,6 +16,7 @@ export class PortalHomeComponent implements OnInit {
   private portalService = inject(CustomerPortalService);
   private kbService = inject(KnowledgeArticleService);
   private authService = inject(AuthService);
+  private cdr = inject(ChangeDetectorRef);
 
   recentTickets: CustomerTicketDto[] = [];
   popularArticles: KnowledgeArticleDto[] = [];
@@ -35,6 +36,7 @@ export class PortalHomeComponent implements OnInit {
     this.portalService.getMyTickets({ maxResultCount: 3, skipCount: 0 }).subscribe({
       next: (res) => {
         this.recentTickets = res.items || [];
+        this.cdr.detectChanges();
       }
     });
 
@@ -42,9 +44,11 @@ export class PortalHomeComponent implements OnInit {
       next: (res) => {
         this.popularArticles = res || [];
         this.isLoading = false;
+        this.cdr.detectChanges();
       },
       error: () => {
         this.isLoading = false;
+        this.cdr.detectChanges();
       }
     });
   }

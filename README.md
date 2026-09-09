@@ -8,37 +8,39 @@ Dự án xây dựng hệ thống Helpdesk doanh nghiệp hiện đại, đa kê
 
 1. [Tổng Quan Kiến Trúc & Công Nghệ](#-tổng-quan-kiến-trúc--công-nghệ)
 2. [Lộ Trình Triển Khai (Roadmap)](#-lộ-trình-triển-khai-roadmap)
-11: 3. [Tóm Tắt Các Phần Đã Triển Khai](#-tóm-tắt-các-phần-đã-triển-khai)
-12:    - [Phân Hệ 1: Quản Lý Danh Mục (Master Data)](#31-phân-hệ-1-quản-lý-danh-mục-master-data)
-13:    - [Phân Hệ 2: Quản Lý Sự Vụ Cốt Lõi (Ticket Core)](#32-phân-hệ-2-quản-lý-sự-vụ-cốt-lõi-ticket-core)
-14:    - [Phân Hệ 3: Quản Lý Cam Kết Dịch Vụ (SLA Engine)](#33-phân-hệ-3-quản-lý-cam-kết-dịch-vụ-sla-engine)
-15:    - [Phân Hệ 4: Báo Cáo & Thống Kê (Dashboard)](#34-phân-hệ-4-báo-cáo--thống-kê-dashboard)
-16:    - [Dữ Liệu Khởi Tạo Chuẩn (Data Seeding)](#35-dữ-liệu-khởi-tạo-chuẩn-data-seeding)
-17: 4. [Hướng Dẫn Khởi Chạy & Đăng Nhập](#-hướng-dẫn-khởi-chạy--đăng-nhập)
-18: 5. [Các Lỗi Đã Xảy Ra & Cách Khắc Phục (Troubleshooting)](#-các-lỗi-đã-xảy-ra--cách-khắc-phục-troubleshooting)
-19: 
-20: ---
-21: 
-22: ## 🏛️ TỔNG QUAN KIẾN TRÚC & CÔNG NGHỆ
-23: 
-24: - **Backend**: .NET 10.0, C# 13, ABP Framework v10.6.0 (Domain-Driven Design).
-25: - **Database**: PostgreSQL 17 (Docker), Entity Framework Core 10.
-26: - **Frontend**: Angular 19 (Standalone Components), Bootstrap 5, FontAwesome, ABP Angular SDK, Chart.js.
-27: - **Authentication & Security**: OpenIddict, JWT Bearer Token, RBAC Permissions.
-28: 
-29: ---
-30: 
-31: ## 🗺️ LỘ TRÌNH TRIỂN KHAI (ROADMAP)
-32: 
-33: | STT | Phân Hệ | Chức Năng Chính | Trạng Thái |
-34: |:---:|:---|:---|:---:|
-35: | **1** | **Quản Lý Danh Mục (Master Data)** | Quản lý Categories, Priorities, Departments, Statuses, Sources, Canned Responses | **Hoàn thành (Backend + Frontend)** |
-36: | **2** | **Quản Lý Ticket (Ticket Core)** | Vòng đời vé, sinh mã tự động, chuyển trạng thái, phân công, bình luận, Kanban, Timeline | **Hoàn thành (Backend + Frontend)** |
-37: | **3** | **Quản Lý Cam Kết Dịch Vụ (SLA Engine)** | Quy tắc tính SLA theo giờ làm việc & ngày lễ, cảnh báo vi phạm hạn xử lý, báo cáo tuân thủ | **Hoàn thành (Backend + Frontend)** |
-38: | **4** | **Báo Cáo & Thống Kê (Dashboard)** | Biểu đồ trực quan (Chart.js), KPI xử lý sự vụ theo nhân viên và phòng ban, Auto-refresh | **Hoàn thành (Backend + Frontend)** |
-39: | **5** | **Hệ Thống Thông Báo (Notifications)** | Thông báo thời gian thực qua SignalR & Email | Kế hoạch |
-40: | **6** | **Cơ Sở Tri Thức (Knowledge Base - FAQ)**| Thư viện bài viết tự phục vụ người dùng | Kế hoạch |
-41: | **7** | **Cổng Khách Hàng (Customer Portal)** | Portal riêng để người dùng tạo và tra cứu tiến độ vé | Kế hoạch |
+3. [Tóm Tắt Các Phần Đã Triển Khai](#-tóm-tắt-các-phần-đã-triển-khai)
+   - [Phân Hệ 1: Quản Lý Danh Mục (Master Data)](#31-phân-hệ-1-quản-lý-danh-mục-master-data)
+   - [Phân Hệ 2: Quản Lý Sự Vụ Cốt Lõi (Ticket Core)](#32-phân-hệ-2-quản-lý-sự-vụ-cốt-lõi-ticket-core)
+   - [Phân Hệ 3: Quản Lý Cam Kết Dịch Vụ (SLA Engine)](#33-phân-hệ-3-quản-lý-cam-kết-dịch-vụ-sla-engine)
+   - [Phân Hệ 4: Báo Cáo & Thống Kê (Dashboard)](#34-phân-hệ-4-báo-cáo--thống-kê-dashboard)
+   - [Dữ Liệu Khởi Tạo Chuẩn (Data Seeding)](#35-dữ-liệu-khởi-tạo-chuẩn-data-seeding)
+   - [Cơ Sở Tri Thức (Knowledge Base - FAQ)](#37-phân-hệ-6-cơ-sở-tri-thức-knowledge-base---faq)
+   - [Cổng Khách Hàng (Customer Portal)](#38-phân-hệ-7-cổng-khách-hàng-customer-portal)
+4. [Hướng Dẫn Khởi Chạy & Đăng Nhập](#-hướng-dẫn-khởi-chạy--đăng-nhập)
+5. [Các Lỗi Đã Xảy Ra & Cách Khắc Phục (Troubleshooting)](#-các-lỗi-đã-xảy-ra--cách-khắc-phục-troubleshooting)
+
+---
+
+## 🏛️ TỔNG QUAN KIẾN TRÚC & CÔNG NGHỆ
+
+- **Backend**: .NET 10.0, C# 13, ABP Framework v10.6.0 (Domain-Driven Design).
+- **Database**: PostgreSQL 17 (Docker), Entity Framework Core 10.
+- **Frontend**: Angular 19 (Standalone Components), Bootstrap 5, FontAwesome, ABP Angular SDK, Chart.js.
+- **Authentication & Security**: OpenIddict, JWT Bearer Token, RBAC Permissions.
+
+---
+
+## 🗺️ LỘ TRÌNH TRIỂN KHAI (ROADMAP)
+
+| STT | Phân Hệ | Chức Năng Chính | Trạng Thái |
+|:---:|:---|:---|:---:|
+| **1** | **Quản Lý Danh Mục (Master Data)** | Quản lý Categories, Priorities, Departments, Statuses, Sources, Canned Responses | **Hoàn thành (Backend + Frontend)** |
+| **2** | **Quản Lý Ticket (Ticket Core)** | Vòng đời vé, sinh mã tự động, chuyển trạng thái, phân công, bình luận, Kanban, Timeline | **Hoàn thành (Backend + Frontend)** |
+| **3** | **Quản Lý Cam Kết Dịch Vụ (SLA Engine)** | Quy tắc tính SLA theo giờ làm việc & ngày lễ, cảnh báo vi phạm hạn xử lý, báo cáo tuân thủ | **Hoàn thành (Backend + Frontend)** |
+| **4** | **Báo Cáo & Thống Kê (Dashboard)** | Biểu đồ trực quan (Chart.js), KPI xử lý sự vụ theo nhân viên và phòng ban, Auto-refresh | **Hoàn thành (Backend + Frontend)** |
+| **5** | **Hệ Thống Thông Báo (Notifications)** | Thông báo thời gian thực qua SignalR & Email | Kế hoạch |
+| **6** | **Cơ Sở Tri Thức (Knowledge Base - FAQ)**| Thư viện bài viết tự phục vụ người dùng | **Hoàn thành (Backend + Frontend)** |
+| **7** | **Cổng Khách Hàng (Customer Portal)** | Portal riêng để người dùng tạo và tra cứu tiến độ vé | **Hoàn thành (Backend + Frontend)** |
 
 ---
 
@@ -147,6 +149,28 @@ Hệ thống tích hợp sẵn `HelpdeskDataSeedContributor` tự động nạp 
   * **Xuất danh sách Vi phạm SLA**: Trích xuất nhật ký trễ hạn từ màn hình `/sla/compliance`.
 - **Bộ Lọc Theo Khoảng Ngày (Date Range Filter)**:
   * Thêm 2 trường chọn ngày (*Từ ngày* & *Đến ngày*) trên thanh công cụ của trang `/tickets` để tìm kiếm và lọc dữ liệu chính xác theo mốc thời gian phát sinh.
+
+### 3.7. Phân Hệ 6: Cơ Sở Tri Thức (Knowledge Base - FAQ)
+
+Thư viện bài viết tự phục vụ giúp người dùng tự tra cứu giải pháp trước khi tạo vé hỗ trợ:
+
+- **Quản lý bài viết**: CRUD đầy đủ (`KnowledgeArticleAppService`) với tiêu đề, slug tự sinh (không dấu, chuẩn URL, tự chống trùng), danh mục (`CategoryId`), tóm tắt, nội dung Markdown, tag và trạng thái xuất bản (`IsPublished`).
+- **Phân quyền hiển thị**: Người dùng thường chỉ thấy bài viết đã xuất bản; người có quyền `Helpdesk.KnowledgeBase.Manage` xem được cả bản nháp và lọc theo trạng thái.
+- **Tìm kiếm & gợi ý thông minh**: Lọc theo từ khóa, danh mục, tag; API `suggestions` gợi ý bài viết liên quan khi khách hàng đang gõ mô tả sự cố (ưu tiên bài viết nhiều lượt "hữu ích" và nhiều lượt xem nhất).
+- **Bài viết phổ biến (`popular-articles`)**: Xếp hạng theo lượt xem và lượt đánh giá hữu ích, hiển thị ở trang chủ Knowledge Base.
+- **Bình chọn hữu ích**: Người đọc đánh giá "Hữu ích" / "Chưa hữu ích" cho từng bài viết (`VoteAsync`), tự động tăng bộ đếm `HelpfulCount` / `NotHelpfulCount` và tăng `ViewCount` mỗi lần xem chi tiết.
+- **Frontend Angular**: Màn hình danh sách `/knowledge-base` (tìm kiếm, lọc theo danh mục) và trang chi tiết bài viết theo slug, kèm nút bình chọn và gợi ý tạo ticket trực tiếp nếu bài viết chưa giải quyết được vấn đề.
+- **Migration**: `Add_KnowledgeBase_Module` khởi tạo bảng `AppKnowledgeArticles`.
+
+### 3.8. Phân Hệ 7: Cổng Khách Hàng (Customer Portal)
+
+Portal riêng (`CustomerPortalAppService`, yêu cầu đăng nhập) để người dùng cuối tự tạo và theo dõi tiến độ vé của chính mình mà không cần vào giao diện quản trị Helpdesk:
+
+- **Danh sách "Vé của tôi"**: Chỉ hiển thị các vé do chính người dùng tạo (khớp theo `RequesterId` hoặc email), hỗ trợ lọc theo danh mục, trạng thái (đang mở/đã đóng) và tìm kiếm theo mã vé/tiêu đề.
+- **Tạo yêu cầu mới**: Tự động gán trạng thái mặc định, độ ưu tiên mặc định (`MEDIUM`/`NORMAL`) và nguồn tiếp nhận `PORTAL`/`WEB` nếu người dùng không chỉ định, đồng thời tính hạn SLA ngay khi tạo vé (`SlaManager`).
+- **Xem chi tiết & phản hồi**: Hiển thị đầy đủ lịch sử trao đổi công khai (ẩn hoàn toàn ghi chú nội bộ `IsInternal`), cho phép khách hàng gửi phản hồi kèm tệp đính kèm; mỗi phản hồi được ghi nhận vào nhật ký hoạt động (`TicketActivity`) để hỗ trợ viên theo dõi.
+- **Kiểm soát truy cập chặt chẽ**: Mọi thao tác xem/phản hồi đều kiểm tra quyền sở hữu vé (`CheckCustomerAccess`), chặn truy cập vé của người khác bằng `BusinessException`.
+- **Frontend Angular**: Các màn hình `/portal` (trang chủ portal, danh sách vé, tạo vé mới) và `/portal/tickets/:id` (xem chi tiết, gửi phản hồi) dùng chung proxy service đã sinh tự động từ backend.
 
 ---
 

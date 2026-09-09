@@ -21,7 +21,7 @@ export class CustomerPortalService {
   getMyTicket = (id: string, config?: Partial<Rest.Config>) =>
     this.restService.request<any, CustomerTicketDetailDto>({
       method: 'GET',
-      url: `/api/app/customer-portal/my-ticket/${id}`,
+      url: `/api/app/customer-portal/${id}/my-ticket`,
     },
     { apiName: this.apiName, ...config });
 
@@ -36,7 +36,7 @@ export class CustomerPortalService {
   addMyComment = (ticketId: string, input: AddCustomerCommentDto, config?: Partial<Rest.Config>) =>
     this.restService.request<any, CustomerCommentDto>({
       method: 'POST',
-      url: `/api/app/customer-portal/my-ticket/${ticketId}/comment`,
+      url: `/api/app/customer-portal/my-comment/${ticketId}`,
       body: input,
     },
     { apiName: this.apiName, ...config });

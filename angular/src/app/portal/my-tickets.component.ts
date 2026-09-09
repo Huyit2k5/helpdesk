@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterModule } from '@angular/router';
@@ -23,6 +23,7 @@ export class MyTicketsComponent implements OnInit {
   private priorityService = inject(PriorityService);
   private route = inject(ActivatedRoute);
   private fb = inject(FormBuilder);
+  private cdr = inject(ChangeDetectorRef);
 
   tickets: CustomerTicketDto[] = [];
   categories: CategoryLookupDto[] = [];
@@ -78,12 +79,14 @@ export class MyTicketsComponent implements OnInit {
   loadCategories(): void {
     this.categoryService.getLookup().subscribe(res => {
       this.categories = res.items || [];
+      this.cdr.detectChanges();
     });
   }
 
   loadPriorities(): void {
     this.priorityService.getList({ maxResultCount: 50, skipCount: 0 }).subscribe(res => {
       this.priorities = res.items || [];
+      this.cdr.detectChanges();
     });
   }
 
@@ -103,9 +106,11 @@ export class MyTicketsComponent implements OnInit {
         this.tickets = res.items || [];
         this.totalCount = res.totalCount || 0;
         this.isLoading = false;
+        this.cdr.detectChanges();
       },
       error: () => {
         this.isLoading = false;
+        this.cdr.detectChanges();
       }
     });
   }
@@ -130,10 +135,12 @@ export class MyTicketsComponent implements OnInit {
       next: (res) => {
         this.suggestions = res || [];
         this.isSearchingSuggestions = false;
+        this.cdr.detectChanges();
       },
       error: () => {
         this.suggestions = [];
         this.isSearchingSuggestions = false;
+        this.cdr.detectChanges();
       }
     });
   }
@@ -170,9 +177,11 @@ export class MyTicketsComponent implements OnInit {
         this.isSubmitting = false;
         this.closeCreateModal();
         this.loadTickets();
+        this.cdr.detectChanges();
       },
       error: () => {
         this.isSubmitting = false;
+        this.cdr.detectChanges();
       }
     });
   }

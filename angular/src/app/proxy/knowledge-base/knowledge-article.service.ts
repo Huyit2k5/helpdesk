@@ -28,7 +28,8 @@ export class KnowledgeArticleService {
   getBySlug = (slug: string, config?: Partial<Rest.Config>) =>
     this.restService.request<any, KnowledgeArticleDto>({
       method: 'GET',
-      url: `/api/app/knowledge-article/by-slug/${slug}`,
+      url: '/api/app/knowledge-article/by-slug',
+      params: { slug },
     },
     { apiName: this.apiName, ...config });
 

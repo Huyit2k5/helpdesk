@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterModule } from '@angular/router';
@@ -14,6 +14,7 @@ import { CustomerPortalService, CustomerTicketDetailDto } from '../proxy/custome
 export class TicketViewComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private portalService = inject(CustomerPortalService);
+  private cdr = inject(ChangeDetectorRef);
 
   ticketId!: string;
   ticket: CustomerTicketDetailDto | null = null;
@@ -38,9 +39,11 @@ export class TicketViewComponent implements OnInit {
       next: (res) => {
         this.ticket = res;
         this.isLoading = false;
+        this.cdr.detectChanges();
       },
       error: () => {
         this.isLoading = false;
+        this.cdr.detectChanges();
       }
     });
   }
@@ -56,9 +59,11 @@ export class TicketViewComponent implements OnInit {
         }
         this.replyContent = '';
         this.isSubmittingReply = false;
+        this.cdr.detectChanges();
       },
       error: () => {
         this.isSubmittingReply = false;
+        this.cdr.detectChanges();
       }
     });
   }

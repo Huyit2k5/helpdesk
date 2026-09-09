@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -18,6 +18,7 @@ export class ArticleManageComponent implements OnInit {
   private categoryService = inject(CategoryService);
   private confirmationService = inject(ConfirmationService);
   private fb = inject(FormBuilder);
+  private cdr = inject(ChangeDetectorRef);
 
   articles: KnowledgeArticleDto[] = [];
   categories: CategoryLookupDto[] = [];
@@ -50,6 +51,7 @@ export class ArticleManageComponent implements OnInit {
   loadCategories(): void {
     this.categoryService.getLookup().subscribe(res => {
       this.categories = res.items || [];
+      this.cdr.detectChanges();
     });
   }
 
@@ -64,9 +66,11 @@ export class ArticleManageComponent implements OnInit {
         this.articles = res.items || [];
         this.totalCount = res.totalCount || 0;
         this.isLoading = false;
+        this.cdr.detectChanges();
       },
       error: () => {
         this.isLoading = false;
+        this.cdr.detectChanges();
       }
     });
   }
@@ -112,11 +116,13 @@ export class ArticleManageComponent implements OnInit {
       this.articleService.update(this.selectedArticleId, val).subscribe(() => {
         this.closeModal();
         this.loadArticles();
+        this.cdr.detectChanges();
       });
     } else {
       this.articleService.create(val).subscribe(() => {
         this.closeModal();
         this.loadArticles();
+        this.cdr.detectChanges();
       });
     }
   }
@@ -134,6 +140,7 @@ export class ArticleManageComponent implements OnInit {
 
     this.articleService.update(article.id, input).subscribe(() => {
       article.isPublished = !article.isPublished;
+      this.cdr.detectChanges();
     });
   }
 
@@ -146,6 +153,7 @@ export class ArticleManageComponent implements OnInit {
       if (status === Confirmation.Status.confirm) {
         this.articleService.delete(article.id!).subscribe(() => {
           this.loadArticles();
+          this.cdr.detectChanges();
         });
       }
     });

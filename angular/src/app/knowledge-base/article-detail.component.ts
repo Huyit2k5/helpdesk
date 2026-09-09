@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { KnowledgeArticleService, KnowledgeArticleDto } from '../proxy/knowledge-base';
@@ -13,6 +13,7 @@ import { KnowledgeArticleService, KnowledgeArticleDto } from '../proxy/knowledge
 export class ArticleDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private articleService = inject(KnowledgeArticleService);
+  private cdr = inject(ChangeDetectorRef);
 
   article: KnowledgeArticleDto | null = null;
   isLoading = true;
@@ -34,9 +35,11 @@ export class ArticleDetailComponent implements OnInit {
       next: (res) => {
         this.article = res;
         this.isLoading = false;
+        this.cdr.detectChanges();
       },
       error: () => {
         this.isLoading = false;
+        this.cdr.detectChanges();
       }
     });
   }
@@ -54,6 +57,7 @@ export class ArticleDetailComponent implements OnInit {
           this.article!.notHelpfulCount++;
           this.voteSuccessMessage = 'Rất tiếc bài viết chưa hỗ trợ được bạn. Bạn có thể gửi yêu cầu hỗ trợ trực tiếp bên dưới.';
         }
+        this.cdr.detectChanges();
       }
     });
   }
