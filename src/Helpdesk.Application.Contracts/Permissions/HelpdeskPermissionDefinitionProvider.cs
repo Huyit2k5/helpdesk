@@ -61,6 +61,9 @@ public class HelpdeskPermissionDefinitionProvider : PermissionDefinitionProvider
         slaPermission.AddChild(HelpdeskPermissions.Sla.Policies, L("Permission:Sla.Policies"));
         slaPermission.AddChild(HelpdeskPermissions.Sla.BusinessHours, L("Permission:Sla.BusinessHours"));
         slaPermission.AddChild(HelpdeskPermissions.Sla.Reports, L("Permission:Sla.Reports"));
+
+        // Dashboard
+        helpdeskGroup.AddPermission(HelpdeskPermissions.Dashboard.Default, L("Permission:Dashboard"));
     }
 
     private static LocalizableString L(string name)

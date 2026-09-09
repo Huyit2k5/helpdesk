@@ -8,34 +8,37 @@ Dự án xây dựng hệ thống Helpdesk doanh nghiệp hiện đại, đa kê
 
 1. [Tổng Quan Kiến Trúc & Công Nghệ](#-tổng-quan-kiến-trúc--công-nghệ)
 2. [Lộ Trình Triển Khai (Roadmap)](#-lộ-trình-triển-khai-roadmap)
-3. [Tóm Tắt Các Phần Đã Triển Khai](#-tóm-tắt-các-phần-đã-triển-khai)
-   - [Phân Hệ 1: Quản Lý Danh Mục (Master Data)](#31-phân-hệ-1-quản-lý-danh-mục-master-data)
-   - [Phân Hệ 2: Quản Lý Sự Vụ Cốt Lõi (Ticket Core)](#32-phân-hệ-2-quản-lý-sự-vụ-cốt-lõi-ticket-core)
-4. [Hướng Dẫn Khởi Chạy & Đăng Nhập](#-hướng-dẫn-khởi-chạy--đăng-nhập)
-5. [Các Lỗi Đã Xảy Ra & Cách Khắc Phục (Troubleshooting)](#-các-lỗi-đã-xảy-ra--cách-khắc-phục-troubleshooting)
-
----
-
-## 🏛️ TỔNG QUAN KIẾN TRÚC & CÔNG NGHỆ
-
-- **Backend**: .NET 10.0, C# 13, ABP Framework v10.6.0 (Domain-Driven Design).
-- **Database**: PostgreSQL 17 (Docker), Entity Framework Core 10.
-- **Frontend**: Angular 19 (Standalone Components), Bootstrap 5, FontAwesome, ABP Angular SDK.
-- **Authentication & Security**: OpenIddict, JWT Bearer Token, RBAC Permissions.
-
----
-
-## 🗺️ LỘ TRÌNH TRIỂN KHAI (ROADMAP)
-
-| STT | Phân Hệ | Chức Năng Chính | Trạng Thái |
-|:---:|:---|:---|:---:|
-| **1** | **Quản Lý Danh Mục (Master Data)** | Quản lý Categories, Priorities, Departments, Statuses, Sources, Canned Responses | **Hoàn thành (Backend + Frontend)** |
-| **2** | **Quản Lý Ticket (Ticket Core)** | Vòng đời vé, sinh mã tự động, chuyển trạng thái, phân công, bình luận, Kanban, Timeline | **Hoàn thành (Backend + Frontend)** |
-| **3** | **Quản Lý Cam Kết Dịch Vụ (SLA Engine)** | Quy tắc tính SLA theo giờ làm việc, cảnh báo vi phạm hạn xử lý | Sắp triển khai |
-| **4** | **Báo Cáo & Thống Kê (Dashboard)** | Biểu đồ trực quan, KPI xử lý sự vụ theo nhân viên và phòng ban | Kế hoạch |
-| **5** | **Hệ Thống Thông Báo (Notifications)** | Thông báo thời gian thực qua SignalR & Email | Kế hoạch |
-| **6** | **Cơ Sở Tri Thức (Knowledge Base - FAQ)**| Thư viện bài viết tự phục vụ người dùng | Kế hoạch |
-| **7** | **Cổng Khách Hàng (Customer Portal)** | Portal riêng để người dùng tạo và tra cứu tiến độ vé | Kế hoạch |
+11: 3. [Tóm Tắt Các Phần Đã Triển Khai](#-tóm-tắt-các-phần-đã-triển-khai)
+12:    - [Phân Hệ 1: Quản Lý Danh Mục (Master Data)](#31-phân-hệ-1-quản-lý-danh-mục-master-data)
+13:    - [Phân Hệ 2: Quản Lý Sự Vụ Cốt Lõi (Ticket Core)](#32-phân-hệ-2-quản-lý-sự-vụ-cốt-lõi-ticket-core)
+14:    - [Phân Hệ 3: Quản Lý Cam Kết Dịch Vụ (SLA Engine)](#33-phân-hệ-3-quản-lý-cam-kết-dịch-vụ-sla-engine)
+15:    - [Phân Hệ 4: Báo Cáo & Thống Kê (Dashboard)](#34-phân-hệ-4-báo-cáo--thống-kê-dashboard)
+16:    - [Dữ Liệu Khởi Tạo Chuẩn (Data Seeding)](#35-dữ-liệu-khởi-tạo-chuẩn-data-seeding)
+17: 4. [Hướng Dẫn Khởi Chạy & Đăng Nhập](#-hướng-dẫn-khởi-chạy--đăng-nhập)
+18: 5. [Các Lỗi Đã Xảy Ra & Cách Khắc Phục (Troubleshooting)](#-các-lỗi-đã-xảy-ra--cách-khắc-phục-troubleshooting)
+19: 
+20: ---
+21: 
+22: ## 🏛️ TỔNG QUAN KIẾN TRÚC & CÔNG NGHỆ
+23: 
+24: - **Backend**: .NET 10.0, C# 13, ABP Framework v10.6.0 (Domain-Driven Design).
+25: - **Database**: PostgreSQL 17 (Docker), Entity Framework Core 10.
+26: - **Frontend**: Angular 19 (Standalone Components), Bootstrap 5, FontAwesome, ABP Angular SDK, Chart.js.
+27: - **Authentication & Security**: OpenIddict, JWT Bearer Token, RBAC Permissions.
+28: 
+29: ---
+30: 
+31: ## 🗺️ LỘ TRÌNH TRIỂN KHAI (ROADMAP)
+32: 
+33: | STT | Phân Hệ | Chức Năng Chính | Trạng Thái |
+34: |:---:|:---|:---|:---:|
+35: | **1** | **Quản Lý Danh Mục (Master Data)** | Quản lý Categories, Priorities, Departments, Statuses, Sources, Canned Responses | **Hoàn thành (Backend + Frontend)** |
+36: | **2** | **Quản Lý Ticket (Ticket Core)** | Vòng đời vé, sinh mã tự động, chuyển trạng thái, phân công, bình luận, Kanban, Timeline | **Hoàn thành (Backend + Frontend)** |
+37: | **3** | **Quản Lý Cam Kết Dịch Vụ (SLA Engine)** | Quy tắc tính SLA theo giờ làm việc & ngày lễ, cảnh báo vi phạm hạn xử lý, báo cáo tuân thủ | **Hoàn thành (Backend + Frontend)** |
+38: | **4** | **Báo Cáo & Thống Kê (Dashboard)** | Biểu đồ trực quan (Chart.js), KPI xử lý sự vụ theo nhân viên và phòng ban, Auto-refresh | **Hoàn thành (Backend + Frontend)** |
+39: | **5** | **Hệ Thống Thông Báo (Notifications)** | Thông báo thời gian thực qua SignalR & Email | Kế hoạch |
+40: | **6** | **Cơ Sở Tri Thức (Knowledge Base - FAQ)**| Thư viện bài viết tự phục vụ người dùng | Kế hoạch |
+41: | **7** | **Cổng Khách Hàng (Customer Portal)** | Portal riêng để người dùng tạo và tra cứu tiến độ vé | Kế hoạch |
 
 ---
 
@@ -82,6 +85,54 @@ Trọng tâm vận hành của Helpdesk, xử lý toàn bộ vòng đời của 
   - Tích hợp chèn nhanh nội dung từ danh sách **Câu trả lời mẫu (Canned Responses)**.
   - **Dòng thời gian (Timeline & Audit Trail)**: Hợp nhất lịch sử trao đổi của khách hàng, ghi chú kỹ thuật và nhật ký hành động hệ thống.
   - Sidebar hiển thị đầy đủ thông tin người gửi, phòng ban, hạn SLA và các mốc thời gian giải quyết/đóng sự vụ.
+
+---
+
+### 3.3. Phân Hệ 3: Quản Lý Cam Kết Dịch Vụ (SLA Engine)
+
+Đảm bảo chất lượng cam kết dịch vụ khách hàng với các quy tắc tự động hóa:
+
+1. **Chính sách SLA (`SlaPolicy` & `SlaRule`)**:
+   - Cấu hình linh hoạt thời gian cam kết phản hồi lần đầu (`ResponseTimeMinutes`) và thời gian giải quyết sự cố (`ResolutionTimeMinutes`) dựa trên Mức độ ưu tiên (`Priority`) và Danh mục (`Category`).
+   - Thiết lập chính sách mặc định (`IsDefault`) áp dụng cho toàn hệ thống.
+2. **Khung giờ làm việc (`BusinessHour`) & Ngày lễ (`Holiday`)**:
+   - Định nghĩa lịch làm việc theo từng ngày trong tuần (mặc định Thứ Hai - Thứ Sáu, 08:30 - 17:30).
+   - Quản lý danh mục ngày lễ, tết nghỉ định kỳ tự động loại trừ khỏi thời gian tính SLA.
+3. **Bộ máy tính SLA (`SlaManager`)**:
+   - Tự động tính hạn chót phản hồi (`FirstResponseDueDate`) và hạn chót giải quyết (`DueDate`) dựa trên lịch làm việc thực tế.
+   - Cơ chế phát hiện vi phạm SLA (`IsFirstResponseBreached`, `IsResolutionBreached`).
+4. **Giao diện quản trị SLA**:
+   - Màn hình cấu hình chính sách SLA (`/sla/policies`).
+   - Màn hình cấu hình giờ làm việc & ngày lễ (`/sla/business-hours`).
+   - Báo cáo tuân thủ SLA (`/sla/compliance`): Thống kê tỷ lệ phản hồi đúng hạn, tỷ lệ giải quyết đúng hạn, danh sách sự vụ vi phạm SLA.
+
+---
+
+### 3.4. Phân Hệ 4: Báo Cáo & Thống Kê (Dashboard)
+
+Cung cấp góc nhìn toàn diện, tức thời về hiệu suất hỗ trợ và khối lượng công việc:
+
+1. **Thẻ chỉ số trọng yếu (KPI Stat Cards)**:
+   - Tổng số sự vụ, sự vụ đang mở (`Open`), đang xử lý (`InProgress`), đã giải quyết/đóng (`Closed`).
+   - Sự vụ mới tiếp nhận trong ngày, sự vụ đã xử lý trong ngày.
+   - Tỷ lệ tuân thủ phản hồi lần đầu (%), tỷ lệ tuân thủ giải quyết sự vụ (%).
+   - Cảnh báo vi phạm SLA và số sự vụ đã quá hạn xử lý (`Overdue`).
+2. **Biểu đồ trực quan hóa dữ liệu (Chart.js)**:
+   - **Biểu đồ xu hướng (Trend Chart)**: Theo dõi số lượng sự vụ tạo mới, giải quyết và đóng theo thời gian (chu kỳ 7, 14, 30, 90 ngày).
+   - **Biểu đồ cơ cấu danh mục (Category Distribution Chart)**: Phân bổ tỷ lệ % sự vụ theo từng loại sự cố (Hardware, Software, Network, Account...).
+3. **Hiệu suất nhân viên & Nhật ký hoạt động**:
+   - **Bảng xếp hạng nhân viên (Agent Performance)**: Số vé được phân công, số vé đã giải quyết, thời gian giải quyết trung bình, tỷ lệ tuân thủ SLA của từng hỗ trợ viên.
+   - **Dòng nhật ký hoạt động gần đây (Recent Activities)**: Giám sát thời gian thực các thao tác tạo vé, đổi trạng thái, phân công trong hệ thống.
+4. **Tự động làm mới (Auto-Refresh)**: Cơ chế cập nhật định kỳ mỗi 30 giây giúp dashboard luôn hiển thị số liệu mới nhất mà không cần tải lại trang.
+
+---
+
+### 3.5. Dữ Liệu Khởi Tạo Chuẩn (Data Seeding)
+
+Hệ thống tích hợp sẵn `HelpdeskDataSeedContributor` tự động nạp dữ liệu mẫu hoàn chỉnh:
+- **10 sự vụ mẫu** đa dạng trạng thái, mức ưu tiên, kênh tiếp nhận, hạn SLA chuẩn thực tế.
+- **6 danh mục sự cố**, 4 mức độ ưu tiên chuẩn, 7 trạng thái vòng đời vé, 5 kênh tiếp nhận, 2 phòng ban kỹ thuật.
+- **Chính sách SLA tiêu chuẩn** và lịch làm việc hành chính chuẩn cùng các ngày lễ lớn trong năm.
 
 ---
 
@@ -190,4 +241,67 @@ Trong quá trình phát triển và tích hợp hệ thống, các lỗi phổ b
   - Bổ sung giá trị dự phòng (fallback): `item.name ?? ''`, `item.title ?? ''`.
   - Dùng non-null assertion `item.id!` khi đã chắc chắn dữ liệu tồn tại.
   - Mở rộng kiểu dữ liệu interface (ví dụ `date: string | Date`) để tương thích với cả kiểu chuỗi lẫn đối tượng Date của ABP.
+
+---
+
+### 7. Lỗi bảng rỗng dù footer báo "Tổng: 10 sự vụ" / "Tổng: 6 bản ghi" (Lệch chuẩn chỉ số trang 0-index vs 1-index)
+- **Hiện tượng**:
+  - Tại trang Quản lý sự vụ (`/tickets`), Danh mục (`/master-data/categories`), Mức độ ưu tiên (`/master-data/priorities`)... ở footer luôn hiển thị đúng tổng số lượng (ví dụ: *"Tổng: 10 sự vụ"* hoặc *"Tổng: 6 bản ghi"*).
+  - Tuy nhiên thân bảng hoàn toàn trống trơn và hiển thị thông báo rỗng: *"Không tìm thấy sự vụ nào phù hợp với điều kiện lọc"* hoặc *"Chưa có danh mục nào"*.
+- **Nguyên nhân gốc rễ**:
+  1. Service phân trang của ABP Framework (`ListService`) hoạt động theo chuẩn **0-indexed** (`_page = 0` đại diện cho trang đầu tiên; công thức tính vị trí: `skipCount = _page * maxResultCount = 0 * 10 = 0`).
+  2. Component phân trang `<ngb-pagination>` của thư viện Angular UI Bootstrap lại hoạt động theo chuẩn **1-indexed** (trang đầu tiên bắt buộc phải là `1`).
+  3. Khi gắn binding hai chiều `[(page)]="list.page"`, `<ngb-pagination>` phát hiện giá trị ban đầu là `0` (không hợp lệ với nó), tự động ép thành `1` và kích hoạt sự kiện `pageChange` gán ngược lại `list.page = 1`.
+  4. Ngay lập tức `ListService` nhận `page = 1`, tính lại `skipCount = 1 * 10 = 10` và phát query gọi API backend với `SkipCount = 10`.
+  5. Vì cơ sở dữ liệu ban đầu chỉ có 10 sự vụ (hoặc 6 danh mục, 4 ưu tiên), backend khi nhận `SkipCount = 10` đã **bỏ qua toàn bộ 10 bản ghi hiện có** và trả về danh sách rỗng (`items: []`).
+- **Cách khắc phục**:
+  - Chuẩn hóa lại cơ chế binding giữa `0-indexed` (ListService) và `1-indexed` (ngb-pagination) trên toàn bộ các file template HTML:
+    ```html
+    <ngb-pagination
+      [page]="list.page + 1"
+      [pageSize]="list.maxResultCount"
+      [collectionSize]="totalCount"
+      (pageChange)="list.page = $event - 1"
+      [maxSize]="5"
+      class="mb-0"
+    />
+    ```
+  - Áp dụng đồng bộ cho tất cả các trang: `tickets`, `categories`, `priorities`, `ticket-statuses`, `ticket-sources`, `departments`, `canned-responses`, `sla-policies`, `sla-compliance`.
+
+---
+
+### 8. Lỗi Modal Tạo Yêu Cầu Mới bị cắt mất chân trang (Không thấy nút "Tạo Yêu Cầu" và "Đóng")
+- **Hiện tượng**: Bấm nút "Tạo Yêu Cầu" trên trang `/tickets` mở modal nhập thông tin sự vụ, nhưng ở phía dưới cùng không hề có nút bấm "Tạo Yêu Cầu" (Submit) hay nút "Đóng" (Cancel); phần dưới modal bị cắt cụt ngang ô thông tin người gửi.
+- **Nguyên nhân**:
+  1. Trong cấu trúc modal của Bootstrap 5 kết hợp `modal-dialog-scrollable`, thẻ `<form>` được đặt trực tiếp bên trong `.modal-content` mang class `h-100`.
+  2. Do `.modal-content` chứa cả `.modal-header` và `<form>`, chiều cao `<form>` cộng thêm header vượt quá 100% chiều cao của modal container.
+  3. Thẻ `.modal-body` bên trong form không được cấu hình `overflow-y: auto` và `min-height: 0`, dẫn đến việc nội dung form giãn dài tự do theo chiều dọc, đẩy phần `.modal-footer` ra ngoài màn hình và bị thuộc tính `overflow: hidden` của modal container cắt bỏ hoàn toàn.
+- **Cách khắc phục**:
+  - Thiết lập Layout Flexbox chuẩn mực trong `ticket-create-modal.component.html`:
+    - Header và Footer dùng class `flex-shrink-0` để luôn giữ cố định ở đầu và đáy dialog.
+    - Thẻ `<form>` dùng `class="d-flex flex-column flex-grow-1 overflow-hidden" style="min-height: 0;"`.
+    - Thẻ `.modal-body` dùng `class="modal-body p-4 flex-grow-1" style="overflow-y: auto;"`.
+  - Kết quả: Khi nội dung form dài, chỉ có thân modal cuộn nội bộ; hai nút "Đóng" và "Tạo Yêu Cầu" luôn ghim cố định ở đáy modal, hiển thị rõ ràng và tiện thao tác.
+
+---
+
+### 9. Lỗi ô chọn Danh mục không hiển thị giá trị mặc định khi mở Modal Tạo Sự Vụ
+- **Hiện tượng**: Mở modal Tạo Yêu Cầu Mới, các trường Mức độ ưu tiên (`Low`), Trạng thái (`New`), Kênh tiếp nhận (`Walk-in`) đều được chọn sẵn nhưng ô Danh mục lại hiển thị `-- Chọn danh mục --`.
+- **Nguyên nhân**:
+  1. Trong `ticket-create-modal.component.ts`, hàm `loadLookups()` chỉ gán giá trị mặc định cho priority, status, source nhưng bỏ quên `categoryId`.
+  2. Khi người dùng đóng modal và mở lại (`isOpen = true`), do component không bị destroy nên form vẫn lưu trạng thái cũ mà không được reset và tái thiết lập giá trị mặc định.
+- **Cách khắc phục**:
+  - Viết lại property `isOpen` dạng Getter/Setter: mỗi khi giá trị chuyển từ `false` sang `true`, tự động kích hoạt hàm `resetAndInitForm()`.
+  - Trong `resetAndInitForm()` và callback của `categorySvc.getLookup()`, tự động gán `categoryId: this.categories[0]?.id` nếu danh mục đang rỗng.
+
+---
+
+### 10. Trình duyệt chặn API do chứng chỉ SSL tự ký (Self-Signed Certificate) trên cổng HTTPS 44346
+- **Hiện tượng**: Mở ứng dụng Angular tại `http://localhost:4200`, giao diện tải được khung trang nhưng không lấy được dữ liệu từ backend, kiểm tra console thấy lỗi kết nối mạng (Network Error / Failed to fetch).
+- **Nguyên nhân**: Backend chạy trên cổng HTTPS `https://localhost:44346` sử dụng chứng chỉ phát triển nội bộ của ASP.NET Core (`dotnet dev-certs https`). Trình duyệt mặc định chặn các request ngầm chạy qua XHR/Fetch tới địa chỉ HTTPS có chứng chỉ chưa được người dùng chấp thuận (Untrusted / Self-signed).
+- **Cách khắc phục**:
+  - Mở một tab mới trên trình duyệt và truy cập trực tiếp vào: **`https://localhost:44346/swagger`**.
+  - Nhấp vào **Nâng cao (Advanced)** $\rightarrow$ Chọn **Tiếp tục truy cập localhost (Proceed to localhost)** để trình duyệt ghi nhận quyền tin cậy chứng chỉ.
+  - Quay lại tab `http://localhost:4200` và tải lại trang (Ctrl + F5), toàn bộ API sẽ thông suốt bình thường.
+
 

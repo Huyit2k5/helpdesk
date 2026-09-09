@@ -70,4 +70,9 @@ public static class HelpdeskPermissions
         public const string BusinessHours = Default + ".BusinessHours";
         public const string Reports = Default + ".Reports";
     }
+
+    public static class Dashboard
+    {
+        public const string Default = GroupName + ".Dashboard";
+    }
 }

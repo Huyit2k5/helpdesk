@@ -89,32 +89,32 @@ public class TicketAppService : ApplicationService, ITicketAppService
                 (t.Tags != null && t.Tags.ToLower().Contains(f)));
         }
 
-        if (input.StatusId.HasValue)
+        if (input.StatusId.HasValue && input.StatusId.Value != Guid.Empty)
         {
             ticketQuery = ticketQuery.Where(t => t.StatusId == input.StatusId.Value);
         }
 
-        if (input.PriorityId.HasValue)
+        if (input.PriorityId.HasValue && input.PriorityId.Value != Guid.Empty)
         {
             ticketQuery = ticketQuery.Where(t => t.PriorityId == input.PriorityId.Value);
         }
 
-        if (input.CategoryId.HasValue)
+        if (input.CategoryId.HasValue && input.CategoryId.Value != Guid.Empty)
         {
             ticketQuery = ticketQuery.Where(t => t.CategoryId == input.CategoryId.Value);
         }
 
-        if (input.DepartmentId.HasValue)
+        if (input.DepartmentId.HasValue && input.DepartmentId.Value != Guid.Empty)
         {
             ticketQuery = ticketQuery.Where(t => t.DepartmentId == input.DepartmentId.Value);
         }
 
-        if (input.AssigneeId.HasValue)
+        if (input.AssigneeId.HasValue && input.AssigneeId.Value != Guid.Empty)
         {
             ticketQuery = ticketQuery.Where(t => t.AssigneeId == input.AssigneeId.Value);
         }
 
-        if (input.SourceId.HasValue)
+        if (input.SourceId.HasValue && input.SourceId.Value != Guid.Empty)
         {
             ticketQuery = ticketQuery.Where(t => t.SourceId == input.SourceId.Value);
         }

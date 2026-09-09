@@ -1,5 +1,6 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
 import { AuthService, LocalizationPipe } from '@abp/ng.core';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-home',
@@ -8,11 +9,18 @@ import { AuthService, LocalizationPipe } from '@abp/ng.core';
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [LocalizationPipe]
 })
-export class HomeComponent {
+export class HomeComponent implements OnInit {
   private authService = inject(AuthService);
+  private router = inject(Router);
 
   get hasLoggedIn(): boolean {
-    return this.authService.isAuthenticated
+    return this.authService.isAuthenticated;
+  }
+
+  ngOnInit(): void {
+    if (this.hasLoggedIn) {
+      this.router.navigate(['/dashboard']);
+    }
   }
 
   login() {

@@ -19,6 +19,7 @@ import { APP_ROUTE_PROVIDER } from './route.provider';
 import { FOOTER_PROVIDER } from './footer/footer.config';
 import { MASTER_DATA_ROUTE_PROVIDER } from './master-data/master-data-route.provider';
 import { SLA_ROUTE_PROVIDER } from './sla/sla-route.provider';
+import { DASHBOARD_ROUTE_PROVIDER } from './dashboard/dashboard-route.provider';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -27,6 +28,7 @@ export const appConfig: ApplicationConfig = {
     FOOTER_PROVIDER,
     MASTER_DATA_ROUTE_PROVIDER,
     SLA_ROUTE_PROVIDER,
+    DASHBOARD_ROUTE_PROVIDER,
     provideAnimations(),
     provideAbpCore(
       withOptions({

@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Helpdesk.Categories;
 using Helpdesk.Departments;
@@ -25,6 +27,8 @@ public class HelpdeskDataSeedContributor : IDataSeedContributor, ITransientDepen
     private readonly Volo.Abp.Domain.Repositories.IRepository<Helpdesk.Sla.BusinessHour, Guid> _businessHourRepository;
     private readonly Volo.Abp.Domain.Repositories.IRepository<Helpdesk.Sla.Holiday, Guid> _holidayRepository;
     private readonly Volo.Abp.Domain.Repositories.IRepository<Helpdesk.Sla.SlaPolicy, Guid> _slaPolicyRepository;
+    private readonly Volo.Abp.Domain.Repositories.IRepository<Helpdesk.Tickets.Ticket, Guid> _ticketRepository;
+    private readonly Volo.Abp.Domain.Repositories.IRepository<Helpdesk.Tickets.TicketActivity, Guid> _ticketActivityRepository;
 
     public HelpdeskDataSeedContributor(
         ICategoryRepository categoryRepository,
@@ -35,6 +39,8 @@ public class HelpdeskDataSeedContributor : IDataSeedContributor, ITransientDepen
         Volo.Abp.Domain.Repositories.IRepository<Helpdesk.Sla.BusinessHour, Guid> businessHourRepository,
         Volo.Abp.Domain.Repositories.IRepository<Helpdesk.Sla.Holiday, Guid> holidayRepository,
         Volo.Abp.Domain.Repositories.IRepository<Helpdesk.Sla.SlaPolicy, Guid> slaPolicyRepository,
+        Volo.Abp.Domain.Repositories.IRepository<Helpdesk.Tickets.Ticket, Guid> ticketRepository,
+        Volo.Abp.Domain.Repositories.IRepository<Helpdesk.Tickets.TicketActivity, Guid> ticketActivityRepository,
         IGuidGenerator guidGenerator)
     {
         _categoryRepository = categoryRepository;
@@ -45,6 +51,8 @@ public class HelpdeskDataSeedContributor : IDataSeedContributor, ITransientDepen
         _businessHourRepository = businessHourRepository;
         _holidayRepository = holidayRepository;
         _slaPolicyRepository = slaPolicyRepository;
+        _ticketRepository = ticketRepository;
+        _ticketActivityRepository = ticketActivityRepository;
         _guidGenerator = guidGenerator;
     }
 
@@ -58,6 +66,7 @@ public class HelpdeskDataSeedContributor : IDataSeedContributor, ITransientDepen
         await SeedBusinessHoursAsync();
         await SeedHolidaysAsync();
         await SeedSlaPoliciesAsync();
+        await SeedTicketsAsync();
     }
 
     private async Task SeedPrioritiesAsync()
@@ -166,5 +175,90 @@ public class HelpdeskDataSeedContributor : IDataSeedContributor, ITransientDepen
         }
 
         await _slaPolicyRepository.InsertAsync(defaultPolicy, autoSave: true);
+    }
+
+    private async Task SeedTicketsAsync()
+    {
+        if (await _ticketRepository.GetCountAsync() > 0) return;
+
+        var categories = await _categoryRepository.GetListAsync();
+        var priorities = await _priorityRepository.GetListAsync();
+        var statuses = await _ticketStatusRepository.GetListAsync();
+        var sources = await _ticketSourceRepository.GetListAsync();
+        var departments = await _departmentRepository.GetListAsync();
+        var defaultSlaPolicy = (await _slaPolicyRepository.GetListAsync()).FirstOrDefault(p => p.IsDefault);
+
+        if (categories.Count == 0 || priorities.Count == 0 || statuses.Count == 0 || sources.Count == 0) return;
+
+        var hw = categories.FirstOrDefault(c => c.Code == "HARDWARE") ?? categories[0];
+        var sw = categories.FirstOrDefault(c => c.Code == "SOFTWARE") ?? categories[0];
+        var net = categories.FirstOrDefault(c => c.Code == "NETWORK") ?? categories[0];
+        var acc = categories.FirstOrDefault(c => c.Code == "ACCOUNT") ?? categories[0];
+        var gen = categories.FirstOrDefault(c => c.Code == "GENERAL") ?? categories[0];
+
+        var pCritical = priorities.FirstOrDefault(p => p.Code == "CRITICAL") ?? priorities[0];
+        var pHigh = priorities.FirstOrDefault(p => p.Code == "HIGH") ?? priorities[0];
+        var pMed = priorities.FirstOrDefault(p => p.Code == "MEDIUM") ?? priorities[0];
+        var pLow = priorities.FirstOrDefault(p => p.Code == "LOW") ?? priorities[0];
+
+        var sNew = statuses.FirstOrDefault(s => s.Code == "NEW") ?? statuses[0];
+        var sAssigned = statuses.FirstOrDefault(s => s.Code == "ASSIGNED") ?? statuses[0];
+        var sInProgress = statuses.FirstOrDefault(s => s.Code == "IN_PROGRESS") ?? statuses[0];
+        var sResolved = statuses.FirstOrDefault(s => s.Code == "RESOLVED") ?? statuses[0];
+        var sClosed = statuses.FirstOrDefault(s => s.Code == "CLOSED") ?? statuses[0];
+        var sReopened = statuses.FirstOrDefault(s => s.Code == "REOPENED") ?? statuses[0];
+
+        var srcEmail = sources.FirstOrDefault(s => s.Code == "EMAIL") ?? sources[0];
+        var srcWeb = sources.FirstOrDefault(s => s.Code == "WEB_PORTAL") ?? sources[0];
+        var srcPhone = sources.FirstOrDefault(s => s.Code == "PHONE") ?? sources[0];
+
+        var deptIt = departments.FirstOrDefault(d => d.Code == "IT_SUPPORT") ?? departments.FirstOrDefault();
+
+        var sampleTickets = new List<(string Number, string Title, string Desc, Guid Cat, Guid Prio, Guid Stat, Guid Src, string Name, string Email, DateTime Created, DateTime? Due, DateTime? Resolved, DateTime? Closed, string? Tags)>
+        {
+            ("TK-202609-0001", "Lỗi kết nối Wi-Fi phòng họp tầng 3", "Mạng Wi-Fi tại phòng họp lớn tầng 3 bị rớt liên tục trong các cuộc họp trực tuyến.", net.Id, pCritical.Id, sInProgress.Id, srcWeb.Id, "Nguyễn Văn A", "nguyenvana@company.com", DateTime.UtcNow.AddHours(-10), DateTime.UtcNow.AddHours(2), null, null, "Wifi,Network"),
+            ("TK-202609-0002", "Máy in HP không nhận lệnh in từ phòng Kế Toán", "Máy in HP LaserJet 2035 bị kẹt giấy và phát tín hiệu cảnh báo đèn đỏ.", hw.Id, pHigh.Id, sAssigned.Id, srcPhone.Id, "Trần Thị B", "tranthib@company.com", DateTime.UtcNow.AddHours(-24), DateTime.UtcNow.AddHours(4), null, null, "Printer,Hardware"),
+            ("TK-202609-0003", "Cấp lại mật khẩu tài khoản Misa Kế toán", "Nhân viên quên mật khẩu phần mềm kế toán Misa sau đợt nghỉ lễ.", acc.Id, pLow.Id, sResolved.Id, srcEmail.Id, "Lê Văn C", "levanc@company.com", DateTime.UtcNow.AddDays(-2), DateTime.UtcNow.AddDays(-1), DateTime.UtcNow.AddHours(-5), null, "Account,Misa"),
+            ("TK-202609-0004", "Yêu cầu cài đặt bản quyền Adobe Photoshop 2026", "Phòng Marketing cần nâng cấp và kích hoạt bản quyền phần mềm thiết kế.", sw.Id, pMed.Id, sClosed.Id, srcWeb.Id, "Phạm Hoàng D", "phamhoangd@company.com", DateTime.UtcNow.AddDays(-5), DateTime.UtcNow.AddDays(-3), DateTime.UtcNow.AddDays(-4), DateTime.UtcNow.AddDays(-3), "Software,Adobe"),
+            ("TK-202609-0005", "Màn hình PC làm việc bị xọc xanh không lên hình", "Màn hình Dell Ultrasharp 27 inch bị hiện tượng chớp tắt liên tục.", hw.Id, pHigh.Id, sNew.Id, srcPhone.Id, "Hoàng Văn E", "hoangvane@company.com", DateTime.UtcNow.AddHours(-2), DateTime.UtcNow.AddHours(10), null, null, "Hardware,Monitor"),
+            ("TK-202609-0006", "Lỗi VPN Fortinet không kết nối được từ xa", "Nhân viên làm việc tại nhà (WFH) gặp lỗi 98 khi quay số VPN.", net.Id, pCritical.Id, sNew.Id, srcEmail.Id, "Đoàn Thị F", "doanthif@company.com", DateTime.UtcNow.AddHours(-1), DateTime.UtcNow.AddHours(3), null, null, "VPN,Security"),
+            ("TK-202609-0007", "Hỗ trợ xuất báo cáo tài chính cuối quý", "Cần trích xuất dữ liệu giao dịch hệ thống theo định dạng Excel.", gen.Id, pMed.Id, sResolved.Id, srcWeb.Id, "Vũ Văn G", "vuvang@company.com", DateTime.UtcNow.AddDays(-3), DateTime.UtcNow.AddDays(-1), DateTime.UtcNow.AddDays(-1), null, "Report,Finance"),
+            ("TK-202609-0008", "Xin cấp quyền truy cập Folder Shared Drive Marketing", "Nhiệm vụ mới yêu cầu truy cập thư mục truyền thông thương hiệu.", acc.Id, pMed.Id, sAssigned.Id, srcWeb.Id, "Bùi Thị H", "buithih@company.com", DateTime.UtcNow.AddDays(-1), DateTime.UtcNow.AddHours(12), null, null, "Permission,Drive"),
+            ("TK-202609-0009", "Outlook 365 không gửi được email dung lượng lớn", "Thông báo lỗi vượt quá 25MB khi đính kèm tài liệu thuyết trình.", sw.Id, pHigh.Id, sReopened.Id, srcEmail.Id, "Ngô Văn I", "ngovani@company.com", DateTime.UtcNow.AddDays(-4), DateTime.UtcNow.AddDays(-2), null, null, "Outlook,Email"),
+            ("TK-202609-0010", "Bảo trì định kỳ hệ thống máy chủ Server DB01", "Kế hoạch nâng cấp dung lượng lưu trữ ổ cứng SSD cho Server dữ liệu.", gen.Id, pLow.Id, sClosed.Id, srcWeb.Id, "Quản Trị Viên", "admin@company.com", DateTime.UtcNow.AddDays(-7), DateTime.UtcNow.AddDays(-5), DateTime.UtcNow.AddDays(-6), DateTime.UtcNow.AddDays(-5), "Server,Maintenance")
+        };
+
+        foreach (var t in sampleTickets)
+        {
+            var ticket = new Helpdesk.Tickets.Ticket(
+                _guidGenerator.Create(),
+                t.Number,
+                t.Title,
+                t.Desc,
+                t.Cat,
+                t.Prio,
+                t.Stat,
+                t.Src,
+                t.Name,
+                t.Email,
+                departmentId: deptIt?.Id,
+                dueDate: t.Due,
+                tags: t.Tags
+            );
+
+            ticket.SlaPolicyId = defaultSlaPolicy?.Id;
+            ticket.ResolvedAt = t.Resolved;
+            ticket.ClosedAt = t.Closed;
+            ticket.FirstRespondedAt = t.Created.AddMinutes(30);
+
+            await _ticketRepository.InsertAsync(ticket);
+
+            await _ticketActivityRepository.InsertAsync(new Helpdesk.Tickets.TicketActivity(
+                _guidGenerator.Create(),
+                ticket.Id,
+                Helpdesk.Tickets.TicketActivityType.Created,
+                description: $"Yêu cầu hỗ trợ '{ticket.Title}' đã được khởi tạo bởi {ticket.RequesterName}"
+            ));
+        }
     }
 }

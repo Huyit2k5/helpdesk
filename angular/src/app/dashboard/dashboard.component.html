@@ -1,0 +1,424 @@
+<div class="container-fluid py-4">
+  <!-- Page Header -->
+  <div class="row mb-4 align-items-center">
+    <div class="col">
+      <h2 class="mb-1 fw-bold text-dark">
+        <i class="fas fa-chart-line me-2 text-primary"></i>
+        Dashboard
+      </h2>
+      <p class="text-muted mb-0">Tổng quan hoạt động và hiệu suất hệ thống hỗ trợ</p>
+    </div>
+    <div class="col-auto d-flex align-items-center gap-2">
+      <!-- Period Filter -->
+      <div class="btn-group btn-group-sm" role="group">
+        <button type="button" class="btn" [class.btn-primary]="trendDays === 7" [class.btn-outline-primary]="trendDays !== 7" (click)="changePeriod(7)">7 ngày</button>
+        <button type="button" class="btn" [class.btn-primary]="trendDays === 30" [class.btn-outline-primary]="trendDays !== 30" (click)="changePeriod(30)">30 ngày</button>
+        <button type="button" class="btn" [class.btn-primary]="trendDays === 90" [class.btn-outline-primary]="trendDays !== 90" (click)="changePeriod(90)">90 ngày</button>
+      </div>
+
+      <!-- Auto Refresh -->
+      <button class="btn btn-sm" [class.btn-success]="autoRefresh" [class.btn-outline-secondary]="!autoRefresh" (click)="toggleAutoRefresh()" title="Tự động làm mới mỗi 60s">
+        <i class="fas fa-sync-alt" [class.fa-spin]="autoRefresh"></i>
+      </button>
+
+      <!-- Refresh -->
+      <button class="btn btn-sm btn-outline-primary" (click)="loadDashboard()" [disabled]="loading">
+        <i class="fas fa-redo-alt"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  @if (loading && !stats) {
+    <div class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Đang tải...</span>
+      </div>
+      <p class="text-muted mt-3">Đang tải dữ liệu dashboard...</p>
+    </div>
+  }
+
+  <!-- Error State -->
+  @if (error) {
+    <div class="alert alert-danger d-flex align-items-center" role="alert">
+      <i class="fas fa-exclamation-triangle me-2"></i>
+      {{ error }}
+      <button class="btn btn-sm btn-outline-danger ms-auto" (click)="loadDashboard()">Thử lại</button>
+    </div>
+  }
+
+  @if (stats) {
+    <!-- KPI Cards Row 1 -->
+    <div class="row g-3 mb-4">
+      <!-- Total Tickets -->
+      <div class="col-xl-3 col-md-6">
+        <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #6366f1 !important;">
+          <div class="card-body">
+            <div class="d-flex align-items-center justify-content-between">
+              <div>
+                <p class="text-muted small mb-1 text-uppercase fw-semibold">Tổng Ticket</p>
+                <h3 class="fw-bold mb-0" style="color: #6366f1;">{{ stats.totalTickets }}</h3>
+              </div>
+              <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; background: rgba(99,102,241,0.1);">
+                <i class="fas fa-ticket-alt fa-lg" style="color: #6366f1;"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Open -->
+      <div class="col-xl-3 col-md-6">
+        <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #f59e0b !important;">
+          <div class="card-body">
+            <div class="d-flex align-items-center justify-content-between">
+              <div>
+                <p class="text-muted small mb-1 text-uppercase fw-semibold">Đang mở</p>
+                <h3 class="fw-bold mb-0" style="color: #f59e0b;">{{ stats.openTickets }}</h3>
+              </div>
+              <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; background: rgba(245,158,11,0.1);">
+                <i class="fas fa-folder-open fa-lg" style="color: #f59e0b;"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- In Progress -->
+      <div class="col-xl-3 col-md-6">
+        <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #06b6d4 !important;">
+          <div class="card-body">
+            <div class="d-flex align-items-center justify-content-between">
+              <div>
+                <p class="text-muted small mb-1 text-uppercase fw-semibold">Đang xử lý</p>
+                <h3 class="fw-bold mb-0" style="color: #06b6d4;">{{ stats.inProgressTickets }}</h3>
+              </div>
+              <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; background: rgba(6,182,212,0.1);">
+                <i class="fas fa-spinner fa-lg" style="color: #06b6d4;"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Closed -->
+      <div class="col-xl-3 col-md-6">
+        <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #22c55e !important;">
+          <div class="card-body">
+            <div class="d-flex align-items-center justify-content-between">
+              <div>
+                <p class="text-muted small mb-1 text-uppercase fw-semibold">Đã đóng</p>
+                <h3 class="fw-bold mb-0" style="color: #22c55e;">{{ stats.closedTickets }}</h3>
+              </div>
+              <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; background: rgba(34,197,94,0.1);">
+                <i class="fas fa-check-circle fa-lg" style="color: #22c55e;"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- KPI Cards Row 2 -->
+    <div class="row g-3 mb-4">
+      <!-- New Today -->
+      <div class="col-xl-3 col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body py-3">
+            <div class="d-flex align-items-center">
+              <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; background: rgba(99,102,241,0.1);">
+                <i class="fas fa-calendar-plus" style="color: #6366f1;"></i>
+              </div>
+              <div>
+                <p class="text-muted small mb-0">Mới hôm nay</p>
+                <h5 class="fw-bold mb-0">{{ stats.newTicketsToday }}</h5>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Resolved Today -->
+      <div class="col-xl-3 col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body py-3">
+            <div class="d-flex align-items-center">
+              <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; background: rgba(34,197,94,0.1);">
+                <i class="fas fa-check-double" style="color: #22c55e;"></i>
+              </div>
+              <div>
+                <p class="text-muted small mb-0">Đã giải quyết hôm nay</p>
+                <h5 class="fw-bold mb-0">{{ stats.resolvedToday }}</h5>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLA Breached -->
+      <div class="col-xl-3 col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body py-3">
+            <div class="d-flex align-items-center">
+              <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; background: rgba(239,68,68,0.1);">
+                <i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i>
+              </div>
+              <div>
+                <p class="text-muted small mb-0">Vi phạm SLA</p>
+                <h5 class="fw-bold mb-0" [class.text-danger]="stats.slaBreachedCount > 0">{{ stats.slaBreachedCount }}</h5>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Overdue -->
+      <div class="col-xl-3 col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body py-3">
+            <div class="d-flex align-items-center">
+              <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; background: rgba(245,158,11,0.1);">
+                <i class="fas fa-clock" style="color: #f59e0b;"></i>
+              </div>
+              <div>
+                <p class="text-muted small mb-0">Quá hạn</p>
+                <h5 class="fw-bold mb-0" [class.text-warning]="stats.overdueTicketCount > 0">{{ stats.overdueTicketCount }}</h5>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row g-3 mb-4">
+      <!-- Ticket Trend Chart -->
+      <div class="col-xl-8">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-header bg-white border-0 pb-0 d-flex justify-content-between align-items-center">
+            <h6 class="fw-bold mb-0">
+              <i class="fas fa-chart-area me-2 text-primary"></i>
+              Xu hướng Ticket ({{ trendDays }} ngày)
+            </h6>
+            <button class="btn btn-sm btn-outline-secondary" (click)="exportCsv('trend')" title="Xuất CSV">
+              <i class="fas fa-download me-1"></i>CSV
+            </button>
+          </div>
+          <div class="card-body">
+            <div style="height: 300px; position: relative;">
+              <canvas #trendChart></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Category Distribution -->
+      <div class="col-xl-4">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-header bg-white border-0 pb-0 d-flex justify-content-between align-items-center">
+            <h6 class="fw-bold mb-0">
+              <i class="fas fa-chart-pie me-2 text-primary"></i>
+              Phân bố danh mục
+            </h6>
+            <button class="btn btn-sm btn-outline-secondary" (click)="exportCsv('categories')" title="Xuất CSV">
+              <i class="fas fa-download"></i>
+            </button>
+          </div>
+          <div class="card-body">
+            <div style="height: 300px; position: relative;">
+              <canvas #categoryChart></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLA Compliance Row -->
+    <div class="row g-3 mb-4">
+      <div class="col-xl-6">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body">
+            <h6 class="fw-bold mb-3">
+              <i class="fas fa-stopwatch me-2 text-primary"></i>
+              SLA Phản hồi đầu tiên
+            </h6>
+            <div class="d-flex align-items-center mb-2">
+              <div class="flex-grow-1 me-3">
+                <div class="progress" style="height: 12px; border-radius: 6px;">
+                  <div class="progress-bar" role="progressbar"
+                    [style.width.%]="stats.firstResponseComplianceRate"
+                    [class.bg-success]="stats.firstResponseComplianceRate >= 90"
+                    [class.bg-warning]="stats.firstResponseComplianceRate >= 70 && stats.firstResponseComplianceRate < 90"
+                    [class.bg-danger]="stats.firstResponseComplianceRate < 70"
+                    style="border-radius: 6px; transition: width 0.8s ease;">
+                  </div>
+                </div>
+              </div>
+              <span class="fw-bold fs-5" [class.text-success]="stats.firstResponseComplianceRate >= 90" [class.text-warning]="stats.firstResponseComplianceRate >= 70 && stats.firstResponseComplianceRate < 90" [class.text-danger]="stats.firstResponseComplianceRate < 70">
+                {{ stats.firstResponseComplianceRate }}%
+              </span>
+            </div>
+            <p class="text-muted small mb-0">Tỷ lệ phản hồi đúng hạn SLA</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-xl-6">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body">
+            <h6 class="fw-bold mb-3">
+              <i class="fas fa-hourglass-half me-2 text-primary"></i>
+              SLA Giải quyết
+            </h6>
+            <div class="d-flex align-items-center mb-2">
+              <div class="flex-grow-1 me-3">
+                <div class="progress" style="height: 12px; border-radius: 6px;">
+                  <div class="progress-bar" role="progressbar"
+                    [style.width.%]="stats.resolutionComplianceRate"
+                    [class.bg-success]="stats.resolutionComplianceRate >= 90"
+                    [class.bg-warning]="stats.resolutionComplianceRate >= 70 && stats.resolutionComplianceRate < 90"
+                    [class.bg-danger]="stats.resolutionComplianceRate < 70"
+                    style="border-radius: 6px; transition: width 0.8s ease;">
+                  </div>
+                </div>
+              </div>
+              <span class="fw-bold fs-5" [class.text-success]="stats.resolutionComplianceRate >= 90" [class.text-warning]="stats.resolutionComplianceRate >= 70 && stats.resolutionComplianceRate < 90" [class.text-danger]="stats.resolutionComplianceRate < 70">
+                {{ stats.resolutionComplianceRate }}%
+              </span>
+            </div>
+            <p class="text-muted small mb-0">Tỷ lệ giải quyết đúng hạn SLA</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Row: Agent Performance + Recent Activities -->
+    <div class="row g-3">
+      <!-- Agent Performance -->
+      <div class="col-xl-7">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-header bg-white border-0 pb-0 d-flex justify-content-between align-items-center">
+            <h6 class="fw-bold mb-0">
+              <i class="fas fa-trophy me-2 text-warning"></i>
+              Bảng xếp hạng nhân viên
+            </h6>
+            <button class="btn btn-sm btn-outline-secondary" (click)="exportCsv('agents')" title="Xuất CSV">
+              <i class="fas fa-download me-1"></i>CSV
+            </button>
+          </div>
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th class="ps-4" style="width: 40px;">#</th>
+                    <th>Nhân viên</th>
+                    <th class="text-center">Được giao</th>
+                    <th class="text-center">Đã giải quyết</th>
+                    <th class="text-center">TB giải quyết</th>
+                    <th class="text-center">SLA</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (agent of stats.agentPerformance; track agent.userId; let i = $index) {
+                    <tr>
+                      <td class="ps-4">
+                        @if (i === 0) {
+                          <span class="badge rounded-pill" style="background: #f59e0b;">🥇</span>
+                        } @else if (i === 1) {
+                          <span class="badge rounded-pill bg-secondary">🥈</span>
+                        } @else if (i === 2) {
+                          <span class="badge rounded-pill" style="background: #cd7f32;">🥉</span>
+                        } @else {
+                          <span class="text-muted">{{ i + 1 }}</span>
+                        }
+                      </td>
+                      <td>
+                        <div class="d-flex align-items-center">
+                          <div class="rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px; background: rgba(99,102,241,0.1); font-size: 12px; font-weight: bold; color: #6366f1;">
+                            {{ agent.userName.charAt(0).toUpperCase() }}
+                          </div>
+                          <span class="fw-semibold">{{ agent.userName }}</span>
+                        </div>
+                      </td>
+                      <td class="text-center">{{ agent.assignedCount }}</td>
+                      <td class="text-center">
+                        <span class="fw-bold text-success">{{ agent.resolvedCount }}</span>
+                      </td>
+                      <td class="text-center">
+                        <span class="text-muted">{{ formatMinutes(agent.avgResolutionMinutes) }}</span>
+                      </td>
+                      <td class="text-center">
+                        <span class="badge px-2 py-1"
+                          [class.bg-success-subtle]="agent.slaComplianceRate >= 90"
+                          [class.text-success]="agent.slaComplianceRate >= 90"
+                          [class.bg-warning-subtle]="agent.slaComplianceRate >= 70 && agent.slaComplianceRate < 90"
+                          [class.text-warning]="agent.slaComplianceRate >= 70 && agent.slaComplianceRate < 90"
+                          [class.bg-danger-subtle]="agent.slaComplianceRate < 70"
+                          [class.text-danger]="agent.slaComplianceRate < 70">
+                          {{ agent.slaComplianceRate }}%
+                        </span>
+                      </td>
+                    </tr>
+                  } @empty {
+                    <tr>
+                      <td colspan="6" class="text-center py-4 text-muted">
+                        <i class="fas fa-users fa-2x mb-2 d-block text-secondary"></i>
+                        Chưa có dữ liệu nhân viên
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Activities -->
+      <div class="col-xl-5">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-header bg-white border-0 pb-0">
+            <h6 class="fw-bold mb-0">
+              <i class="fas fa-history me-2 text-info"></i>
+              Hoạt động gần đây
+            </h6>
+          </div>
+          <div class="card-body p-0" style="max-height: 480px; overflow-y: auto;">
+            <div class="list-group list-group-flush">
+              @for (activity of stats.recentActivities; track $index) {
+                <a class="list-group-item list-group-item-action border-0 px-4 py-3" [routerLink]="['/tickets', activity.ticketId]" style="cursor: pointer; text-decoration: none;">
+                  <div class="d-flex align-items-start">
+                    <div class="me-3 mt-1">
+                      <i [class]="getActivityIcon(activity.activityType)"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                      <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                          <span class="badge bg-light text-dark border me-1" style="font-size: 0.7rem;">{{ activity.ticketNumber }}</span>
+                          <span class="badge bg-primary-subtle text-primary" style="font-size: 0.7rem;">{{ getActivityLabel(activity.activityType) }}</span>
+                        </div>
+                        <small class="text-muted text-nowrap ms-2">{{ timeAgo(activity.creationTime) }}</small>
+                      </div>
+                      <p class="mb-0 small text-truncate mt-1" style="max-width: 350px;">{{ activity.ticketTitle }}</p>
+                      @if (activity.creatorName) {
+                        <small class="text-muted">
+                          <i class="fas fa-user me-1"></i>{{ activity.creatorName }}
+                        </small>
+                      }
+                    </div>
+                  </div>
+                </a>
+              } @empty {
+                <div class="text-center py-5 text-muted">
+                  <i class="fas fa-history fa-2x mb-2 d-block text-secondary"></i>
+                  Chưa có hoạt động nào
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

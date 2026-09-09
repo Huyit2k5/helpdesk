@@ -1,8 +1,8 @@
 @if (isOpen) {
   <div class="modal fade show d-block" tabindex="-1" style="background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 1055;">
-    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-      <div class="modal-content border-0 shadow-lg" style="border-radius: 12px; overflow: hidden;">
-        <div class="modal-header bg-light border-0 py-3 px-4">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable" style="max-height: calc(100vh - 3.5rem);">
+      <div class="modal-content border-0 shadow-lg d-flex flex-column" style="border-radius: 12px; overflow: hidden; max-height: calc(100vh - 3.5rem);">
+        <div class="modal-header bg-light border-0 py-3 px-4 flex-shrink-0">
           <div class="d-flex align-items-center">
             <div class="rounded-circle bg-primary bg-opacity-10 p-2 me-3 text-primary">
               <i class="fas fa-ticket-alt fa-lg"></i>
@@ -15,8 +15,8 @@
           <button type="button" class="btn-close" (click)="close()"></button>
         </div>
 
-        <form [formGroup]="form" (ngSubmit)="save()" class="d-flex flex-column h-100">
-          <div class="modal-body p-4">
+        <form [formGroup]="form" (ngSubmit)="save()" class="d-flex flex-column flex-grow-1 overflow-hidden" style="min-height: 0;">
+          <div class="modal-body p-4 flex-grow-1" style="overflow-y: auto;">
             <!-- Section 1: Ticket Info -->
             <div class="mb-4">
               <h6 class="fw-bold text-uppercase text-primary small mb-3">
@@ -161,7 +161,7 @@
             </div>
           </div>
 
-          <div class="modal-footer bg-light border-0 py-3 px-4">
+          <div class="modal-footer bg-light border-0 py-3 px-4 flex-shrink-0">
             <button type="button" class="btn btn-outline-secondary px-4" (click)="close()" [disabled]="isSaving">
               <i class="fas fa-times me-1"></i> Đóng
             </button>

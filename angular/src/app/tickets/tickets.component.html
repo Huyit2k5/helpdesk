@@ -182,17 +182,25 @@
                     </span>
                   </td>
                   <td>
-                    @if (item.dueDate || item.slaPolicyId) {
-                      @let sla = getSlaStatus(item);
-                      <span class="badge {{ sla.cssClass }} px-2 py-1">
-                        @if (sla.icon) { <i class="{{ sla.icon }} me-1"></i> }
-                        {{ sla.text }}
+                    @if (item.isResolutionBreached) {
+                      <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1">
+                        <i class="fas fa-exclamation-circle me-1"></i>Trễ hạn giải quyết
                       </span>
-                      @if (item.dueDate) {
-                        <small class="text-muted d-block font-monospace" style="font-size: 0.75rem;">
-                          {{ item.dueDate | date:'dd/MM HH:mm' }}
-                        </small>
-                      }
+                    } @else if (item.isFirstResponseBreached) {
+                      <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2 py-1">
+                        <i class="fas fa-exclamation-triangle me-1"></i>Trễ phản hồi đầu
+                      </span>
+                    } @else if (item.resolvedAt) {
+                      <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">
+                        <i class="fas fa-check-circle me-1"></i>Đúng hạn SLA
+                      </span>
+                    } @else if (item.dueDate) {
+                      <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1">
+                        <i class="fas fa-stopwatch me-1"></i>Trong hạn
+                      </span>
+                      <small class="text-muted d-block font-monospace" style="font-size: 0.75rem;">
+                        {{ item.dueDate | date:'dd/MM HH:mm' }}
+                      </small>
                     } @else {
                       <span class="text-muted small">—</span>
                     }
@@ -224,10 +232,10 @@
       <div class="card-footer d-flex justify-content-between align-items-center">
         <small class="text-muted">Tổng: {{ totalCount }} sự vụ</small>
         <ngb-pagination
-          [(page)]="list.page"
+          [page]="list.page + 1"
           [pageSize]="list.maxResultCount"
           [collectionSize]="totalCount"
-          (pageChange)="list.get()"
+          (pageChange)="list.page = $event - 1"
           [maxSize]="5"
           class="mb-0"
         />

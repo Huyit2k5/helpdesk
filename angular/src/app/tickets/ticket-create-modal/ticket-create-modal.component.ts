@@ -37,7 +37,18 @@ export class TicketCreateModalComponent implements OnInit {
   private toaster = inject(ToasterService);
   private cdr = inject(ChangeDetectorRef);
 
-  @Input() isOpen = false;
+  private _isOpen = false;
+  @Input()
+  get isOpen(): boolean {
+    return this._isOpen;
+  }
+  set isOpen(val: boolean) {
+    if (val && !this._isOpen) {
+      this.resetAndInitForm();
+    }
+    this._isOpen = val;
+  }
+
   @Output() isOpenChange = new EventEmitter<boolean>();
   @Output() saved = new EventEmitter<void>();
 
@@ -74,6 +85,9 @@ export class TicketCreateModalComponent implements OnInit {
       catchError(() => of({ items: [] }))
     ).subscribe(res => {
       this.categories = res.items ?? [];
+      if (!this.form.get('categoryId')?.value && this.categories.length > 0) {
+        this.form.patchValue({ categoryId: this.categories[0].id });
+      }
       this.cdr.markForCheck();
     });
 
@@ -123,7 +137,7 @@ export class TicketCreateModalComponent implements OnInit {
     });
   }
 
-  open(): void {
+  resetAndInitForm(): void {
     this.form.reset();
     const defaultStatus = this.statuses.find(s => s.isDefault) ?? this.statuses[0];
     this.form.patchValue({
@@ -132,6 +146,11 @@ export class TicketCreateModalComponent implements OnInit {
       sourceId: this.sources[0]?.id || '',
       categoryId: this.categories[0]?.id || '',
     });
+    this.cdr.markForCheck();
+  }
+
+  open(): void {
+    this.resetAndInitForm();
     this.isOpen = true;
     this.isOpenChange.emit(true);
     this.cdr.markForCheck();

@@ -37,4 +37,9 @@ export const APP_ROUTES: Routes = [
     loadChildren: () =>
       import('./sla/sla.routes').then(m => m.SLA_ROUTES),
   },
+  {
+    path: 'dashboard',
+    loadComponent: () =>
+      import('./dashboard/dashboard.component').then(c => c.DashboardComponent),
+  },
 ];

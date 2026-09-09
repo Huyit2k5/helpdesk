@@ -73,7 +73,7 @@
     </div>
     <div class="card-footer d-flex justify-content-between align-items-center">
       <small class="text-muted">Tổng: {{ totalCount }} bản ghi</small>
-      <ngb-pagination [(page)]="list.page" [pageSize]="list.maxResultCount" [collectionSize]="totalCount" (pageChange)="list.get()" [maxSize]="5" [rotate]="true" class="mb-0" />
+      <ngb-pagination [page]="list.page + 1" [pageSize]="list.maxResultCount" [collectionSize]="totalCount" (pageChange)="list.page = $event - 1" [maxSize]="5" [rotate]="true" class="mb-0" />
     </div>
   </div>
 </div>

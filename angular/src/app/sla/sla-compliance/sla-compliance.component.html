@@ -193,9 +193,9 @@
           <span class="text-muted small">Tổng số: {{ totalBreachCount }} bản ghi vi phạm</span>
           <ngb-pagination
             [collectionSize]="totalBreachCount"
-            [(page)]="list.page"
+            [page]="list.page + 1"
             [pageSize]="list.maxResultCount"
-            (pageChange)="list.get()"
+            (pageChange)="list.page = $event - 1"
             [maxSize]="5"
             [boundaryLinks]="true"
           ></ngb-pagination>

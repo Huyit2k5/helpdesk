@@ -201,6 +201,10 @@
     "Permission:Sla.BusinessHours": "Manage Business Hours",
     "Permission:Sla.Reports": "View Reports",
 
+    "Permission:Dashboard": "Dashboard & Analytics",
+
+    "Menu:Dashboard": "Dashboard",
+
     "Search": "Search",
     "AreYouSure": "Are you sure?",
     "AreYouSureToDelete": "Are you sure you want to delete {0}?"

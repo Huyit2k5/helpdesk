@@ -9,13 +9,6 @@ function configureRoutes() {
   const routes = inject(RoutesService);
   routes.add([
       {
-        path: '/',
-        name: '::Menu:Home',
-        iconClass: 'fas fa-home',
-        order: 1,
-        layout: eLayoutType.application,
-      },
-      {
         path: '/tickets',
         name: '::Menu:Tickets',
         iconClass: 'fas fa-ticket-alt',
