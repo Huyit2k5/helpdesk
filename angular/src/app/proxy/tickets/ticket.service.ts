@@ -1,4 +1,4 @@
-import type { AssignTicketInput, ChangeTicketStatusInput, CreateTicketCommentDto, CreateTicketDto, GetTicketListInput, TicketActivityDto, TicketCommentDto, TicketDetailDto, TicketListDto, UpdateTicketDto } from './dtos/models';
+import type { AssignTicketInput, ChangeTicketStatusInput, CreateTicketCommentDto, CreateTicketDto, GetTicketListInput, TicketActivityDto, TicketAttachmentDto, TicketCommentDto, TicketDetailDto, TicketListDto, UpdateTicketDto } from './dtos/models';
 import { RestService, Rest } from '@abp/ng.core';
 import type { PagedResultDto } from '@abp/ng.core';
 import { Injectable, inject } from '@angular/core';
@@ -101,6 +101,50 @@ export class TicketService {
       method: 'PUT',
       headers: { Accept: 'application/json' },
       url: `/api/app/ticket/${id}`,
+      body: input,
+    },
+    { apiName: this.apiName,...config });
+
+  uploadAttachment = (id: string, file: File, commentId?: string, config?: Partial<Rest.Config>) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.restService.request<any, TicketAttachmentDto>({
+      method: 'POST',
+      url: `/api/app/ticket/${id}/upload-attachment`,
+      params: commentId ? { commentId } : {},
+      body: formData,
+    },
+    { apiName: this.apiName,...config });
+  };
+
+  getAttachments = (id: string, config?: Partial<Rest.Config>) =>
+    this.restService.request<any, TicketAttachmentDto[]>({
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+      url: `/api/app/ticket/${id}/attachments`,
+    },
+    { apiName: this.apiName,...config });
+
+  downloadAttachment = (attachmentId: string, config?: Partial<Rest.Config>) =>
+    this.restService.request<any, Blob>({
+      method: 'POST',
+      responseType: 'blob',
+      url: `/api/app/ticket/download-attachment/${attachmentId}`,
+    },
+    { apiName: this.apiName,...config });
+
+  deleteAttachment = (attachmentId: string, config?: Partial<Rest.Config>) =>
+    this.restService.request<any, void>({
+      method: 'DELETE',
+      url: `/api/app/ticket/attachment/${attachmentId}`,
+    },
+    { apiName: this.apiName,...config });
+
+  exportExcel = (input: GetTicketListInput, config?: Partial<Rest.Config>) =>
+    this.restService.request<any, Blob>({
+      method: 'POST',
+      responseType: 'blob',
+      url: '/api/app/ticket/export-excel',
       body: input,
     },
     { apiName: this.apiName,...config });

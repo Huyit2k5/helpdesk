@@ -8,6 +8,11 @@
       </h2>
       <p class="text-muted mb-0">Thống kê tỷ lệ hoàn thành cam kết dịch vụ và lịch sử các trường hợp trễ hạn SLA</p>
     </div>
+    <div class="col-auto">
+      <button class="btn btn-outline-success shadow-sm" (click)="exportExcel()" [disabled]="isExporting">
+        <i class="fas me-1" [class.fa-file-excel]="!isExporting" [class.fa-spinner]="isExporting" [class.fa-spin]="isExporting"></i> Xuất Excel Vi Phạm
+      </button>
+    </div>
   </div>
 
   <!-- Filter Card -->

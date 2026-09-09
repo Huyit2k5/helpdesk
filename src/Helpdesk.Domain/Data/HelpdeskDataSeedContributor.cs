@@ -29,6 +29,9 @@ public class HelpdeskDataSeedContributor : IDataSeedContributor, ITransientDepen
     private readonly Volo.Abp.Domain.Repositories.IRepository<Helpdesk.Sla.SlaPolicy, Guid> _slaPolicyRepository;
     private readonly Volo.Abp.Domain.Repositories.IRepository<Helpdesk.Tickets.Ticket, Guid> _ticketRepository;
     private readonly Volo.Abp.Domain.Repositories.IRepository<Helpdesk.Tickets.TicketActivity, Guid> _ticketActivityRepository;
+    private readonly Volo.Abp.Identity.IdentityRoleManager _roleManager;
+    private readonly Volo.Abp.Identity.IdentityUserManager _userManager;
+    private readonly Volo.Abp.PermissionManagement.IPermissionDataSeeder _permissionDataSeeder;
 
     public HelpdeskDataSeedContributor(
         ICategoryRepository categoryRepository,
@@ -41,6 +44,9 @@ public class HelpdeskDataSeedContributor : IDataSeedContributor, ITransientDepen
         Volo.Abp.Domain.Repositories.IRepository<Helpdesk.Sla.SlaPolicy, Guid> slaPolicyRepository,
         Volo.Abp.Domain.Repositories.IRepository<Helpdesk.Tickets.Ticket, Guid> ticketRepository,
         Volo.Abp.Domain.Repositories.IRepository<Helpdesk.Tickets.TicketActivity, Guid> ticketActivityRepository,
+        Volo.Abp.Identity.IdentityRoleManager roleManager,
+        Volo.Abp.Identity.IdentityUserManager userManager,
+        Volo.Abp.PermissionManagement.IPermissionDataSeeder permissionDataSeeder,
         IGuidGenerator guidGenerator)
     {
         _categoryRepository = categoryRepository;
@@ -53,6 +59,9 @@ public class HelpdeskDataSeedContributor : IDataSeedContributor, ITransientDepen
         _slaPolicyRepository = slaPolicyRepository;
         _ticketRepository = ticketRepository;
         _ticketActivityRepository = ticketActivityRepository;
+        _roleManager = roleManager;
+        _userManager = userManager;
+        _permissionDataSeeder = permissionDataSeeder;
         _guidGenerator = guidGenerator;
     }
 
@@ -67,6 +76,7 @@ public class HelpdeskDataSeedContributor : IDataSeedContributor, ITransientDepen
         await SeedHolidaysAsync();
         await SeedSlaPoliciesAsync();
         await SeedTicketsAsync();
+        await SeedRolesAndUsersAsync();
     }
 
     private async Task SeedPrioritiesAsync()
@@ -259,6 +269,95 @@ public class HelpdeskDataSeedContributor : IDataSeedContributor, ITransientDepen
                 Helpdesk.Tickets.TicketActivityType.Created,
                 description: $"Yêu cầu hỗ trợ '{ticket.Title}' đã được khởi tạo bởi {ticket.RequesterName}"
             ));
+        }
+    }
+
+    private async Task SeedRolesAndUsersAsync()
+    {
+        // 1. Roles & Permissions mapping
+        var managerPermissions = new List<string>
+        {
+            "Helpdesk.Dashboard",
+            "Helpdesk.Tickets", "Helpdesk.Tickets.Create", "Helpdesk.Tickets.Edit", "Helpdesk.Tickets.Delete", "Helpdesk.Tickets.Assign", "Helpdesk.Tickets.ChangeStatus", "Helpdesk.Tickets.AddComment",
+            "Helpdesk.Sla", "Helpdesk.Sla.Policies", "Helpdesk.Sla.BusinessHours", "Helpdesk.Sla.Reports",
+            "Helpdesk.Categories", "Helpdesk.Categories.Create", "Helpdesk.Categories.Edit", "Helpdesk.Categories.Delete",
+            "Helpdesk.Priorities", "Helpdesk.Priorities.Create", "Helpdesk.Priorities.Edit", "Helpdesk.Priorities.Delete",
+            "Helpdesk.Departments", "Helpdesk.Departments.Create", "Helpdesk.Departments.Edit", "Helpdesk.Departments.Delete",
+            "Helpdesk.TicketStatuses", "Helpdesk.TicketStatuses.Create", "Helpdesk.TicketStatuses.Edit", "Helpdesk.TicketStatuses.Delete",
+            "Helpdesk.TicketSources", "Helpdesk.TicketSources.Create", "Helpdesk.TicketSources.Edit", "Helpdesk.TicketSources.Delete",
+            "Helpdesk.CannedResponses", "Helpdesk.CannedResponses.Create", "Helpdesk.CannedResponses.Edit", "Helpdesk.CannedResponses.Delete",
+            "AbpIdentity.Users"
+        };
+
+        var agentPermissions = new List<string>
+        {
+            "Helpdesk.Dashboard",
+            "Helpdesk.Tickets", "Helpdesk.Tickets.Create", "Helpdesk.Tickets.Edit", "Helpdesk.Tickets.Assign", "Helpdesk.Tickets.ChangeStatus", "Helpdesk.Tickets.AddComment",
+            "Helpdesk.CannedResponses", "Helpdesk.CannedResponses.Create", "Helpdesk.CannedResponses.Edit",
+            "Helpdesk.Categories",
+            "Helpdesk.Priorities",
+            "Helpdesk.Departments",
+            "Helpdesk.TicketStatuses",
+            "Helpdesk.TicketSources",
+            "AbpIdentity.Users"
+        };
+
+        var customerPermissions = new List<string>
+        {
+            "Helpdesk.Tickets", "Helpdesk.Tickets.Create", "Helpdesk.Tickets.AddComment",
+            "Helpdesk.Categories",
+            "Helpdesk.Priorities",
+            "Helpdesk.TicketStatuses",
+            "Helpdesk.TicketSources"
+        };
+
+        // Ensure admin has all permissions
+        var allPermissions = managerPermissions.Union(agentPermissions).Union(customerPermissions).Distinct().ToList();
+        await _permissionDataSeeder.SeedAsync("R", "admin", allPermissions);
+
+        // Create Roles with pre-assigned permissions
+        await CreateRoleWithPermissionsAsync("HelpdeskManager", managerPermissions);
+        await CreateRoleWithPermissionsAsync("SupportAgent", agentPermissions);
+        await CreateRoleWithPermissionsAsync("Customer", customerPermissions);
+
+        // 2. Create Sample Users for testing
+        await CreateUserAsync("manager", "manager@helpdesk.com", "Quản Lý", "Trần", "Huy123@", "HelpdeskManager");
+        await CreateUserAsync("agent1", "agent1@helpdesk.com", "Kỹ Thuật 1", "Nguyễn", "Huy123@", "SupportAgent");
+        await CreateUserAsync("agent2", "agent2@helpdesk.com", "Kỹ Thuật 2", "Lê", "Huy123@", "SupportAgent");
+        await CreateUserAsync("customer", "customer@company.com", "Khách Hàng", "Phạm", "Huy123@", "Customer");
+    }
+
+    private async Task CreateRoleWithPermissionsAsync(string roleName, IEnumerable<string> permissions)
+    {
+        var role = await _roleManager.FindByNameAsync(roleName);
+        if (role == null)
+        {
+            role = new Volo.Abp.Identity.IdentityRole(_guidGenerator.Create(), roleName)
+            {
+                IsPublic = true
+            };
+            await _roleManager.CreateAsync(role);
+        }
+
+        await _permissionDataSeeder.SeedAsync("R", roleName, permissions);
+    }
+
+    private async Task CreateUserAsync(string userName, string email, string name, string surname, string password, string roleName)
+    {
+        var user = await _userManager.FindByNameAsync(userName);
+        if (user == null)
+        {
+            user = new Volo.Abp.Identity.IdentityUser(_guidGenerator.Create(), userName, email)
+            {
+                Name = name,
+                Surname = surname
+            };
+            user.SetEmailConfirmed(true);
+            var result = await _userManager.CreateAsync(user, password);
+            if (result.Succeeded)
+            {
+                await _userManager.AddToRoleAsync(user, roleName);
+            }
         }
     }
 }

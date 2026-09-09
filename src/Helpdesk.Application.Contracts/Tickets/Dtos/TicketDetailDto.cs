@@ -55,4 +55,6 @@ public class TicketDetailDto : FullAuditedEntityDto<Guid>
     public List<TicketCommentDto> Comments { get; set; } = new();
 
     public List<TicketActivityDto> Activities { get; set; } = new();
+
+    public List<TicketAttachmentDto> Attachments { get; set; } = new();
 }

@@ -55,11 +55,24 @@ export interface TicketActivityDto extends CreationAuditedEntityDto<string> {
   creatorName?: string | null;
 }
 
+export interface TicketAttachmentDto {
+  id?: string;
+  ticketId?: string;
+  commentId?: string | null;
+  fileName?: string;
+  fileSize?: number;
+  contentType?: string;
+  creationTime?: string;
+  creatorId?: string | null;
+  creatorName?: string | null;
+}
+
 export interface TicketCommentDto extends FullAuditedEntityDto<string> {
   ticketId?: string;
   content?: string;
   isInternal?: boolean;
   creatorName?: string | null;
+  attachments?: TicketAttachmentDto[];
 }
 
 export interface TicketDetailDto extends FullAuditedEntityDto<string> {
@@ -98,6 +111,7 @@ export interface TicketDetailDto extends FullAuditedEntityDto<string> {
   tags?: string | null;
   comments?: TicketCommentDto[];
   activities?: TicketActivityDto[];
+  attachments?: TicketAttachmentDto[];
 }
 
 export interface TicketListDto extends FullAuditedEntityDto<string> {

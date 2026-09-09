@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Linq.Dynamic.Core;
 using System.Threading.Tasks;
@@ -13,9 +14,12 @@ using Helpdesk.TicketSources;
 using Helpdesk.TicketStatuses;
 using Helpdesk.Sla;
 using Microsoft.AspNetCore.Authorization;
+using MiniExcelLibs;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
+using Volo.Abp.BlobStoring;
+using Volo.Abp.Content;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Identity;
 using Volo.Abp.Linq;
@@ -28,6 +32,8 @@ public class TicketAppService : ApplicationService, ITicketAppService
     private readonly IRepository<Ticket, Guid> _ticketRepository;
     private readonly IRepository<TicketComment, Guid> _commentRepository;
     private readonly IRepository<TicketActivity, Guid> _activityRepository;
+    private readonly IRepository<TicketAttachment, Guid> _attachmentRepository;
+    private readonly IBlobContainer _blobContainer;
     private readonly IRepository<Category, Guid> _categoryRepository;
     private readonly IRepository<Priority, Guid> _priorityRepository;
     private readonly IRepository<TicketStatus, Guid> _statusRepository;
@@ -42,6 +48,8 @@ public class TicketAppService : ApplicationService, ITicketAppService
         IRepository<Ticket, Guid> ticketRepository,
         IRepository<TicketComment, Guid> commentRepository,
         IRepository<TicketActivity, Guid> activityRepository,
+        IRepository<TicketAttachment, Guid> attachmentRepository,
+        IBlobContainer blobContainer,
         IRepository<Category, Guid> categoryRepository,
         IRepository<Priority, Guid> priorityRepository,
         IRepository<TicketStatus, Guid> statusRepository,
@@ -55,6 +63,8 @@ public class TicketAppService : ApplicationService, ITicketAppService
         _ticketRepository = ticketRepository;
         _commentRepository = commentRepository;
         _activityRepository = activityRepository;
+        _attachmentRepository = attachmentRepository;
+        _blobContainer = blobContainer;
         _categoryRepository = categoryRepository;
         _priorityRepository = priorityRepository;
         _statusRepository = statusRepository;
@@ -235,10 +245,12 @@ public class TicketAppService : ApplicationService, ITicketAppService
 
         var comments = await _commentRepository.GetListAsync(c => c.TicketId == id);
         var activities = await _activityRepository.GetListAsync(a => a.TicketId == id);
+        var attachments = await _attachmentRepository.GetListAsync(a => a.TicketId == id);
 
         var commentCreatorIds = comments.Where(c => c.CreatorId.HasValue).Select(c => c.CreatorId!.Value).Distinct().ToList();
         var activityCreatorIds = activities.Where(a => a.CreatorId.HasValue).Select(a => a.CreatorId!.Value).Distinct().ToList();
-        var allUserIds = commentCreatorIds.Union(activityCreatorIds).Distinct().ToList();
+        var attachmentCreatorIds = attachments.Where(a => a.CreatorId.HasValue).Select(a => a.CreatorId!.Value).Distinct().ToList();
+        var allUserIds = commentCreatorIds.Union(activityCreatorIds).Union(attachmentCreatorIds).Distinct().ToList();
 
         var users = await _userRepository.GetListAsync(u => allUserIds.Contains(u.Id));
         var userDict = users.ToDictionary(u => u.Id, u => u.UserName);
@@ -291,7 +303,19 @@ public class TicketAppService : ApplicationService, ITicketAppService
                 TicketId = c.TicketId,
                 Content = c.Content,
                 IsInternal = c.IsInternal,
-                CreatorName = c.CreatorId.HasValue ? userDict.GetValueOrDefault(c.CreatorId.Value) : null
+                CreatorName = c.CreatorId.HasValue ? userDict.GetValueOrDefault(c.CreatorId.Value) : null,
+                Attachments = attachments.Where(a => a.CommentId == c.Id).OrderBy(a => a.CreationTime).Select(a => new TicketAttachmentDto
+                {
+                    Id = a.Id,
+                    TicketId = a.TicketId,
+                    CommentId = a.CommentId,
+                    FileName = a.FileName,
+                    FileSize = a.FileSize,
+                    ContentType = a.ContentType,
+                    CreationTime = a.CreationTime,
+                    CreatorId = a.CreatorId,
+                    CreatorName = a.CreatorId.HasValue ? userDict.GetValueOrDefault(a.CreatorId.Value) : null
+                }).ToList()
             }).ToList(),
             Activities = activities.OrderByDescending(a => a.CreationTime).Select(a => new TicketActivityDto
             {
@@ -304,6 +328,18 @@ public class TicketAppService : ApplicationService, ITicketAppService
                 OldValue = a.OldValue,
                 NewValue = a.NewValue,
                 Description = a.Description,
+                CreatorName = a.CreatorId.HasValue ? userDict.GetValueOrDefault(a.CreatorId.Value) : null
+            }).ToList(),
+            Attachments = attachments.OrderByDescending(a => a.CreationTime).Select(a => new TicketAttachmentDto
+            {
+                Id = a.Id,
+                TicketId = a.TicketId,
+                CommentId = a.CommentId,
+                FileName = a.FileName,
+                FileSize = a.FileSize,
+                ContentType = a.ContentType,
+                CreationTime = a.CreationTime,
+                CreatorId = a.CreatorId,
                 CreatorName = a.CreatorId.HasValue ? userDict.GetValueOrDefault(a.CreatorId.Value) : null
             }).ToList()
         };
@@ -497,5 +533,205 @@ public class TicketAppService : ApplicationService, ITicketAppService
             Description = a.Description,
             CreatorName = a.CreatorId.HasValue ? userDict.GetValueOrDefault(a.CreatorId.Value) : null
         }).ToList();
+    }
+
+    [Authorize(HelpdeskPermissions.Tickets.Default)]
+    public async Task<TicketAttachmentDto> UploadAttachmentAsync(Guid id, IRemoteStreamContent file, Guid? commentId = null)
+    {
+        if (file == null || file.ContentLength == 0)
+        {
+            throw new UserFriendlyException("Tệp tải lên không hợp lệ hoặc trống.");
+        }
+
+        const long maxSizeBytes = 10 * 1024 * 1024; // 10MB
+        if (file.ContentLength > maxSizeBytes)
+        {
+            throw new UserFriendlyException("Dung lượng tệp vượt quá giới hạn cho phép (tối đa 10 MB).");
+        }
+
+        var ticket = await _ticketRepository.GetAsync(id);
+        var ext = Path.GetExtension(file.FileName);
+        var blobName = $"{ticket.Id}/{Guid.NewGuid():N}{ext}";
+
+        using var memoryStream = new MemoryStream();
+        await file.GetStream().CopyToAsync(memoryStream);
+        memoryStream.Seek(0, SeekOrigin.Begin);
+
+        await _blobContainer.SaveAsync(blobName, memoryStream.ToArray(), overrideExisting: true);
+
+        var attachment = new TicketAttachment(
+            GuidGenerator.Create(),
+            ticket.Id,
+            file.FileName,
+            file.ContentLength ?? memoryStream.Length,
+            string.IsNullOrWhiteSpace(file.ContentType) ? "application/octet-stream" : file.ContentType,
+            blobName,
+            commentId);
+
+        await _attachmentRepository.InsertAsync(attachment);
+
+        var activity = new TicketActivity(
+            GuidGenerator.Create(),
+            ticket.Id,
+            TicketActivityType.AttachmentAdded,
+            "Attachment",
+            null,
+            file.FileName,
+            $"Đã tải lên tệp đính kèm: {file.FileName}");
+        await _activityRepository.InsertAsync(activity);
+
+        return new TicketAttachmentDto
+        {
+            Id = attachment.Id,
+            TicketId = attachment.TicketId,
+            CommentId = attachment.CommentId,
+            FileName = attachment.FileName,
+            FileSize = attachment.FileSize,
+            ContentType = attachment.ContentType,
+            CreationTime = attachment.CreationTime,
+            CreatorId = CurrentUser.Id,
+            CreatorName = CurrentUser.UserName
+        };
+    }
+
+    public async Task<List<TicketAttachmentDto>> GetAttachmentsAsync(Guid id)
+    {
+        var attachments = await _attachmentRepository.GetListAsync(a => a.TicketId == id);
+        var userIds = attachments.Where(a => a.CreatorId.HasValue).Select(a => a.CreatorId!.Value).Distinct().ToList();
+        var users = await _userRepository.GetListAsync(u => userIds.Contains(u.Id));
+        var userDict = users.ToDictionary(u => u.Id, u => u.UserName);
+
+        return attachments.OrderByDescending(a => a.CreationTime).Select(a => new TicketAttachmentDto
+        {
+            Id = a.Id,
+            TicketId = a.TicketId,
+            CommentId = a.CommentId,
+            FileName = a.FileName,
+            FileSize = a.FileSize,
+            ContentType = a.ContentType,
+            CreationTime = a.CreationTime,
+            CreatorId = a.CreatorId,
+            CreatorName = a.CreatorId.HasValue ? userDict.GetValueOrDefault(a.CreatorId.Value) : null
+        }).ToList();
+    }
+
+    public async Task<IRemoteStreamContent> DownloadAttachmentAsync(Guid attachmentId)
+    {
+        var attachment = await _attachmentRepository.GetAsync(attachmentId);
+        var stream = await _blobContainer.GetAsync(attachment.BlobName);
+        return new RemoteStreamContent(stream, attachment.FileName, attachment.ContentType);
+    }
+
+    [Authorize(HelpdeskPermissions.Tickets.Default)]
+    public async Task DeleteAttachmentAsync(Guid attachmentId)
+    {
+        var attachment = await _attachmentRepository.GetAsync(attachmentId);
+        await _blobContainer.DeleteAsync(attachment.BlobName);
+        await _attachmentRepository.DeleteAsync(attachment);
+
+        var activity = new TicketActivity(
+            GuidGenerator.Create(),
+            attachment.TicketId,
+            TicketActivityType.AttachmentAdded,
+            "Attachment",
+            attachment.FileName,
+            null,
+            $"Đã xóa tệp đính kèm: {attachment.FileName}");
+        await _activityRepository.InsertAsync(activity);
+    }
+
+    public async Task<IRemoteStreamContent> ExportExcelAsync(GetTicketListInput input)
+    {
+        var ticketQuery = await _ticketRepository.GetQueryableAsync();
+        var categoryQuery = await _categoryRepository.GetQueryableAsync();
+        var priorityQuery = await _priorityRepository.GetQueryableAsync();
+        var statusQuery = await _statusRepository.GetQueryableAsync();
+        var departmentQuery = await _departmentRepository.GetQueryableAsync();
+        var userQuery = await _userRepository.GetQueryableAsync();
+
+        if (!string.IsNullOrWhiteSpace(input.Filter))
+        {
+            var f = input.Filter.Trim().ToLower();
+            ticketQuery = ticketQuery.Where(t =>
+                t.TicketNumber.ToLower().Contains(f) ||
+                t.Title.ToLower().Contains(f) ||
+                t.RequesterName.ToLower().Contains(f) ||
+                t.RequesterEmail.ToLower().Contains(f) ||
+                (t.Tags != null && t.Tags.ToLower().Contains(f)));
+        }
+
+        if (input.StatusId.HasValue && input.StatusId.Value != Guid.Empty)
+        {
+            ticketQuery = ticketQuery.Where(t => t.StatusId == input.StatusId.Value);
+        }
+
+        if (input.PriorityId.HasValue && input.PriorityId.Value != Guid.Empty)
+        {
+            ticketQuery = ticketQuery.Where(t => t.PriorityId == input.PriorityId.Value);
+        }
+
+        if (input.CategoryId.HasValue && input.CategoryId.Value != Guid.Empty)
+        {
+            ticketQuery = ticketQuery.Where(t => t.CategoryId == input.CategoryId.Value);
+        }
+
+        if (input.DepartmentId.HasValue && input.DepartmentId.Value != Guid.Empty)
+        {
+            ticketQuery = ticketQuery.Where(t => t.DepartmentId == input.DepartmentId.Value);
+        }
+
+        if (input.AssigneeId.HasValue && input.AssigneeId.Value != Guid.Empty)
+        {
+            ticketQuery = ticketQuery.Where(t => t.AssigneeId == input.AssigneeId.Value);
+        }
+
+        if (input.SourceId.HasValue && input.SourceId.Value != Guid.Empty)
+        {
+            ticketQuery = ticketQuery.Where(t => t.SourceId == input.SourceId.Value);
+        }
+
+        if (input.DateFrom.HasValue)
+        {
+            ticketQuery = ticketQuery.Where(t => t.CreationTime >= input.DateFrom.Value);
+        }
+
+        if (input.DateTo.HasValue)
+        {
+            var toDate = input.DateTo.Value.Date.AddDays(1).AddTicks(-1);
+            ticketQuery = ticketQuery.Where(t => t.CreationTime <= toDate);
+        }
+
+        var rawList = await AsyncExecuter.ToListAsync(ticketQuery.OrderByDescending(t => t.CreationTime));
+
+        var categories = (await AsyncExecuter.ToListAsync(categoryQuery)).ToDictionary(c => c.Id, c => c.Name);
+        var priorities = (await AsyncExecuter.ToListAsync(priorityQuery)).ToDictionary(p => p.Id, p => p.Name);
+        var statuses = (await AsyncExecuter.ToListAsync(statusQuery)).ToDictionary(s => s.Id, s => s.Name);
+        var departments = (await AsyncExecuter.ToListAsync(departmentQuery)).ToDictionary(d => d.Id, d => d.Name);
+        var users = (await AsyncExecuter.ToListAsync(userQuery)).ToDictionary(u => u.Id, u => u.UserName);
+
+        var exportData = rawList.Select((t, index) => new Dictionary<string, object?>
+        {
+            ["STT"] = index + 1,
+            ["Mã Sự Vụ"] = t.TicketNumber,
+            ["Tiêu Đề"] = t.Title,
+            ["Người Yêu Cầu"] = t.RequesterName,
+            ["Email"] = t.RequesterEmail,
+            ["Danh Mục"] = categories.GetValueOrDefault(t.CategoryId, string.Empty),
+            ["Độ Ưu Tiên"] = priorities.GetValueOrDefault(t.PriorityId, string.Empty),
+            ["Trạng Thái"] = statuses.GetValueOrDefault(t.StatusId, string.Empty),
+            ["Phòng Ban"] = t.DepartmentId.HasValue ? departments.GetValueOrDefault(t.DepartmentId.Value) : "",
+            ["Người Xử Lý"] = t.AssigneeId.HasValue ? users.GetValueOrDefault(t.AssigneeId.Value) : "Chưa phân công",
+            ["Ngày Tạo"] = t.CreationTime.ToString("dd/MM/yyyy HH:mm"),
+            ["Hạn Xử Lý (SLA)"] = t.DueDate.HasValue ? t.DueDate.Value.ToString("dd/MM/yyyy HH:mm") : "",
+            ["Ngày Giải Quyết"] = t.ResolvedAt.HasValue ? t.ResolvedAt.Value.ToString("dd/MM/yyyy HH:mm") : "",
+            ["Tình Trạng SLA"] = t.IsResolutionBreached ? "Vi phạm" : (t.ResolvedAt.HasValue ? "Đạt SLA" : "Trong hạn")
+        }).ToList();
+
+        var memoryStream = new MemoryStream();
+        await memoryStream.SaveAsAsync(exportData);
+        memoryStream.Seek(0, SeekOrigin.Begin);
+
+        var fileName = $"SuVu_Helpdesk_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+        return new RemoteStreamContent(memoryStream, fileName, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
     }
 }

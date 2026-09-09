@@ -29,4 +29,13 @@ export class SlaReportService {
       params: { startDate, endDate },
     },
     { apiName: this.apiName,...config });
+
+  exportBreachesExcel = (input: GetSlaBreachListInput, config?: Partial<Rest.Config>) =>
+    this.restService.request<any, Blob>({
+      method: 'POST',
+      responseType: 'blob',
+      url: '/api/app/sla-report/export-breaches-excel',
+      body: input,
+    },
+    { apiName: this.apiName,...config });
 }

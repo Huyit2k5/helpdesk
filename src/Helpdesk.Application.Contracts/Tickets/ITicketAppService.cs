@@ -28,4 +28,14 @@ public interface ITicketAppService : IApplicationService
     Task<List<TicketCommentDto>> GetCommentsAsync(Guid id);
 
     Task<List<TicketActivityDto>> GetActivitiesAsync(Guid id);
+
+    Task<TicketAttachmentDto> UploadAttachmentAsync(Guid id, Volo.Abp.Content.IRemoteStreamContent file, Guid? commentId = null);
+
+    Task<List<TicketAttachmentDto>> GetAttachmentsAsync(Guid id);
+
+    Task<Volo.Abp.Content.IRemoteStreamContent> DownloadAttachmentAsync(Guid attachmentId);
+
+    Task DeleteAttachmentAsync(Guid attachmentId);
+
+    Task<Volo.Abp.Content.IRemoteStreamContent> ExportExcelAsync(GetTicketListInput input);
 }

@@ -134,6 +134,20 @@ Hệ thống tích hợp sẵn `HelpdeskDataSeedContributor` tự động nạp 
 - **6 danh mục sự cố**, 4 mức độ ưu tiên chuẩn, 7 trạng thái vòng đời vé, 5 kênh tiếp nhận, 2 phòng ban kỹ thuật.
 - **Chính sách SLA tiêu chuẩn** và lịch làm việc hành chính chuẩn cùng các ngày lễ lớn trong năm.
 
+### 3.6. Mở Rộng: Tệp Đính Kèm, Xuất Báo Cáo Excel & Bộ Lọc Nâng Cao (Lựa Chọn A)
+
+- **Tệp Đính Kèm & Lưu Trữ Blob (PostgreSQL Database)**:
+  * Tích hợp `Volo.Abp.BlobStoring.Database`, lưu trữ tập tin bảo mật và đồng bộ trong cơ sở dữ liệu qua bảng `AppTicketAttachments`.
+  * Hỗ trợ tải lên nhiều tệp đính kèm khi **Tạo sự vụ mới** (`/tickets`) và khi **Phản hồi / Ghi chú nội bộ** (`/tickets/:id`).
+  * Danh sách tệp đính kèm trực quan với icon nhận diện loại tệp, dung lượng file, hỗ trợ **Xem trước ảnh (Image Lightbox Modal)** và tải về an toàn.
+  * Tự động ghi nhật ký kiểm toán `TicketActivity` khi có tệp mới được tải lên hoặc xóa.
+- **Xuất Báo Cáo Ra Excel Chuẩn (`.xlsx`)**:
+  * Tích hợp thư viện hiệu năng cao **MiniExcel 1.46.0** trên .NET 10, sinh file `.xlsx` trực tiếp từ bộ nhớ RAM siêu tốc.
+  * **Xuất danh sách Sự vụ**: Tự động áp dụng tất cả các tiêu chí lọc đang chọn trên màn hình `/tickets`.
+  * **Xuất danh sách Vi phạm SLA**: Trích xuất nhật ký trễ hạn từ màn hình `/sla/compliance`.
+- **Bộ Lọc Theo Khoảng Ngày (Date Range Filter)**:
+  * Thêm 2 trường chọn ngày (*Từ ngày* & *Đến ngày*) trên thanh công cụ của trang `/tickets` để tìm kiếm và lọc dữ liệu chính xác theo mốc thời gian phát sinh.
+
 ---
 
 ## 🛠️ HƯỚNG DẪN KHỞI CHẠY & ĐĂNG NHẬP

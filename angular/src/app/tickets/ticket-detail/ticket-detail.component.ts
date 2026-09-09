@@ -3,14 +3,14 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { TicketService } from '../../proxy/tickets/ticket.service';
-import { TicketDetailDto, TicketCommentDto, TicketActivityDto } from '../../proxy/tickets/dtos/models';
+import { TicketDetailDto, TicketCommentDto, TicketActivityDto, TicketAttachmentDto } from '../../proxy/tickets/dtos/models';
 import { TicketStatusService } from '../../proxy/ticket-statuses/ticket-status.service';
 import { TicketStatusDto } from '../../proxy/ticket-statuses/models';
 import { IdentityUserService, IdentityUserDto } from '@abp/ng.identity/proxy';
 import { CannedResponseService } from '../../proxy/canned-responses/canned-response.service';
 import { CannedResponseDto } from '../../proxy/canned-responses/models';
 import { ToasterService, ConfirmationService, Confirmation } from '@abp/ng.theme.shared';
-import { catchError, of } from 'rxjs';
+import { catchError, forkJoin, of } from 'rxjs';
 
 export interface TimelineItem {
   id: string;
@@ -48,6 +48,12 @@ export class TicketDetailComponent implements OnInit {
   // Active tab in composer: 'reply' = public, 'note' = internal
   composerTab: 'reply' | 'note' = 'reply';
   commentContent = '';
+  selectedCommentFiles: File[] = [];
+
+  // Direct Attachment Upload & Preview
+  isUploadingDirectAttachment = false;
+  previewImageUrl: string | null = null;
+  previewImageTitle = '';
 
   // Lookups
   statuses: TicketStatusDto[] = [];
@@ -158,26 +164,181 @@ export class TicketDetailComponent implements OnInit {
   }
 
   submitComment(): void {
-    if (!this.commentContent.trim() || this.isSubmittingComment || !this.ticket?.id) return;
+    if ((!this.commentContent.trim() && this.selectedCommentFiles.length === 0) || this.isSubmittingComment || !this.ticket?.id) return;
 
     this.isSubmittingComment = true;
     const isInternal = this.composerTab === 'note';
+    const text = this.commentContent.trim() || (isInternal ? 'Đã thêm tệp đính kèm vào ghi chú nội bộ' : 'Đã gửi kèm tệp tin đính kèm');
 
     this.ticketSvc.addComment(this.ticket.id, {
-      content: this.commentContent.trim(),
+      content: text,
       isInternal: isInternal,
     }).subscribe({
-      next: () => {
-        this.isSubmittingComment = false;
-        this.commentContent = '';
-        this.toaster.success(isInternal ? 'Đã thêm ghi chú nội bộ' : 'Đã gửi phản hồi', 'Thành công');
-        this.loadData();
+      next: (comment) => {
+        if (comment.id && this.selectedCommentFiles.length > 0) {
+          const uploads = this.selectedCommentFiles.map(f => this.ticketSvc.uploadAttachment(this.ticket!.id!, f, comment.id));
+          forkJoin(uploads).pipe(
+            catchError(() => of([]))
+          ).subscribe(() => {
+            this.isSubmittingComment = false;
+            this.commentContent = '';
+            this.selectedCommentFiles = [];
+            this.toaster.success(isInternal ? 'Đã thêm ghi chú nội bộ' : 'Đã gửi phản hồi', 'Thành công');
+            this.loadData();
+          });
+        } else {
+          this.isSubmittingComment = false;
+          this.commentContent = '';
+          this.selectedCommentFiles = [];
+          this.toaster.success(isInternal ? 'Đã thêm ghi chú nội bộ' : 'Đã gửi phản hồi', 'Thành công');
+          this.loadData();
+        }
       },
       error: () => {
         this.isSubmittingComment = false;
         this.cdr.markForCheck();
       }
     });
+  }
+
+  onComposerFilesSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files) {
+      const files = Array.from(input.files);
+      for (const file of files) {
+        if (file.size > 10 * 1024 * 1024) {
+          this.toaster.warn(`Tệp ${file.name} vượt quá giới hạn 10 MB.`, 'Cảnh báo');
+          continue;
+        }
+        this.selectedCommentFiles.push(file);
+      }
+      input.value = '';
+      this.cdr.markForCheck();
+    }
+  }
+
+  removeComposerFile(index: number): void {
+    this.selectedCommentFiles.splice(index, 1);
+    this.cdr.markForCheck();
+  }
+
+  onDirectFileUpload(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && this.ticket?.id) {
+      const files = Array.from(input.files);
+      const validFiles = files.filter(f => {
+        if (f.size > 10 * 1024 * 1024) {
+          this.toaster.warn(`Tệp ${f.name} vượt quá giới hạn 10 MB.`, 'Cảnh báo');
+          return false;
+        }
+        return true;
+      });
+
+      if (validFiles.length === 0) return;
+
+      this.isUploadingDirectAttachment = true;
+      this.cdr.markForCheck();
+
+      const uploads = validFiles.map(f => this.ticketSvc.uploadAttachment(this.ticket!.id!, f));
+      forkJoin(uploads).pipe(
+        catchError(() => of([]))
+      ).subscribe(() => {
+        this.isUploadingDirectAttachment = false;
+        input.value = '';
+        this.toaster.success(`Đã tải lên ${validFiles.length} tệp đính kèm`, 'Thành công');
+        this.loadData();
+      });
+    }
+  }
+
+  downloadAttachment(attachment: TicketAttachmentDto): void {
+    if (!attachment.id) return;
+    this.ticketSvc.downloadAttachment(attachment.id).subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = attachment.fileName || 'attachment';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      },
+      error: () => {
+        this.toaster.error('Không thể tải tệp tin', 'Lỗi');
+      }
+    });
+  }
+
+  previewImage(attachment: TicketAttachmentDto): void {
+    if (!attachment.id) return;
+    this.ticketSvc.downloadAttachment(attachment.id).subscribe({
+      next: (blob: Blob) => {
+        this.previewImageUrl = window.URL.createObjectURL(blob);
+        this.previewImageTitle = attachment.fileName || 'Hình ảnh đính kèm';
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.toaster.error('Không thể hiển thị ảnh xem trước', 'Lỗi');
+      }
+    });
+  }
+
+  closeImagePreview(): void {
+    if (this.previewImageUrl) {
+      window.URL.revokeObjectURL(this.previewImageUrl);
+      this.previewImageUrl = null;
+    }
+    this.cdr.markForCheck();
+  }
+
+  deleteAttachment(attachment: TicketAttachmentDto): void {
+    if (!attachment.id) return;
+    this.confirmation.warn(`Bạn có chắc muốn xóa tệp "${attachment.fileName}" không?`, 'Xác nhận xóa').subscribe(status => {
+      if (status === Confirmation.Status.confirm) {
+        this.ticketSvc.deleteAttachment(attachment.id!).subscribe({
+          next: () => {
+            this.toaster.success('Đã xóa tệp đính kèm', 'Thành công');
+            this.loadData();
+          }
+        });
+      }
+    });
+  }
+
+  isImage(contentType?: string): boolean {
+    return !!contentType && (contentType.startsWith('image/') || contentType.includes('png') || contentType.includes('jpeg') || contentType.includes('jpg'));
+  }
+
+  getFileIcon(contentType?: string, fileName?: string): string {
+    const ext = fileName ? fileName.split('.').pop()?.toLowerCase() : '';
+    if (this.isImage(contentType) || ['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp'].includes(ext || '')) {
+      return 'fas fa-file-image text-info';
+    }
+    if (['pdf'].includes(ext || '') || contentType?.includes('pdf')) {
+      return 'fas fa-file-pdf text-danger';
+    }
+    if (['doc', 'docx'].includes(ext || '') || contentType?.includes('word')) {
+      return 'fas fa-file-word text-primary';
+    }
+    if (['xls', 'xlsx', 'csv'].includes(ext || '') || contentType?.includes('sheet') || contentType?.includes('excel')) {
+      return 'fas fa-file-excel text-success';
+    }
+    if (['zip', 'rar', '7z', 'tar', 'gz'].includes(ext || '')) {
+      return 'fas fa-file-archive text-warning';
+    }
+    if (['txt', 'log'].includes(ext || '')) {
+      return 'fas fa-file-alt text-secondary';
+    }
+    return 'fas fa-file text-muted';
+  }
+
+  formatFileSize(bytes?: number): string {
+    if (!bytes || bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
   }
 
   openChangeStatusModal(): void {

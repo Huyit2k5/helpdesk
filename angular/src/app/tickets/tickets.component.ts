@@ -67,6 +67,9 @@ export class TicketsComponent implements OnInit {
   selectedCategoryId = '';
   selectedDepartmentId = '';
   selectedAssigneeId = '';
+  dateFrom = '';
+  dateTo = '';
+  isExporting = false;
 
   // Kanban board columns cache
   kanbanColumns: { status: TicketStatusDto; tickets: TicketListDto[] }[] = [];
@@ -83,6 +86,8 @@ export class TicketsComponent implements OnInit {
         categoryId: this.selectedCategoryId || undefined,
         departmentId: this.selectedDepartmentId || undefined,
         assigneeId: this.selectedAssigneeId || undefined,
+        dateFrom: this.dateFrom ? new Date(this.dateFrom).toISOString() : undefined,
+        dateTo: this.dateTo ? new Date(this.dateTo + 'T23:59:59').toISOString() : undefined,
       }).pipe(
         catchError(() => of({ items: [], totalCount: 0 }))
       );
@@ -153,7 +158,46 @@ export class TicketsComponent implements OnInit {
     this.selectedCategoryId = '';
     this.selectedDepartmentId = '';
     this.selectedAssigneeId = '';
+    this.dateFrom = '';
+    this.dateTo = '';
     this.list.get();
+  }
+
+  exportExcel(): void {
+    this.isExporting = true;
+    const input: GetTicketListInput = {
+      filter: this.filterText || undefined,
+      statusId: this.selectedStatusId || undefined,
+      priorityId: this.selectedPriorityId || undefined,
+      categoryId: this.selectedCategoryId || undefined,
+      departmentId: this.selectedDepartmentId || undefined,
+      assigneeId: this.selectedAssigneeId || undefined,
+      dateFrom: this.dateFrom ? new Date(this.dateFrom).toISOString() : undefined,
+      dateTo: this.dateTo ? new Date(this.dateTo + 'T23:59:59').toISOString() : undefined,
+      maxResultCount: 1000,
+      skipCount: 0,
+    };
+
+    this.ticketSvc.exportExcel(input).subscribe({
+      next: (blob: Blob) => {
+        this.isExporting = false;
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Danh_Sach_Su_Vu_${new Date().toISOString().slice(0, 10)}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        this.toaster.success('Xuất file Excel thành công!', 'Thành công');
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.isExporting = false;
+        this.toaster.error('Lỗi khi xuất file Excel', 'Thất bại');
+        this.cdr.markForCheck();
+      }
+    });
   }
 
   switchView(mode: 'table' | 'kanban'): void {

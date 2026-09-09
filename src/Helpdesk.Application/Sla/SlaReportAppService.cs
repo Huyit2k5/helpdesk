@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Linq.Dynamic.Core;
 using System.Threading.Tasks;
@@ -6,8 +8,10 @@ using Helpdesk.Permissions;
 using Helpdesk.Sla.Dtos;
 using Helpdesk.Tickets;
 using Microsoft.AspNetCore.Authorization;
+using MiniExcelLibs;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
+using Volo.Abp.Content;
 using Volo.Abp.Domain.Repositories;
 
 namespace Helpdesk.Sla;
@@ -115,5 +119,58 @@ public class SlaReportAppService : ApplicationService, ISlaReportAppService
         }).ToList();
 
         return new PagedResultDto<SlaBreachLogDto>(totalCount, dtos);
+    }
+
+    public async Task<IRemoteStreamContent> ExportBreachesExcelAsync(GetSlaBreachListInput input)
+    {
+        var breachQuery = await _breachLogRepository.GetQueryableAsync();
+        var ticketQuery = await _ticketRepository.GetQueryableAsync();
+
+        if (input.BreachType.HasValue)
+        {
+            breachQuery = breachQuery.Where(b => b.BreachType == input.BreachType.Value);
+        }
+
+        if (input.StartDate.HasValue)
+        {
+            breachQuery = breachQuery.Where(b => b.CreationTime >= input.StartDate.Value);
+        }
+
+        if (input.EndDate.HasValue)
+        {
+            var end = input.EndDate.Value.Date.AddDays(1).AddTicks(-1);
+            breachQuery = breachQuery.Where(b => b.CreationTime <= end);
+        }
+
+        var joinedQuery = from b in breachQuery
+                          join t in ticketQuery on b.TicketId equals t.Id into tj
+                          from t in tj.DefaultIfEmpty()
+                          select new
+                          {
+                              Breach = b,
+                              TicketNumber = t != null ? t.TicketNumber : string.Empty,
+                              TicketTitle = t != null ? t.Title : string.Empty
+                          };
+
+        var items = await AsyncExecuter.ToListAsync(joinedQuery.OrderByDescending(x => x.Breach.CreationTime));
+
+        var exportData = items.Select((x, index) => new Dictionary<string, object?>
+        {
+            ["STT"] = index + 1,
+            ["Mã Sự Vụ"] = x.TicketNumber,
+            ["Tiêu Đề"] = x.TicketTitle,
+            ["Loại Vi Phạm"] = x.Breach.BreachType == SlaBreachType.Response ? "Phản hồi đầu tiên" : "Thời gian giải quyết",
+            ["Hạn Định"] = x.Breach.ExpectedAt.ToString("dd/MM/yyyy HH:mm"),
+            ["Thực Tế Xử Lý"] = (x.Breach.ResolvedOrRespondedAt ?? x.Breach.BreachedAt).ToString("dd/MM/yyyy HH:mm"),
+            ["Trễ (Phút)"] = x.Breach.ElapsedMinutes ?? 0,
+            ["Mô Tả / Lý Do"] = x.Breach.Description ?? ""
+        }).ToList();
+
+        var memoryStream = new MemoryStream();
+        await memoryStream.SaveAsAsync(exportData);
+        memoryStream.Seek(0, SeekOrigin.Begin);
+
+        var fileName = $"SLA_ViPham_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+        return new RemoteStreamContent(memoryStream, fileName, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
     }
 }

@@ -10,4 +10,5 @@ public interface ISlaReportAppService : IApplicationService
 {
     Task<SlaComplianceStatsDto> GetComplianceStatsAsync(DateTime? startDate = null, DateTime? endDate = null);
     Task<PagedResultDto<SlaBreachLogDto>> GetBreachLogsAsync(GetSlaBreachListInput input);
+    Task<Volo.Abp.Content.IRemoteStreamContent> ExportBreachesExcelAsync(GetSlaBreachListInput input);
 }

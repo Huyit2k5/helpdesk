@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, Output, OnInit, inject, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { catchError, of } from 'rxjs';
+import { catchError, forkJoin, of } from 'rxjs';
 import { TicketService } from '../../proxy/tickets/ticket.service';
 import { CreateTicketDto } from '../../proxy/tickets/dtos/models';
 import { CategoryService } from '../../proxy/categories/category.service';
@@ -53,6 +53,7 @@ export class TicketCreateModalComponent implements OnInit {
   @Output() saved = new EventEmitter<void>();
 
   isSaving = false;
+  selectedFiles: File[] = [];
   categories: CategoryLookupDto[] = [];
   priorities: PriorityDto[] = [];
   statuses: TicketStatusDto[] = [];
@@ -139,6 +140,7 @@ export class TicketCreateModalComponent implements OnInit {
 
   resetAndInitForm(): void {
     this.form.reset();
+    this.selectedFiles = [];
     const defaultStatus = this.statuses.find(s => s.isDefault) ?? this.statuses[0];
     this.form.patchValue({
       priorityId: this.priorities[0]?.id || '',
@@ -147,6 +149,35 @@ export class TicketCreateModalComponent implements OnInit {
       categoryId: this.categories[0]?.id || '',
     });
     this.cdr.markForCheck();
+  }
+
+  onFilesSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files) {
+      const files = Array.from(input.files);
+      for (const file of files) {
+        if (file.size > 10 * 1024 * 1024) {
+          this.toaster.warn(`Tệp ${file.name} vượt quá giới hạn 10 MB.`, 'Cảnh báo');
+          continue;
+        }
+        this.selectedFiles.push(file);
+      }
+      input.value = '';
+      this.cdr.markForCheck();
+    }
+  }
+
+  removeSelectedFile(index: number): void {
+    this.selectedFiles.splice(index, 1);
+    this.cdr.markForCheck();
+  }
+
+  formatFileSize(bytes: number): string {
+    if (!bytes || bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
   }
 
   open(): void {
@@ -187,10 +218,22 @@ export class TicketCreateModalComponent implements OnInit {
 
     this.ticketSvc.create(input).subscribe({
       next: (ticket) => {
-        this.isSaving = false;
-        this.toaster.success(`Tạo yêu cầu #${ticket.ticketNumber} thành công!`, 'Thành công');
-        this.close();
-        this.saved.emit();
+        if (ticket.id && this.selectedFiles.length > 0) {
+          const uploads = this.selectedFiles.map(f => this.ticketSvc.uploadAttachment(ticket.id!, f));
+          forkJoin(uploads).pipe(
+            catchError(() => of([]))
+          ).subscribe(() => {
+            this.isSaving = false;
+            this.toaster.success(`Tạo yêu cầu #${ticket.ticketNumber} cùng ${this.selectedFiles.length} tệp đính kèm thành công!`, 'Thành công');
+            this.close();
+            this.saved.emit();
+          });
+        } else {
+          this.isSaving = false;
+          this.toaster.success(`Tạo yêu cầu #${ticket.ticketNumber} thành công!`, 'Thành công');
+          this.close();
+          this.saved.emit();
+        }
       },
       error: () => {
         this.isSaving = false;

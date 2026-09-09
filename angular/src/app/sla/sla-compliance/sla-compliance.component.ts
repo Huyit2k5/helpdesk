@@ -101,4 +101,36 @@ export class SlaComplianceComponent implements OnInit {
     const remain = mins % 60;
     return remain > 0 ? `${hours}h ${remain}m` : `${hours} giờ`;
   }
+
+  isExporting = false;
+
+  exportExcel(): void {
+    this.isExporting = true;
+    const input: GetSlaBreachListInput = {
+      breachType: this.selectedBreachType,
+      startDate: this.startDate ? new Date(this.startDate).toISOString() : undefined,
+      endDate: this.endDate ? new Date(this.endDate + 'T23:59:59').toISOString() : undefined,
+      maxResultCount: 1000,
+      skipCount: 0,
+    };
+
+    this.slaReportService.exportBreachesExcel(input).subscribe({
+      next: (blob: Blob) => {
+        this.isExporting = false;
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `SLA_Vi_Pham_${new Date().toISOString().slice(0, 10)}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.isExporting = false;
+        this.cdr.markForCheck();
+      }
+    });
+  }
 }

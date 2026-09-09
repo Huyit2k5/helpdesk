@@ -159,6 +159,41 @@
                 </div>
               </div>
             </div>
+
+            <!-- Section 4: Attachments -->
+            <div class="mt-4 pt-3 border-top">
+              <h6 class="fw-bold text-uppercase text-info small mb-3">
+                <i class="fas fa-paperclip me-1"></i> Tệp Đính Kèm & Hình Ảnh
+              </h6>
+              <div class="mb-2">
+                <input
+                  type="file"
+                  multiple
+                  class="form-control"
+                  id="ticket-files-input"
+                  (change)="onFilesSelected($event)"
+                  accept=".png,.jpg,.jpeg,.gif,.pdf,.docx,.xlsx,.txt,.log,.zip"
+                />
+                <div class="form-text text-muted">
+                  Hỗ trợ tải lên nhiều tệp (ảnh, tài liệu, file nén...). Tối đa 10 MB mỗi tệp.
+                </div>
+              </div>
+
+              @if (selectedFiles.length > 0) {
+                <div class="d-flex flex-wrap gap-2 mt-2">
+                  @for (file of selectedFiles; track file.name; let i = $index) {
+                    <div class="badge bg-white text-dark border p-2 d-flex align-items-center gap-2 shadow-sm rounded-3">
+                      <i class="fas fa-paperclip text-primary"></i>
+                      <span class="text-truncate" style="max-width: 200px;">{{ file.name }}</span>
+                      <span class="text-muted small">({{ formatFileSize(file.size) }})</span>
+                      <button type="button" class="btn btn-sm btn-link text-danger p-0 ms-1" (click)="removeSelectedFile(i)" title="Gỡ tệp">
+                        <i class="fas fa-times"></i>
+                      </button>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
           </div>
 
           <div class="modal-footer bg-light border-0 py-3 px-4 flex-shrink-0">
