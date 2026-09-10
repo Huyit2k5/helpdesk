@@ -22,6 +22,11 @@ public class TicketComment : FullAuditedEntity<Guid>, IMultiTenant
     /// </summary>
     public bool IsInternal { get; set; }
 
+    /// <summary>
+    /// Tên người gửi bình luận nếu gửi từ kênh ngoài (như Discord)
+    /// </summary>
+    public string? AuthorName { get; set; }
+
     protected TicketComment()
     {
         // For EF Core
@@ -31,12 +36,14 @@ public class TicketComment : FullAuditedEntity<Guid>, IMultiTenant
         Guid id,
         Guid ticketId,
         string content,
-        bool isInternal = false)
+        bool isInternal = false,
+        string? authorName = null)
         : base(id)
     {
         TicketId = ticketId;
         SetContent(content);
         IsInternal = isInternal;
+        AuthorName = authorName;
     }
 
     public TicketComment SetContent(string content)

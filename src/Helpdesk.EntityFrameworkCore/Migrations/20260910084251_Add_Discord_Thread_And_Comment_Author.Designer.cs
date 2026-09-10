@@ -3,6 +3,7 @@ using System;
 using Helpdesk.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Volo.Abp.EntityFrameworkCore;
@@ -12,9 +13,11 @@ using Volo.Abp.EntityFrameworkCore;
 namespace Helpdesk.Migrations
 {
     [DbContext(typeof(HelpdeskDbContext))]
-    partial class HelpdeskDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260910084251_Add_Discord_Thread_And_Comment_Author")]
+    partial class Add_Discord_Thread_And_Comment_Author
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

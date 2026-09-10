@@ -100,6 +100,7 @@ public static class HelpdeskDbContextModelCreatingExtensions
             b.Property(x => x.RequesterPhone).HasMaxLength(Helpdesk.Tickets.TicketConsts.MaxRequesterPhoneLength);
             b.Property(x => x.Tags).HasMaxLength(Helpdesk.Tickets.TicketConsts.MaxTagsLength);
             b.Property(x => x.CsatComment).HasMaxLength(1000);
+            b.Property(x => x.DiscordThreadId).HasMaxLength(64);
 
             b.HasIndex(x => x.TicketNumber).IsUnique();
             b.HasIndex(x => x.StatusId);
@@ -109,6 +110,7 @@ public static class HelpdeskDbContextModelCreatingExtensions
             b.HasIndex(x => x.AssigneeId);
             b.HasIndex(x => x.CreationTime);
             b.HasIndex(x => x.CsatRating);
+            b.HasIndex(x => x.DiscordThreadId);
         });
 
         builder.Entity<Helpdesk.Tickets.TicketComment>(b =>
@@ -117,6 +119,7 @@ public static class HelpdeskDbContextModelCreatingExtensions
             b.ConfigureByConvention();
 
             b.Property(x => x.Content).IsRequired();
+            b.Property(x => x.AuthorName).HasMaxLength(128);
 
             b.HasIndex(x => x.TicketId);
         });

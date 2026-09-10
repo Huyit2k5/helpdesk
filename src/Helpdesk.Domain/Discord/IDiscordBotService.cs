@@ -29,4 +29,6 @@ public interface IDiscordBotService
         string? url,
         int color,
         List<object> fields);
+
+    Task<bool> SendMessageToThreadAsync(ulong threadId, string authorName, string content);
 }

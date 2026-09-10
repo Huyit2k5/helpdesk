@@ -72,6 +72,11 @@ public class Ticket : FullAuditedAggregateRoot<Guid>, IMultiTenant
     public string? Tags { get; set; }
 
     /// <summary>
+    /// ID của Thread thảo luận trên kênh Discord (nếu có).
+    /// </summary>
+    public string? DiscordThreadId { get; set; }
+
+    /// <summary>
     /// Đánh giá chất lượng hỗ trợ của khách hàng (1 đến 5 sao).
     /// </summary>
     public int? CsatRating { get; set; }

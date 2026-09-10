@@ -4,11 +4,14 @@ using System.Linq;
 using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
+using Helpdesk.AssignmentRules;
 using Helpdesk.Categories;
 using Helpdesk.Notifications;
 using Helpdesk.Priorities;
 using Helpdesk.Settings;
+using Helpdesk.Sla;
 using Helpdesk.Tickets;
+using Helpdesk.TicketSources;
 using Helpdesk.TicketStatuses;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -164,13 +167,86 @@ public class DiscordBotService : IDiscordBotService, ISingletonDependency, IDisp
                 .WithButton("👁️ Xem trên Web", style: ButtonStyle.Link, url: ticketUrl)
                 .Build();
 
-            await channel.SendMessageAsync(embed: embed, components: components);
+            var sentMsg = await channel.SendMessageAsync(embed: embed, components: components);
             _logger.LogInformation("Đã gửi thông báo vé [{TicketNumber}] kèm nút bấm vào kênh Discord {ChannelId}", ticketNumber, channelId);
+
+            // Tự động tạo Discord Thread cho sự vụ này để đồng bộ bình luận 2 chiều
+            try
+            {
+                if (channel is ITextChannel textChannel && sentMsg != null)
+                {
+                    var threadName = $"[{ticketNumber}] {title}";
+                    if (threadName.Length > 95) threadName = threadName.Substring(0, 92) + "...";
+
+                    var thread = await textChannel.CreateThreadAsync(
+                        threadName,
+                        autoArchiveDuration: ThreadArchiveDuration.ThreeDays,
+                        message: sentMsg
+                    );
+
+                    if (thread != null)
+                    {
+                        using var scope = _serviceScopeFactory.CreateScope();
+                        var ticketRepo = scope.ServiceProvider.GetRequiredService<IRepository<Ticket, Guid>>();
+                        var uowManager = scope.ServiceProvider.GetRequiredService<IUnitOfWorkManager>();
+                        using var uow = uowManager.Begin();
+
+                        var ticketToUpdate = await ticketRepo.FindAsync(ticketId);
+                        if (ticketToUpdate != null)
+                        {
+                            ticketToUpdate.DiscordThreadId = thread.Id.ToString();
+                            await ticketRepo.UpdateAsync(ticketToUpdate, autoSave: true);
+                            await uow.CompleteAsync();
+                        }
+
+                        await thread.SendMessageAsync(
+                            $"🧵 **Luồng thảo luận cho sự vụ [{ticketNumber}] đã được kích hoạt!**\n" +
+                            $"• Tiêu đề: **{title}**\n" +
+                            $"• Người yêu cầu: **{requesterName}**\n" +
+                            $"• Danh mục: **{categoryName}** | Mức độ: **{priorityName}**\n" +
+                            $"💬 Mọi tin nhắn trao đổi trong luồng này sẽ tự động đồng bộ về mục Bình luận trên hệ thống Web."
+                        );
+                        _logger.LogInformation("Đã tạo Discord Thread {ThreadId} cho sự vụ {TicketNumber}", thread.Id, ticketNumber);
+                    }
+                }
+            }
+            catch (Exception threadEx)
+            {
+                _logger.LogWarning(threadEx, "Không thể tự động tạo Discord Thread cho vé {TicketNumber}", ticketNumber);
+            }
+
             return true;
         }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Lỗi khi gửi tin nhắn kèm nút tới Discord cho vé {TicketNumber}", ticketNumber);
+            return false;
+        }
+    }
+
+    public async Task<bool> SendMessageToThreadAsync(ulong threadId, string authorName, string content)
+    {
+        if (_client == null || _client.ConnectionState != ConnectionState.Connected)
+        {
+            return false;
+        }
+
+        try
+        {
+            var channel = await _client.GetChannelAsync(threadId);
+            if (channel is IThreadChannel thread)
+            {
+                await thread.SendMessageAsync($"💬 **[{authorName}]**: {content}");
+                _logger.LogInformation("Đã chuyển tiếp bình luận từ Web vào Discord Thread {ThreadId}", threadId);
+                return true;
+            }
+
+            _logger.LogWarning("Không tìm thấy Discord Thread với ID: {ThreadId}", threadId);
+            return false;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Lỗi khi gửi tin nhắn vào Discord Thread {ThreadId}", threadId);
             return false;
         }
     }
@@ -249,8 +325,14 @@ public class DiscordBotService : IDiscordBotService, ISingletonDependency, IDisp
                     .WithName("my-tickets")
                     .WithDescription("Xem danh sách tất cả các sự vụ đang được phân công cho bạn");
 
+                // 3. Đăng ký Slash Command: /create-ticket
+                var createTicketCommand = new SlashCommandBuilder()
+                    .WithName("create-ticket")
+                    .WithDescription("Tạo một yêu cầu hỗ trợ (ticket) mới vào hệ thống Helpdesk");
+
                 var linkBuilt = linkCommand.Build();
                 var myTicketsBuilt = myTicketsCommand.Build();
+                var createTicketBuilt = createTicketCommand.Build();
 
                 // Đăng ký trực tiếp cho từng Guild (Server) để hiển thị NGAY LẬP TỨC trên Discord
                 if (_client != null)
@@ -261,6 +343,7 @@ public class DiscordBotService : IDiscordBotService, ISingletonDependency, IDisp
                         {
                             await guild.CreateApplicationCommandAsync(linkBuilt);
                             await guild.CreateApplicationCommandAsync(myTicketsBuilt);
+                            await guild.CreateApplicationCommandAsync(createTicketBuilt);
                             _logger.LogInformation("Đã đăng ký Guild Slash Command thành công cho server: {GuildName} ({GuildId})", guild.Name, guild.Id);
                         }
                         catch (Exception gEx)
@@ -272,9 +355,10 @@ public class DiscordBotService : IDiscordBotService, ISingletonDependency, IDisp
                     // Đồng thời đăng ký Global
                     await _client.CreateGlobalApplicationCommandAsync(linkBuilt);
                     await _client.CreateGlobalApplicationCommandAsync(myTicketsBuilt);
+                    await _client.CreateGlobalApplicationCommandAsync(createTicketBuilt);
                 }
 
-                _logger.LogInformation("Đã hoàn tất đăng ký Slash Command (/link-helpdesk, /my-tickets) cấp Guild và Global.");
+                _logger.LogInformation("Đã hoàn tất đăng ký Slash Command (/link-helpdesk, /my-tickets, /create-ticket) cấp Guild và Global.");
             }
             catch (Exception ex)
             {
@@ -488,6 +572,12 @@ public class DiscordBotService : IDiscordBotService, ISingletonDependency, IDisp
     {
         try
         {
+            if (modal.Data.CustomId == "discord_create_ticket_modal")
+            {
+                await HandleCreateTicketModalSubmittedAsync(modal);
+                return;
+            }
+
             if (!modal.Data.CustomId.StartsWith("resolve_modal_")) return;
 
             await modal.DeferAsync(ephemeral: true);
@@ -667,6 +757,12 @@ public class DiscordBotService : IDiscordBotService, ISingletonDependency, IDisp
                 await HandleMyTicketsCommandAsync(command);
                 return;
             }
+
+            if (command.Data.Name == "create-ticket")
+            {
+                await HandleCreateTicketCommandAsync(command);
+                return;
+            }
         }
         catch (Exception ex)
         {
@@ -683,6 +779,13 @@ public class DiscordBotService : IDiscordBotService, ISingletonDependency, IDisp
     {
         if (rawMsg is not SocketUserMessage message || message.Author.IsBot)
         {
+            return;
+        }
+
+        // 0. Kiểm tra nếu tin nhắn được gửi trong một Thread thảo luận của Ticket (đồng bộ vào Web)
+        if (message.Channel is SocketThreadChannel threadChannel)
+        {
+            await HandleThreadMessageAsync(threadChannel, message);
             return;
         }
 
@@ -879,6 +982,246 @@ public class DiscordBotService : IDiscordBotService, ISingletonDependency, IDisp
     {
         var angularUrl = _configuration["App:AngularUrl"]?.TrimEnd('/') ?? "http://localhost:4200";
         return $"{angularUrl}/tickets/{ticketId}";
+    }
+
+    private async Task HandleCreateTicketCommandAsync(SocketSlashCommand command)
+    {
+        var mb = new ModalBuilder()
+            .WithTitle("🎫 Tạo Yêu Cầu Hỗ Trợ Mới")
+            .WithCustomId("discord_create_ticket_modal")
+            .AddTextInput(
+                label: "Tiêu đề sự cố / yêu cầu",
+                customId: "ticket_title",
+                placeholder: "Ví dụ: Lỗi không vào được phần mềm, hỏng mạng...",
+                required: true,
+                maxLength: 200
+            )
+            .AddTextInput(
+                label: "Danh mục (Phần mềm, Mạng, Phần cứng...)",
+                customId: "ticket_category",
+                placeholder: "Nhập danh mục sự cố (hoặc để trống nếu chưa rõ)",
+                required: false,
+                maxLength: 100
+            )
+            .AddTextInput(
+                label: "Mô tả chi tiết sự cố",
+                customId: "ticket_description",
+                placeholder: "Mô tả chi tiết hiện tượng lỗi, các bước gặp lỗi...",
+                style: TextInputStyle.Paragraph,
+                required: true,
+                maxLength: 2000
+            );
+
+        await command.RespondWithModalAsync(mb.Build());
+    }
+
+    private async Task HandleCreateTicketModalSubmittedAsync(SocketModal modal)
+    {
+        await modal.DeferAsync(ephemeral: true);
+
+        try
+        {
+            var components = modal.Data.Components.ToList();
+            var title = components.FirstOrDefault(x => x.CustomId == "ticket_title")?.Value?.Trim();
+            var categoryText = components.FirstOrDefault(x => x.CustomId == "ticket_category")?.Value?.Trim();
+            var description = components.FirstOrDefault(x => x.CustomId == "ticket_description")?.Value?.Trim() ?? string.Empty;
+
+            if (string.IsNullOrWhiteSpace(title))
+            {
+                await modal.FollowupAsync("❌ Tiêu đề sự vụ không được để trống.", ephemeral: true);
+                return;
+            }
+
+            using var scope = _serviceScopeFactory.CreateScope();
+            var ticketRepo = scope.ServiceProvider.GetRequiredService<IRepository<Ticket, Guid>>();
+            var categoryRepo = scope.ServiceProvider.GetRequiredService<IRepository<Category, Guid>>();
+            var priorityRepo = scope.ServiceProvider.GetRequiredService<IRepository<Priority, Guid>>();
+            var statusRepo = scope.ServiceProvider.GetRequiredService<IRepository<TicketStatus, Guid>>();
+            var sourceRepo = scope.ServiceProvider.GetRequiredService<IRepository<TicketSource, Guid>>();
+            var userRepo = scope.ServiceProvider.GetRequiredService<IRepository<IdentityUser, Guid>>();
+            var ticketManager = scope.ServiceProvider.GetRequiredService<TicketManager>();
+            var slaManager = scope.ServiceProvider.GetRequiredService<SlaManager>();
+            var autoAssignmentManager = scope.ServiceProvider.GetRequiredService<AutoAssignmentManager>();
+            var activityRepo = scope.ServiceProvider.GetRequiredService<IRepository<TicketActivity, Guid>>();
+            var settingProvider = scope.ServiceProvider.GetRequiredService<ISettingProvider>();
+            var uowManager = scope.ServiceProvider.GetRequiredService<IUnitOfWorkManager>();
+
+            using var uow = uowManager.Begin();
+
+            // 1. Phân giải người gửi (kiểm tra link tài khoản Helpdesk)
+            var discordUserIdStr = modal.User.Id.ToString();
+            var allUsers = await userRepo.GetListAsync();
+            var linkedUser = allUsers.FirstOrDefault(u => u.GetProperty<string>("DiscordUserId") == discordUserIdStr)
+                             ?? allUsers.FirstOrDefault(u => string.Equals(u.UserName, modal.User.Username, StringComparison.OrdinalIgnoreCase));
+
+            var requesterName = linkedUser?.UserName ?? $"{modal.User.Username} (Discord)";
+            var requesterEmail = linkedUser?.Email ?? $"{modal.User.Username.ToLower()}@discord.user";
+            Guid? requesterId = linkedUser?.Id;
+
+            // 2. Tìm danh mục phù hợp
+            var allCategories = await categoryRepo.GetListAsync();
+            Category? category = null;
+            if (!string.IsNullOrWhiteSpace(categoryText))
+            {
+                category = allCategories.FirstOrDefault(c => c.Name.Contains(categoryText, StringComparison.OrdinalIgnoreCase));
+            }
+            category ??= allCategories.FirstOrDefault();
+            if (category == null)
+            {
+                await modal.FollowupAsync("❌ Chưa có danh mục nào được cấu hình trong hệ thống.", ephemeral: true);
+                return;
+            }
+
+            // 3. Tìm mức ưu tiên mặc định (Normal / Medium)
+            var allPriorities = await priorityRepo.GetListAsync();
+            var priority = allPriorities.FirstOrDefault(p => p.Code == "NORMAL" || p.Code == "MEDIUM" || p.Name.Contains("Normal", StringComparison.OrdinalIgnoreCase))
+                           ?? allPriorities.FirstOrDefault();
+            if (priority == null)
+            {
+                await modal.FollowupAsync("❌ Chưa có mức ưu tiên nào được cấu hình trong hệ thống.", ephemeral: true);
+                return;
+            }
+
+            // 4. Tìm trạng thái mặc định (Open)
+            var allStatuses = await statusRepo.GetListAsync();
+            var status = allStatuses.FirstOrDefault(s => s.Code == "OPEN" || s.Name.Contains("Open", StringComparison.OrdinalIgnoreCase))
+                         ?? allStatuses.FirstOrDefault();
+            if (status == null)
+            {
+                await modal.FollowupAsync("❌ Chưa có trạng thái nào được cấu hình trong hệ thống.", ephemeral: true);
+                return;
+            }
+
+            // 5. Tìm nguồn Discord
+            var allSources = await sourceRepo.GetListAsync();
+            var source = allSources.FirstOrDefault(s => s.Code == "DISCORD" || s.Name.Contains("Discord", StringComparison.OrdinalIgnoreCase))
+                         ?? allSources.FirstOrDefault();
+            if (source == null)
+            {
+                await modal.FollowupAsync("❌ Chưa có nguồn sự vụ nào được cấu hình trong hệ thống.", ephemeral: true);
+                return;
+            }
+
+            // 6. Tạo vé qua TicketManager
+            var ticket = await ticketManager.CreateAsync(
+                title: title,
+                description: description,
+                categoryId: category.Id,
+                priorityId: priority.Id,
+                statusId: status.Id,
+                sourceId: source.Id,
+                requesterName: requesterName,
+                requesterEmail: requesterEmail,
+                requesterId: requesterId
+            );
+
+            // Tính toán SLA hạn chót và tự động phân công
+            await slaManager.CalculateSlaDatesAsync(ticket);
+            await autoAssignmentManager.TryAssignTicketAsync(ticket);
+
+            await ticketRepo.InsertAsync(ticket, autoSave: true);
+
+            var activity = new TicketActivity(
+                Guid.NewGuid(),
+                ticket.Id,
+                TicketActivityType.Created,
+                description: $"Sự vụ được tạo trực tiếp từ Discord bởi @{modal.User.Username}."
+            );
+            await activityRepo.InsertAsync(activity, autoSave: true);
+
+            await uow.CompleteAsync();
+
+            var ticketUrl = BuildTicketUrl(ticket.Id);
+            await modal.FollowupAsync(
+                $"🎉 **Yêu cầu hỗ trợ của bạn đã được ghi nhận thành công!**\n" +
+                $"• Mã sự vụ: **{ticket.TicketNumber}**\n" +
+                $"• Tiêu đề: **{ticket.Title}**\n" +
+                $"• Danh mục: **{category.Name}** | Hạn chót SLA: **{ticket.DueDate?.ToString("HH:mm dd/MM/yyyy") ?? "Đang tính"}**\n" +
+                $"🔗 [Xem chi tiết trên Web]({ticketUrl})",
+                ephemeral: true);
+
+            // Bắn thông báo lên kênh Discord kèm nút bấm và tự động tạo Thread
+            var channelIdStr = await settingProvider.GetOrNullAsync(HelpdeskSettings.Discord.ChannelId);
+            if (!string.IsNullOrWhiteSpace(channelIdStr) && ulong.TryParse(channelIdStr.Trim(), out var channelId))
+            {
+                var isCritical = priority.Name.Contains("Critical", StringComparison.OrdinalIgnoreCase);
+                await SendTicketWithButtonsAsync(
+                    channelId,
+                    ticket.Id,
+                    ticket.TicketNumber,
+                    ticket.Title,
+                    ticket.Description,
+                    requesterName,
+                    ticket.DueDate,
+                    category.Name,
+                    priority.Name,
+                    isCritical
+                );
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Lỗi khi tạo sự vụ từ Discord Modal");
+            try
+            {
+                await modal.FollowupAsync("❌ Đã xảy ra lỗi khi tạo sự vụ qua Discord. Vui lòng thử lại sau.", ephemeral: true);
+            }
+            catch { }
+        }
+    }
+
+    private async Task HandleThreadMessageAsync(SocketThreadChannel threadChannel, SocketUserMessage message)
+    {
+        try
+        {
+            using var scope = _serviceScopeFactory.CreateScope();
+            var ticketRepo = scope.ServiceProvider.GetRequiredService<IRepository<Ticket, Guid>>();
+            var commentRepo = scope.ServiceProvider.GetRequiredService<IRepository<TicketComment, Guid>>();
+            var activityRepo = scope.ServiceProvider.GetRequiredService<IRepository<TicketActivity, Guid>>();
+            var uowManager = scope.ServiceProvider.GetRequiredService<IUnitOfWorkManager>();
+
+            var threadIdStr = threadChannel.Id.ToString();
+            using var uow = uowManager.Begin();
+
+            var ticket = await ticketRepo.FirstOrDefaultAsync(t => t.DiscordThreadId == threadIdStr);
+            if (ticket == null)
+            {
+                return;
+            }
+
+            var authorName = message.Author.Username;
+            var comment = new TicketComment(
+                Guid.NewGuid(),
+                ticket.Id,
+                message.Content,
+                isInternal: false,
+                authorName: $"{authorName} (Discord)"
+            );
+
+            await commentRepo.InsertAsync(comment, autoSave: true);
+
+            var activity = new TicketActivity(
+                Guid.NewGuid(),
+                ticket.Id,
+                TicketActivityType.CommentAdded,
+                description: $"Phản hồi mới từ @{authorName} qua luồng thảo luận Discord."
+            );
+            await activityRepo.InsertAsync(activity, autoSave: true);
+
+            await uow.CompleteAsync();
+
+            try
+            {
+                await message.AddReactionAsync(new Emoji("✅"));
+            }
+            catch { }
+
+            _logger.LogInformation("Đã đồng bộ tin nhắn từ Discord Thread {ThreadId} vào sự vụ {TicketNumber}", threadChannel.Id, ticket.TicketNumber);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Lỗi khi đồng bộ tin nhắn từ Discord Thread vào sự vụ");
+        }
     }
 
     public void Dispose()

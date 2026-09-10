@@ -51,6 +51,8 @@ public class TicketAppService : ApplicationService, ITicketAppService
     private readonly NotificationManager _notificationManager;
     private readonly IEmailSender _emailSender;
     private readonly IDiscordNotificationService _discordNotificationService;
+    private readonly IEmailNotificationService _emailNotificationService;
+    private readonly IDiscordBotService _discordBotService;
 
     public TicketAppService(
         IRepository<Ticket, Guid> ticketRepository,
@@ -70,7 +72,9 @@ public class TicketAppService : ApplicationService, ITicketAppService
         AutoAssignmentManager autoAssignmentManager,
         NotificationManager notificationManager,
         IEmailSender emailSender,
-        IDiscordNotificationService discordNotificationService)
+        IDiscordNotificationService discordNotificationService,
+        IEmailNotificationService emailNotificationService,
+        IDiscordBotService discordBotService)
     {
         _ticketRepository = ticketRepository;
         _commentRepository = commentRepository;
@@ -90,6 +94,8 @@ public class TicketAppService : ApplicationService, ITicketAppService
         _notificationManager = notificationManager;
         _emailSender = emailSender;
         _discordNotificationService = discordNotificationService;
+        _emailNotificationService = emailNotificationService;
+        _discordBotService = discordBotService;
     }
 
     public async Task<PagedResultDto<TicketListDto>> GetListAsync(GetTicketListInput input)
@@ -398,6 +404,36 @@ public class TicketAppService : ApplicationService, ITicketAppService
         var isCritical = priority?.Name.Contains("Critical", StringComparison.OrdinalIgnoreCase) == true;
         await _discordNotificationService.SendTicketCreatedAsync(ticket, category?.Name ?? "Chung", priority?.Name ?? "Bình thường", isCritical);
 
+        // Gửi email xác nhận tiếp nhận sự vụ cho khách hàng
+        if (!string.IsNullOrWhiteSpace(ticket.RequesterEmail))
+        {
+            await _emailNotificationService.SendTicketCreatedConfirmationAsync(
+                ticket.RequesterEmail,
+                ticket.RequesterName,
+                ticket.TicketNumber,
+                ticket.Title,
+                ticket.Description,
+                ticket.DueDate
+            );
+        }
+
+        // Nếu đã được phân công ngay lúc tạo (qua auto-assignment), gửi email cho kỹ thuật viên
+        if (ticket.AssigneeId.HasValue && ticket.AssigneeId.Value != Guid.Empty)
+        {
+            var assignee = await _userRepository.FindAsync(ticket.AssigneeId.Value);
+            if (assignee != null && !string.IsNullOrWhiteSpace(assignee.Email))
+            {
+                await _emailNotificationService.SendTicketAssignedNotificationAsync(
+                    assignee.Email,
+                    assignee.UserName,
+                    ticket.TicketNumber,
+                    ticket.Title,
+                    priority?.Name ?? "Bình thường",
+                    ticket.DueDate
+                );
+            }
+        }
+
         return await GetAsync(ticket.Id);
     }
 
@@ -481,10 +517,13 @@ public class TicketAppService : ApplicationService, ITicketAppService
             var assigneeUser = await _userRepository.FindAsync(input.AssigneeId.Value);
             if (!string.IsNullOrWhiteSpace(assigneeUser?.Email))
             {
-                await _emailSender.SendAsync(
+                await _emailNotificationService.SendTicketAssignedNotificationAsync(
                     assigneeUser.Email,
-                    $"[Helpdesk] Bạn được giao vé {ticket.TicketNumber}",
-                    $"Vé \"{ticket.Title}\" vừa được phân công cho bạn. Vui lòng đăng nhập hệ thống để xử lý."
+                    assigneeName ?? assigneeUser.UserName,
+                    ticket.TicketNumber,
+                    ticket.Title,
+                    priority?.Name ?? "Bình thường",
+                    ticket.DueDate
                 );
             }
         }
@@ -533,10 +572,12 @@ public class TicketAppService : ApplicationService, ITicketAppService
 
         if (isResolved && !string.IsNullOrWhiteSpace(ticket.RequesterEmail))
         {
-            await _emailSender.SendAsync(
+            await _emailNotificationService.SendTicketResolvedNotificationAsync(
                 ticket.RequesterEmail,
-                $"[Helpdesk] Vé {ticket.TicketNumber} đã được giải quyết",
-                $"Vé \"{ticket.Title}\" của bạn đã chuyển sang trạng thái \"{newStatus.Name}\". Cảm ơn bạn đã sử dụng dịch vụ hỗ trợ."
+                ticket.RequesterName,
+                ticket.TicketNumber,
+                ticket.Title,
+                input.Comment
             );
         }
 
@@ -586,6 +627,12 @@ public class TicketAppService : ApplicationService, ITicketAppService
             );
         }
 
+        // Đồng bộ bình luận công khai ra Discord Thread nếu sự vụ có luồng thảo luận Discord
+        if (!input.IsInternal && !string.IsNullOrWhiteSpace(ticket.DiscordThreadId) && ulong.TryParse(ticket.DiscordThreadId, out var threadId))
+        {
+            await _discordBotService.SendMessageToThreadAsync(threadId, CurrentUser.UserName ?? "Kỹ thuật viên", input.Content);
+        }
+
         return new TicketCommentDto
         {
             Id = comment.Id,
@@ -613,7 +660,7 @@ public class TicketAppService : ApplicationService, ITicketAppService
             TicketId = c.TicketId,
             Content = c.Content,
             IsInternal = c.IsInternal,
-            CreatorName = c.CreatorId.HasValue ? userDict.GetValueOrDefault(c.CreatorId.Value) : null
+            CreatorName = c.CreatorId.HasValue ? userDict.GetValueOrDefault(c.CreatorId.Value) : (c.AuthorName ?? "Khách hàng")
         }).ToList();
     }
 
