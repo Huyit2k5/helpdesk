@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
@@ -34,6 +35,25 @@ public class Program
             await builder.AddApplicationAsync<HelpdeskHttpApiHostModule>();
             var app = builder.Build();
             await app.InitializeApplicationAsync();
+
+            var configuration = app.Services.GetRequiredService<Microsoft.Extensions.Configuration.IConfiguration>();
+            if (configuration.GetValue<bool>("App:AutoMigrate", true))
+            {
+                using var scope = app.Services.CreateScope();
+                try
+                {
+                    Log.Information("Applying database migrations and seeding initial data...");
+                    await scope.ServiceProvider
+                        .GetRequiredService<Helpdesk.Data.HelpdeskDbMigrationService>()
+                        .MigrateAsync();
+                    Log.Information("Database migration and seeding completed successfully.");
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "An error occurred during database migration/seeding.");
+                }
+            }
+
             await app.RunAsync();
             return 0;
         }
