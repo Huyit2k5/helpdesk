@@ -132,41 +132,223 @@ Kỹ thuật viên thao tác trực tiếp trên Discord: Nhận vé bằng nút
 ## 🗄️ MÔ HÌNH CƠ SỞ DỮ LIỆU & MỐI QUAN HỆ (DATABASE SCHEMA & ERD)
 
 ### 1. Sơ Đồ Thực Thể Quan Hệ (Entity Relationship Diagram - ERD)
+*Sơ đồ chỉ tập trung hiển thị toàn bộ **19 bảng nghiệp vụ tùy biến** được xây dựng riêng cho dự án Helpdesk (loại trừ các bảng hệ thống mặc định của ABP Framework như `AbpUsers`, `AbpRoles`, `AbpSettings`...):*
 
 ```mermaid
 erDiagram
-    AppCategories ||--o{ AppTickets : "phân loại"
-    AppCategories ||--o{ AppCategories : "danh mục cha-con"
-    AppPriorities ||--o{ AppTickets : "mức ưu tiên"
-    AppTicketStatuses ||--o{ AppTickets : "trạng thái"
-    AppDepartments ||--o{ AppTickets : "phòng ban"
-    AppTicketSources ||--o{ AppTickets : "kênh tiếp nhận"
-    AbpUsers ||--o{ AppTickets : "kỹ thuật viên phụ trách (Assignee)"
-    AbpUsers ||--o{ AppTickets : "người gửi yêu cầu (Requester)"
+    AppTickets {
+        uuid Id PK
+        string TicketNumber UK
+        string Title
+        string Description
+        uuid CategoryId FK
+        uuid PriorityId FK
+        uuid DepartmentId FK
+        uuid StatusId FK
+        uuid SourceId FK
+        uuid AssigneeId FK
+        uuid RequesterId FK
+        string RequesterName
+        string RequesterEmail
+        string RequesterPhone
+        timestamp DueDate
+        timestamp FirstResponseDueDate
+        timestamp FirstResponseAt
+        timestamp ResolvedAt
+        timestamp ClosedAt
+        int CsatRating
+        string CsatComment
+        timestamp CsatSubmittedAt
+    }
 
-    AppTickets ||--o{ AppTicketComments : "chứa các trao đổi"
-    AppTickets ||--o{ AppTicketAttachments : "chứa tệp đính kèm"
-    AppTickets ||--o{ AppTicketActivities : "ghi nhật ký hoạt động"
-    AppTickets ||--o{ AppSlaBreachLogs : "ghi nhận vi phạm SLA"
-    AppTickets ||--o{ AppNotifications : "kích hoạt thông báo"
+    AppTicketComments {
+        uuid Id PK
+        uuid TicketId FK
+        uuid UserId FK
+        string Content
+        boolean IsInternal
+    }
 
-    AppTicketComments ||--o{ AppTicketAttachments : "đính kèm trong comment"
-    AbpUsers ||--o{ AppTicketComments : "tác giả bình luận"
-    AbpUsers ||--o{ AppTicketActivities : "người thực hiện thao tác"
-    AbpUsers ||--o{ AppNotifications : "người nhận thông báo"
+    AppTicketAttachments {
+        uuid Id PK
+        uuid TicketId FK
+        uuid CommentId FK
+        string FileName
+        int64 FileSize
+        string ContentType
+        string BlobName
+    }
 
-    AppSlaPolicies ||--|{ AppSlaPolicyRules : "chứa các quy tắc"
-    AppPriorities ||--o{ AppSlaPolicyRules : "áp dụng cho"
-    AppCategories ||--o{ AppSlaPolicyRules : "áp dụng cho"
+    AppTicketActivities {
+        uuid Id PK
+        uuid TicketId FK
+        uuid UserId FK
+        int ActivityType
+        string Description
+    }
 
-    AppAssignmentRules ||--|{ AppAssignmentRuleAgents : "danh sách phân bổ"
-    AbpUsers ||--o{ AppAssignmentRuleAgents : "nhân viên trong rule"
-    AppCategories ||--o{ AppAssignmentRules : "áp dụng cho"
-    AppPriorities ||--o{ AppAssignmentRules : "áp dụng cho"
-    AppDepartments ||--o{ AppAssignmentRules : "áp dụng cho"
+    AppCategories {
+        uuid Id PK
+        string Code UK
+        string Name
+        string Description
+        uuid ParentId FK
+        boolean IsActive
+    }
 
-    AppCategories ||--o{ AppKnowledgeArticles : "nhóm bài viết"
-    AppCategories ||--o{ AppCannedResponses : "mẫu trả lời theo danh mục"
+    AppPriorities {
+        uuid Id PK
+        string Code UK
+        string Name
+        string Color
+        int UrgencyLevel
+        int DefaultResolutionTimeMinutes
+        int DefaultFirstResponseTimeMinutes
+    }
+
+    AppTicketStatuses {
+        uuid Id PK
+        string Code UK
+        string Name
+        string Color
+        int StatusGroup
+        boolean IsDefault
+        boolean IsFinal
+    }
+
+    AppDepartments {
+        uuid Id PK
+        string Code UK
+        string Name
+        string Description
+        uuid ManagerId FK
+    }
+
+    AppTicketSources {
+        uuid Id PK
+        string Code UK
+        string Name
+        boolean IsActive
+    }
+
+    AppCannedResponses {
+        uuid Id PK
+        string Title
+        string Content
+        uuid CategoryId FK
+        boolean IsGlobal
+    }
+
+    AppSlaPolicies {
+        uuid Id PK
+        string Name
+        string Description
+        boolean IsDefault
+        boolean IsActive
+    }
+
+    AppSlaPolicyRules {
+        uuid Id PK
+        uuid SlaPolicyId FK
+        uuid PriorityId FK
+        uuid CategoryId FK
+        int FirstResponseTimeMinutes
+        int ResolutionTimeMinutes
+    }
+
+    AppBusinessHours {
+        uuid Id PK
+        int DayOfWeek
+        time StartTime
+        time EndTime
+        boolean IsWorkingDay
+    }
+
+    AppHolidays {
+        uuid Id PK
+        string Name
+        date Date
+        boolean IsRecurring
+    }
+
+    AppSlaBreachLogs {
+        uuid Id PK
+        uuid TicketId FK
+        int BreachType
+        timestamp BreachedAt
+        timestamp TargetDate
+    }
+
+    AppKnowledgeArticles {
+        uuid Id PK
+        string Title
+        string Slug UK
+        string Summary
+        string Content
+        uuid CategoryId FK
+        string Tags
+        boolean IsPublished
+        int ViewCount
+        int HelpfulCount
+    }
+
+    AppAssignmentRules {
+        uuid Id PK
+        string Name
+        string Description
+        int Order
+        boolean IsActive
+        int RoutingStrategy
+        uuid CategoryId FK
+        uuid PriorityId FK
+        uuid DepartmentId FK
+    }
+
+    AppAssignmentRuleAgents {
+        uuid Id PK
+        uuid RuleId FK
+        uuid UserId FK
+        int Order
+        timestamp LastAssignedTime
+    }
+
+    AppNotifications {
+        uuid Id PK
+        uuid RecipientUserId FK
+        int Type
+        string Title
+        string Message
+        uuid TicketId FK
+        boolean IsRead
+    }
+
+    %% Các mối quan hệ thực thể cốt lõi
+    AppCategories ||--o{ AppTickets : "categorizes"
+    AppCategories ||--o{ AppCategories : "parent_child"
+    AppCategories ||--o{ AppSlaPolicyRules : "applies_to"
+    AppCategories ||--o{ AppKnowledgeArticles : "groups"
+    AppCategories ||--o{ AppCannedResponses : "classifies"
+    AppCategories ||--o{ AppAssignmentRules : "filters"
+
+    AppPriorities ||--o{ AppTickets : "prioritizes"
+    AppPriorities ||--o{ AppSlaPolicyRules : "applies_to"
+    AppPriorities ||--o{ AppAssignmentRules : "filters"
+
+    AppTicketStatuses ||--o{ AppTickets : "sets_state"
+    AppDepartments ||--o{ AppTickets : "assigns_dept"
+    AppDepartments ||--o{ AppAssignmentRules : "filters"
+    AppTicketSources ||--o{ AppTickets : "received_via"
+
+    AppTickets ||--o{ AppTicketComments : "contains"
+    AppTickets ||--o{ AppTicketAttachments : "has_files"
+    AppTickets ||--o{ AppTicketActivities : "logs"
+    AppTickets ||--o{ AppSlaBreachLogs : "records_breach"
+    AppTickets ||--o{ AppNotifications : "triggers"
+
+    AppTicketComments ||--o{ AppTicketAttachments : "comment_files"
+
+    AppSlaPolicies ||--|{ AppSlaPolicyRules : "defines_rules"
+    AppAssignmentRules ||--|{ AppAssignmentRuleAgents : "assigns_agents"
 ```
 
 ---
