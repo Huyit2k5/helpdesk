@@ -1,0 +1,16 @@
+**/.git
+**/.vs
+**/.vscode
+**/.cursor
+**/.angular
+**/bin
+**/obj
+**/Logs
+**/node_modules
+angular/
+docs/
+etc/
+test/
+*.sln.DotSettings.user
+*.suo
+test-publish/
