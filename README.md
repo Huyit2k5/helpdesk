@@ -1,6 +1,6 @@
-# 🎫 HỆ THỐNG QUẢN LÝ HỖ TRỢ KỸ THUẬT (HELPDESK SYSTEM)
+# 🎫 HỆ THỐNG QUẢN LÝ HỖ TRỢ KỸ THUẬT (HELPDESK ITSM SYSTEM)
 
-Dự án xây dựng hệ thống Helpdesk doanh nghiệp hiện đại, đa kênh (Omnichannel), hỗ trợ Multi-tenancy, Quản lý cam kết dịch vụ (SLA Engine), Cổng thông tin khách hàng (Customer Portal), Cơ sở tri thức (Knowledge Base) và Đánh giá chất lượng dịch vụ (CSAT) dựa trên nền tảng **ABP Framework v10.6**, **.NET 10**, **PostgreSQL** và **Angular 19 (Standalone)**.
+Dự án xây dựng hệ thống Helpdesk & Quản lý Dịch vụ Công nghệ Thông tin (ITSM) doanh nghiệp hiện đại, đa kênh (Omnichannel), hỗ trợ Multi-tenancy, Quản lý cam kết dịch vụ (SLA Engine), Điều phối phân công tự động (Assignment Rules), Cổng thông tin khách hàng (Customer Portal), Cơ sở tri thức (Knowledge Base), Đánh giá chất lượng dịch vụ (CSAT), Trung tâm thông báo thời gian thực và **Tích hợp Bot Discord tương tác 2 chiều (Interactive Bot Gateway & Slash Commands)** dựa trên nền tảng **ABP Framework v10.6**, **.NET 10**, **PostgreSQL** và **Angular 19 (Standalone)**.
 
 ---
 
@@ -8,30 +8,37 @@ Dự án xây dựng hệ thống Helpdesk doanh nghiệp hiện đại, đa kê
 
 1. [Tổng Quan Kiến Trúc & Công Nghệ](#-tổng-quan-kiến-trúc--công-nghệ)
 2. [Lộ Trình Triển Khai & Trạng Thái Hệ Thống](#-lộ-trình-triển-khai--trạng-thái-hệ-thống)
-3. [Chi Tiết Các Phân Hệ & Tính Năng Đã Triển Khai](#-chi-tiết-các-phân-hệ--tính-năng-đã-triển-khai)
-   - [Phân Hệ 1: Quản Lý Danh Mục Hệ Thống (Master Data)](#31-phân-hệ-1-quản-lý-danh-mục-hệ-thống-master-data)
-   - [Phân Hệ 2: Quản Lý Sự Vụ Cốt Lõi (Ticket Lifecycle & Dual View)](#32-phân-hệ-2-quản-lý-sự-vụ-cốt-lõi-ticket-lifecycle--dual-view)
-   - [Phân Hệ 3: Động Cơ Cam Kết Dịch Vụ (SLA Engine & Lịch Làm Việc)](#33-phân-hệ-3-động-cơ-cam-kết-dịch-vụ-sla-engine--lịch-làm-việc)
-   - [Phân Hệ 4: Báo Cáo, Thống Kê & Giám Sát (Dashboard Analytics)](#34-phân-hệ-4-báo-cáo-thống-kê--giám-sát-dashboard-analytics)
-   - [Phân Hệ 5: Quản Lý Tệp Đính Kèm Blob & Xuất Báo Cáo Excel (Gói Mở Rộng A)](#35-phân-hệ-5-quản-lý-tệp-đính-kèm-blob--xuất-báo-cáo-excel-gói-mở-rộng-a)
-   - [Phân Hệ 6: Cơ Sở Tri Thức & Gợi Ý Giải Pháp (Knowledge Base & Deflection)](#36-phân-hệ-6-cơ-sở-tri-thức--gợi-ý-giải-pháp-knowledge-base--deflection)
-   - [Phân Hệ 7: Cổng Khách Hàng & Đính Kèm Ảnh Lỗi (Customer Portal & Media Upload)](#37-phân-hệ-7-cổng-khách-hàng--đính-kèm-ảnh-lỗi-customer-portal--media-upload)
-   - [Phân Hệ 8: Khảo Sát & Đo Lường Độ Hài Lòng Khách Hàng (CSAT Feedback)](#38-phân-hệ-8-khảo-sát--đo-lường-độ-hài-lòng-khách-hàng-csat-feedback)
-   - [Dữ Liệu Khởi Tạo Chuẩn (Data Seeding)](#39-dữ-liệu-khởi-tạo-chuẩn-data-seeding)
-4. [Tài Khoản Mặc Định & Phân Quyền Vai Trò](#-tài-khoản-mặc-định--phân-quyền-vai-trò)
-5. [Hướng Dẫn Cài Đặt, Migrate CSDL & Khởi Chạy](#-hướng-dẫn-cài-đặt-migrate-csdl--khởi-chạy)
-6. [Tổng Hợp Các Lỗi Phát Sinh & Cách Khắc Phục (Troubleshooting Guide)](#-tổng-hợp-các-lỗi-phát-sinh--cách-khắc-phục-troubleshooting-guide)
+3. [Bộ Sưu Tập Giao Diện Hệ Thống (UI Showcase)](#-bộ-sưu-tập-giao-diện-hệ-thống-ui-showcase)
+4. [Mô Hình Cơ Sở Dữ Liệu & Mối Quan Hệ (Database Schema & ERD)](#-mô-hình-cơ-sở-dữ-liệu--mối-quan-hệ-database-schema--erd)
+5. [Chi Tiết Các Phân Hệ & Tính Năng Đã Triển Khai](#-chi-tiết-các-phân-hệ--tính-năng-đã-triển-khai)
+   - [Phân Hệ 1: Quản Lý Danh Mục Hệ Thống (Master Data)](#51-phân-hệ-1-quản-lý-danh-mục-hệ-thống-master-data)
+   - [Phân Hệ 2: Quản Lý Sự Vụ Cốt Lõi (Ticket Lifecycle & Dual View)](#52-phân-hệ-2-quản-lý-sự-vụ-cốt-lõi-ticket-lifecycle--dual-view)
+   - [Phân Hệ 3: Động Cơ Cam Kết Dịch Vụ (SLA Engine & Lịch Làm Việc)](#53-phân-hệ-3-động-cơ-cam-kết-dịch-vụ-sla-engine--lịch-làm-việc)
+   - [Phân Hệ 4: Báo Cáo, Thống Kê & Giám Sát (Dashboard Analytics)](#54-phân-hệ-4-báo-cáo-thống-kê--giám-sát-dashboard-analytics)
+   - [Phân Hệ 5: Quản Lý Tệp Đính Kèm Blob & Xuất Báo Cáo Excel (Gói Mở Rộng A)](#55-phân-hệ-5-quản-lý-tệp-đính-kèm-blob--xuất-báo-cáo-excel-gói-mở-rộng-a)
+   - [Phân Hệ 6: Cơ Sở Tri Thức & Gợi Ý Giải Pháp (Knowledge Base & Deflection)](#56-phân-hệ-6-cơ-sở-tri-thức--gợi-ý-giải-pháp-knowledge-base--deflection)
+   - [Phân Hệ 7: Cổng Khách Hàng & Đính Kèm Ảnh Lỗi (Customer Portal & Media Upload)](#57-phân-hệ-7-cổng-khách-hàng--đính-kèm-ảnh-lỗi-customer-portal--media-upload)
+   - [Phân Hệ 8: Khảo Sát & Đo Lường Độ Hài Lòng Khách Hàng (CSAT Feedback)](#58-phân-hệ-8-khảo-sát--đo-lường-độ-hài-lòng-khách-hàng-csat-feedback)
+   - [Phân Hệ 9: Cảnh Báo Discord Webhook Qua Background Jobs (Discord Alerts)](#59-phân-hệ-9-cảnh-báo-discord-webhook-qua-background-jobs-discord-alerts)
+   - [Phân Hệ 10: Bot Trợ Lý Kỹ Thuật Viên & Tương Tác 2 Chiều Discord (Interactive Gateway Bot)](#510-phân-hệ-10-bot-trợ-lý-kỹ-thuật-viên--tương-tác-2-chiều-discord-interactive-gateway-bot)
+   - [Phân Hệ 11: Điều Phối & Phân Công Tự Động (Auto-Assignment & Round Robin)](#511-phân-hệ-11-điều-phối--phân-công-tự-động-auto-assignment--round-robin)
+   - [Phân Hệ 12: Trung Tâm Thông Báo Thời Gian Thực (In-App Notifications)](#512-phân-hệ-12-trung-tâm-thông-báo-thời-gian-thực-in-app-notifications)
+   - [Dữ Liệu Khởi Tạo Chuẩn (Data Seeding)](#513-dữ-liệu-khởi-tạo-chuẩn-data-seeding)
+6. [Tài Khoản Mặc Định & Phân Quyền Vai Trò](#-tài-khoản-mặc-định--phân-quyền-vai-trò)
+7. [Hướng Dẫn Cài Đặt, Migrate CSDL & Khởi Chạy](#-hướng-dẫn-cài-đặt-migrate-csdl--khởi-chạy)
+8. [Tổng Hợp Các Lỗi Phát Sinh & Cách Khắc Phục (Troubleshooting Guide)](#-tổng-hợp-các-lỗi-phát-sinh--cách-khắc-phục-troubleshooting-guide)
 
 ---
 
 ## 🏛️ TỔNG QUAN KIẾN TRÚC & CÔNG NGHỆ
 
-Hệ thống được thiết kế theo kiến trúc chuẩn **Domain-Driven Design (DDD)** của ABP Framework, đảm bảo tính mô-đun hóa cao, dễ mở rộng và bảo trì:
+Hệ thống được thiết kế theo kiến trúc chuẩn **Domain-Driven Design (DDD)** của ABP Framework, đảm bảo tính mô-đun hóa cao, mở rộng linh hoạt:
 
 | Tầng / Thành Phần | Công Nghệ & Thư Viện | Vai Trò & Điểm Nổi Bật |
 |:---|:---|:---|
-| **Backend Core** | **.NET 10.0**, **C# 13**, **ABP Framework v10.6.0** | Xử lý nghiệp vụ chuẩn DDD, Aggregate Roots, Domain Services, Event Bus, Background Workers. |
+| **Backend Core** | **.NET 10.0**, **C# 13**, **ABP Framework v10.6.0** | Xử lý nghiệp vụ chuẩn DDD, Aggregate Roots, Domain Services, Event Bus, Background Workers & Background Jobs. |
 | **Database & ORM** | **PostgreSQL 17** (Docker), **EF Core 10** | Quản lý dữ liệu quan hệ, Index tối ưu, Audit Logging, Concurrency Check, Code-First Migrations. |
+| **Discord Gateway Bot** | **Discord.Net v3.18.0** | Bot WebSocket Gateway kết nối 2 chiều, lắng nghe Button Execution, Slash Command, Modal Form và Message events. |
 | **Blob Storage** | **Volo.Abp.BlobStoring.Database** | Lưu trữ tập tin đính kèm và hình ảnh chụp lỗi trực tiếp trong PostgreSQL an toàn, đồng bộ giao dịch. |
 | **Báo Cáo & Xuất Dữ Liệu**| **MiniExcel 1.46.0** | Thư viện stream Excel `.xlsx` hiệu năng cao, ngốn cực ít RAM, tốc độ xuất hàng chục ngàn dòng trong vài giây. |
 | **Frontend Framework** | **Angular 19 (Standalone Components)** | Cấu trúc component độc lập, Signals & RxJS, Reactive Forms, Lazy-loading Routing, Type-safety cao. |
@@ -50,6 +57,13 @@ Hệ thống được thiết kế theo kiến trúc chuẩn **Domain-Driven Des
                                                                     │
                                                                     ▼
                                                             [CSAT Survey (5-Star)]
+                                                                    │
+                                                                    ▼
+                                                [Discord Webhook Alerts (Level 2)]
+                                                                    │
+                                                                    ▼
+                                                [Discord Interactive Bot Gateway]
+                                                (Buttons, Modals & Slash Commands)
 ```
 
 | STT | Phân Hệ / Gói Tính Năng | Chức Năng Cốt Lõi | Trạng Thái |
@@ -62,12 +76,143 @@ Hệ thống được thiết kế theo kiến trúc chuẩn **Domain-Driven Des
 | **6** | **Cơ Sở Tri Thức (Knowledge Base)** | Quản lý bài viết Markdown, Slug chuẩn URL, Đánh giá Hữu ích / Không hữu ích, Gợi ý khi tạo vé (Deflection) | **Hoàn thành 100%** |
 | **7** | **Cổng Khách Hàng (Customer Portal)** | Giao diện tự phục vụ của khách hàng, tạo vé kèm ảnh lỗi (Dropzone), xem tiến độ, trao đổi phản hồi | **Hoàn thành 100%** |
 | **8** | **Đo Lường Độ Hài Lòng (CSAT Survey)** | Đánh giá 5 sao & nhận xét sau khi vé giải quyết, thống kê CSAT Dashboard, Bảng xếp hạng hỗ trợ viên | **Hoàn thành 100%** |
+| **9** | **Cảnh Báo Discord Webhook (Discord Alerts)** | Bắn Discord Embed Card tức thời qua Background Jobs (Vé mới, Khẩn cấp, Phân công, Vi phạm SLA, Hoàn tất) | **Hoàn thành 100%** |
+| **10**| **Discord Interactive Bot (Gateway Bot)** | Nút bấm `[🎯 Nhận vé]`, `[🏁 Hoàn thành vé]` mở Modal nhập ghi chú, Slash command `/my-tickets`, `/link-helpdesk`, Prefix `!my-tickets` | **Hoàn thành 100%** |
+| **11**| **Điều Phối Tự Động (Assignment Rules)** | Phân công thông minh theo Danh mục, Mức độ ưu tiên, Phòng ban; Thuật toán Round Robin xoay vòng | **Hoàn thành 100%** |
+| **12**| **Thông Báo Thời Gian Thực (Notifications)** | Chuông thông báo góc trên web, đếm số chưa đọc, đánh dấu đã đọc, điều hướng trực tiếp tới vé | **Hoàn thành 100%** |
+
+---
+
+## 🖼️ BỘ SƯU TẬP GIAO DIỆN HỆ THỐNG (UI SHOWCASE)
+
+Dưới đây là hình ảnh thực tế các phân hệ chính đang hoạt động trên hệ thống:
+
+### 1. Bảng Điều Khiển Giám Sát Trung Tâm (Dashboard Analytics)
+Màn hình giám sát 360 độ với các thẻ chỉ số trọng yếu (Total, Open, In Progress, Resolved, Overdue), tỷ lệ tuân thủ SLA, điểm CSAT trung bình, biểu đồ xu hướng Chart.js và bảng xếp hạng năng suất kỹ thuật viên:
+![Dashboard Analytics](docs/images/dashboard.png)
+
+---
+
+### 2. Quản Lý Sự Vụ - Dạng Bảng (Ticket Table View)
+Giao diện quản lý danh sách sự vụ đa năng với hệ thống lọc đa tiêu chí (Trạng thái, Mức độ ưu tiên, Danh mục, Người phụ trách, Khoảng ngày), nhãn badge phân loại trực quan và nút xuất báo cáo Excel tốc độ cao:
+![Tickets Table View](docs/images/tickets_table.png)
+
+---
+
+### 3. Quản Lý Sự Vụ - Bảng Kanban (Kanban Board View)
+Chế độ xem bảng Kanban trực quan cho phép kỹ thuật viên nắm bắt nhanh chóng tiến độ các sự vụ theo từng cột trạng thái:
+![Tickets Kanban View](docs/images/tickets_kanban.png)
+
+---
+
+### 4. Chi Tiết Sự Vụ & Dòng Thời Gian Xử Lý (Ticket Detail & Timeline)
+Màn hình chi tiết sự vụ toàn diện kết hợp luồng phản hồi khách hàng (Public Reply), ghi chú bảo mật nội bộ (Internal Note), nhật ký kiểm toán hệ thống (Audit Trail) và danh sách tệp đính kèm:
+![Ticket Detail View](docs/images/ticket_detail.png)
+
+---
+
+### 5. Cổng Người Dùng Cuối Tự Phục Vụ (Customer Portal)
+Giao diện chuyên biệt dành cho khách hàng tự tạo yêu cầu hỗ trợ, kéo thả hình ảnh lỗi chụp màn hình và theo dõi tiến độ xử lý:
+![Customer Portal](docs/images/customer_portal.png)
+
+---
+
+### 6. Cấu Hình Tích Hợp Discord (Discord Integration Settings)
+Màn hình quản trị cho phép thiết lập linh hoạt Webhook URL, Bot Token, Kênh chỉ định (Channel ID) và bật/tắt từng loại cảnh báo:
+![Discord Settings](docs/images/discord_settings.png)
+
+---
+
+### 7. Tương Tác Hai Chiều Trên Discord (Discord Interactive Bot & Slash Commands)
+Kỹ thuật viên thao tác trực tiếp trên Discord: Nhận vé bằng nút bấm, chuyển trạng thái vé, hoàn thành vé qua hộp thoại Modal, tra cứu danh sách vé bằng `/my-tickets` hoặc `!my-tickets`:
+![Discord Bot Chat](docs/images/discord_bot_chat.png)
+
+---
+
+## 🗄️ MÔ HÌNH CƠ SỞ DỮ LIỆU & MỐI QUAN HỆ (DATABASE SCHEMA & ERD)
+
+### 1. Sơ Đồ Thực Thể Quan Hệ (Entity Relationship Diagram - ERD)
+
+```mermaid
+erDiagram
+    AppCategories ||--o{ AppTickets : "phân loại"
+    AppCategories ||--o{ AppCategories : "danh mục cha-con"
+    AppPriorities ||--o{ AppTickets : "mức ưu tiên"
+    AppTicketStatuses ||--o{ AppTickets : "trạng thái"
+    AppDepartments ||--o{ AppTickets : "phòng ban"
+    AppTicketSources ||--o{ AppTickets : "kênh tiếp nhận"
+    AbpUsers ||--o{ AppTickets : "kỹ thuật viên phụ trách (Assignee)"
+    AbpUsers ||--o{ AppTickets : "người gửi yêu cầu (Requester)"
+
+    AppTickets ||--o{ AppTicketComments : "chứa các trao đổi"
+    AppTickets ||--o{ AppTicketAttachments : "chứa tệp đính kèm"
+    AppTickets ||--o{ AppTicketActivities : "ghi nhật ký hoạt động"
+    AppTickets ||--o{ AppSlaBreachLogs : "ghi nhận vi phạm SLA"
+    AppTickets ||--o{ AppNotifications : "kích hoạt thông báo"
+
+    AppTicketComments ||--o{ AppTicketAttachments : "đính kèm trong comment"
+    AbpUsers ||--o{ AppTicketComments : "tác giả bình luận"
+    AbpUsers ||--o{ AppTicketActivities : "người thực hiện thao tác"
+    AbpUsers ||--o{ AppNotifications : "người nhận thông báo"
+
+    AppSlaPolicies ||--|{ AppSlaPolicyRules : "chứa các quy tắc"
+    AppPriorities ||--o{ AppSlaPolicyRules : "áp dụng cho"
+    AppCategories ||--o{ AppSlaPolicyRules : "áp dụng cho"
+
+    AppAssignmentRules ||--|{ AppAssignmentRuleAgents : "danh sách phân bổ"
+    AbpUsers ||--o{ AppAssignmentRuleAgents : "nhân viên trong rule"
+    AppCategories ||--o{ AppAssignmentRules : "áp dụng cho"
+    AppPriorities ||--o{ AppAssignmentRules : "áp dụng cho"
+    AppDepartments ||--o{ AppAssignmentRules : "áp dụng cho"
+
+    AppCategories ||--o{ AppKnowledgeArticles : "nhóm bài viết"
+    AppCategories ||--o{ AppCannedResponses : "mẫu trả lời theo danh mục"
+```
+
+---
+
+### 2. Danh Sách Các Bảng Dữ Liệu & Mô Tả Chi Tiết
+
+#### 2.1. Nhóm Nghiệp Vụ Sự Vụ Cốt Lõi (Ticket Core)
+| Tên Bảng | Mô Tả Chức Năng | Các Trường Chính & Khóa Ngoại |
+|:---|:---|:---|
+| **`AppTickets`** | Lưu trữ toàn bộ thông tin yêu cầu hỗ trợ (Aggregate Root). | `Id` (PK), `TicketNumber` (Unique), `Title`, `Description`, `CategoryId` (FK), `PriorityId` (FK), `DepartmentId` (FK), `StatusId` (FK), `SourceId` (FK), `AssigneeId` (FK $\rightarrow$ AbpUsers), `RequesterId` (FK $\rightarrow$ AbpUsers), `RequesterName`, `RequesterEmail`, `RequesterPhone`, `DueDate`, `FirstResponseDueDate`, `FirstResponseAt`, `ResolvedAt`, `ClosedAt`, `Tags`, `CsatRating`, `CsatComment`, `CsatSubmittedAt`. |
+| **`AppTicketComments`** | Nội dung phản hồi và ghi chú nội bộ của sự vụ. | `Id` (PK), `TicketId` (FK $\rightarrow$ AppTickets), `UserId` (FK $\rightarrow$ AbpUsers), `Content`, `IsInternal` (phân biệt Public Reply vs Internal Note). |
+| **`AppTicketAttachments`**| Thông tin siêu dữ liệu của tệp đính kèm và hình ảnh lỗi. | `Id` (PK), `TicketId` (FK $\rightarrow$ AppTickets), `CommentId` (FK $\rightarrow$ AppTicketComments), `FileName`, `FileSize`, `ContentType`, `BlobName` (khóa trỏ vào bảng lưu Blob). |
+| **`AppTicketActivities`** | Lịch sử vết hoạt động (Audit Trail Timeline) của sự vụ. | `Id` (PK), `TicketId` (FK $\rightarrow$ AppTickets), `UserId` (FK $\rightarrow$ AbpUsers), `ActivityType` (Tạo, Đổi trạng thái, Phân công, Giải quyết, CSAT...), `Description`. |
+
+#### 2.2. Nhóm Danh Mục Hệ Thống (Master Data)
+| Tên Bảng | Mô Tả Chức Năng | Các Trường Chính & Khóa Ngoại |
+|:---|:---|:---|
+| **`AppCategories`** | Danh mục phân loại sự cố (hỗ trợ đa cấp cha-con). | `Id` (PK), `Code` (Unique), `Name`, `Description`, `ParentId` (FK self-referencing), `IsActive`. |
+| **`AppPriorities`** | Mức độ ưu tiên (`Low`, `Medium`, `High`, `Critical`). | `Id` (PK), `Code` (Unique), `Name`, `Color` (Hex), `UrgencyLevel`, `DefaultResolutionTimeMinutes`, `DefaultFirstResponseTimeMinutes`. |
+| **`AppTicketStatuses`**| Trạng thái vòng đời sự vụ. | `Id` (PK), `Code` (Unique), `Name`, `Color`, `StatusGroup` (`Open`, `InProgress`, `Closed`), `IsDefault`, `IsFinal`. |
+| **`AppDepartments`** | Phòng ban hỗ trợ kỹ thuật. | `Id` (PK), `Code` (Unique), `Name`, `Description`, `ManagerId` (FK $\rightarrow$ AbpUsers). |
+| **`AppTicketSources`** | Kênh phát sinh sự vụ (`Portal`, `Email`, `Phone`, `Chat`, `Walk-in`). | `Id` (PK), `Code` (Unique), `Name`, `IsActive`. |
+| **`AppCannedResponses`**| Thư viện mẫu trả lời nhanh của kỹ thuật viên. | `Id` (PK), `Title`, `Content`, `CategoryId` (FK $\rightarrow$ AppCategories), `IsGlobal`. |
+
+#### 2.3. Nhóm Cam Kết Dịch Vụ (SLA Engine)
+| Tên Bảng | Mô Tả Chức Năng | Các Trường Chính & Khóa Ngoại |
+|:---|:---|:---|
+| **`AppSlaPolicies`** | Chính sách SLA tổng thể. | `Id` (PK), `Name`, `Description`, `IsDefault`, `IsActive`. |
+| **`AppSlaPolicyRules`**| Quy tắc SLA chi tiết theo cặp Danh mục & Mức ưu tiên. | `Id` (PK), `SlaPolicyId` (FK $\rightarrow$ AppSlaPolicies), `PriorityId` (FK $\rightarrow$ AppPriorities), `CategoryId` (FK $\rightarrow$ AppCategories), `FirstResponseTimeMinutes`, `ResolutionTimeMinutes`. |
+| **`AppBusinessHours`** | Cấu hình khung giờ làm việc hành chính trong tuần. | `Id` (PK), `DayOfWeek`, `StartTime`, `EndTime`, `IsWorkingDay`. |
+| **`AppHolidays`** | Danh mục ngày nghỉ lễ tết (tự động loại trừ khỏi SLA).| `Id` (PK), `Name`, `Date`, `IsRecurring`. |
+| **`AppSlaBreachLogs`** | Nhật ký các trường hợp vi phạm cam kết thời hạn SLA. | `Id` (PK), `TicketId` (FK $\rightarrow$ AppTickets), `BreachType` (Phản hồi trễ / Giải quyết trễ), `BreachedAt`, `TargetDate`. |
+
+#### 2.4. Nhóm Điều Phối Tự Động & Cơ Sở Tri Thức
+| Tên Bảng | Mô Tả Chức Năng | Các Trường Chính & Khóa Ngoại |
+|:---|:---|:---|
+| **`AppAssignmentRules`** | Quy tắc định tuyến sự vụ thông minh cho nhân viên. | `Id` (PK), `Name`, `Description`, `Order`, `IsActive`, `RoutingStrategy` (Round Robin / Least Busy / Manual), `CategoryId` (FK), `PriorityId` (FK), `DepartmentId` (FK). |
+| **`AppAssignmentRuleAgents`**| Danh sách kỹ thuật viên tham gia trong quy tắc định tuyến. | `Id` (PK), `RuleId` (FK $\rightarrow$ AppAssignmentRules), `UserId` (FK $\rightarrow$ AbpUsers), `Order`, `LastAssignedTime`. |
+| **`AppKnowledgeArticles`**| Bài viết hướng dẫn tự phục vụ (Knowledge Base). | `Id` (PK), `Title`, `Slug` (SEO URL), `Summary`, `Content` (Markdown), `CategoryId` (FK), `Tags`, `IsPublished`, `ViewCount`, `HelpfulCount`, `NotHelpfulCount`. |
+| **`AppNotifications`** | Trung tâm thông báo nội bộ hệ thống. | `Id` (PK), `RecipientUserId` (FK $\rightarrow$ AbpUsers), `Type`, `Title`, `Message`, `TicketId` (FK $\rightarrow$ AppTickets), `IsRead`. |
 
 ---
 
 ## 🚀 CHI TIẾT CÁC PHÂN HỆ & TÍNH NĂNG ĐÃ TRIỂN KHAI
 
-### 3.1. Phân Hệ 1: Quản Lý Danh Mục Hệ Thống (Master Data)
+### 5.1. Phân Hệ 1: Quản Lý Danh Mục Hệ Thống (Master Data)
 Cung cấp bộ danh mục cấu hình toàn diện cho toàn bộ quy trình tiếp nhận và phân loại hỗ trợ:
 1. **Category (Danh mục sự cố)**: Hỗ trợ cấu trúc phân cấp cha-con, quản lý mã duy nhất, tên, mô tả.
 2. **Priority (Mức độ ưu tiên)**: `Low`, `Medium`, `High`, `Critical`. Gắn mã màu nhận diện (Hex/Color code) và thời gian phản hồi/giải quyết SLA tiêu chuẩn.
@@ -79,7 +224,7 @@ Cung cấp bộ danh mục cấu hình toàn diện cho toàn bộ quy trình ti
 
 ---
 
-### 3.2. Phân Hệ 2: Quản Lý Sự Vụ Cốt Lõi (Ticket Lifecycle & Dual View)
+### 5.2. Phân Hệ 2: Quản Lý Sự Vụ Cốt Lõi (Ticket Lifecycle & Dual View)
 Trung tâm điều phối và xử lý toàn bộ vòng đời của yêu cầu hỗ trợ:
 - **Tự động sinh mã vé**: Domain Service `TicketManager` tự động sinh mã chuẩn `TK-yyyyMMdd-XXXX` (VD: `TK-20260908-0001`), chống trùng lặp tuyệt đối.
 - **Chế độ xem linh hoạt (Dual View)**:
@@ -93,9 +238,9 @@ Trung tâm điều phối và xử lý toàn bộ vòng đời của yêu cầu 
 
 ---
 
-### 3.3. Phân Hệ 3: Động Cơ Cam Kết Dịch Vụ (SLA Engine & Lịch Làm Việc)
+### 5.3. Phân Hệ 3: Động Cơ Cam Kết Dịch Vụ (SLA Engine & Lịch Làm Việc)
 Tự động hóa hoàn toàn việc giám sát và cảnh báo thời hạn xử lý:
-- **Chính sách SLA linh hoạt (`SlaPolicy` & `SlaRule`)**: Thiết lập thời hạn phản hồi lần đầu (`FirstResponseTimeMinutes`) và giải quyết sự cố (`ResolutionTimeMinutes`) theo từng cặp Danh mục & Mức độ ưu tiên.
+- **Chính sách SLA linh hoạt (`SlaPolicy` & `SlaPolicyRule`)**: Thiết lập thời hạn phản hồi lần đầu (`FirstResponseTimeMinutes`) và giải quyết sự cố (`ResolutionTimeMinutes`) theo từng cặp Danh mục & Mức độ ưu tiên.
 - **Khung giờ làm việc (`BusinessHour`) & Ngày lễ (`Holiday`)**: Tự động tính trừ thời gian ngoài giờ làm việc (mặc định Thứ 2 - Thứ 6, 08:30 - 17:30) và các ngày lễ tết được cấu hình trong bảng `AppHolidays`.
 - **Bộ máy tính SLA (`SlaManager`)**: Tự động xác định chính xác `FirstResponseDueDate` và `DueDate` ngay khi vé được tạo.
 - **Background Worker & Cảnh báo vi phạm**: Quét định kỳ phát hiện sự vụ quá hạn, ghi log vào bảng `AppSlaBreachLogs`.
@@ -103,7 +248,7 @@ Tự động hóa hoàn toàn việc giám sát và cảnh báo thời hạn x�
 
 ---
 
-### 3.4. Phân Hệ 4: Báo Cáo, Thống Kê & Giám Sát (Dashboard Analytics)
+### 5.4. Phân Hệ 4: Báo Cáo, Thống Kê & Giám Sát (Dashboard Analytics)
 Cung cấp cái nhìn 360 độ về hiệu suất vận hành của đội ngũ hỗ trợ:
 - **Thẻ chỉ số trọng yếu (KPI Stat Cards)**: Tổng số vé, Vé đang mở, Đang xử lý, Đã giải quyết, Vé tạo mới trong ngày, Vé quá hạn (`Overdue`).
 - **Chỉ số chất lượng dịch vụ**: Tỷ lệ tuân thủ phản hồi SLA (%), Tỷ lệ tuân thủ giải quyết SLA (%), Điểm hài lòng khách hàng trung bình (CSAT ⭐) và Tỷ lệ khách hàng hài lòng (%).
@@ -115,7 +260,7 @@ Cung cấp cái nhìn 360 độ về hiệu suất vận hành của đội ngũ
 
 ---
 
-### 3.5. Phân Hệ 5: Quản Lý Tệp Đính Kèm Blob & Xuất Báo Cáo Excel (Gói Mở Rộng A)
+### 5.5. Phân Hệ 5: Quản Lý Tệp Đính Kèm Blob & Xuất Báo Cáo Excel (Gói Mở Rộng A)
 - **Lưu trữ Blob trong PostgreSQL Database (`Volo.Abp.BlobStoring.Database`)**:
   - Lưu trữ tập tin đính kèm trực tiếp vào bảng cơ sở dữ liệu `AppTicketAttachments`, đảm bảo tính toàn vẹn dữ liệu, dễ sao lưu và không bị thất lạc file khi chuyển đổi môi trường server.
   - Hỗ trợ tải lên nhiều tệp cùng lúc tại màn hình tạo vé và trong khung phản hồi sự vụ.
@@ -128,7 +273,7 @@ Cung cấp cái nhìn 360 độ về hiệu suất vận hành của đội ngũ
 
 ---
 
-### 3.6. Phân Hệ 6: Cơ Sở Tri Thức & Gợi Ý Giải Pháp (Knowledge Base & Deflection)
+### 5.6. Phân Hệ 6: Cơ Sở Tri Thức & Gợi Ý Giải Pháp (Knowledge Base & Deflection)
 Giảm tải khối lượng vé hỗ trợ bằng cổng tra cứu tự phục vụ:
 - **Quản lý bài viết Knowledge Base**: Quản lý bài viết với tiêu đề, tóm tắt, nội dung định dạng Markdown, phân mục (`Category`), tags và trạng thái xuất bản (`IsPublished`).
 - **Tự động sinh Slug chuẩn SEO**: Sinh URL thân thiện từ tiêu đề tiếng Việt không dấu (VD: `huong-dan-cai-dat-vpn-cong-ty`), tự động hậu tố chống trùng slug.
@@ -137,7 +282,7 @@ Giảm tải khối lượng vé hỗ trợ bằng cổng tra cứu tự phục 
 
 ---
 
-### 3.7. Phân Hệ 7: Cổng Khách Hàng & Đính Kèm Ảnh Lỗi (Customer Portal & Media Upload)
+### 5.7. Phân Hệ 7: Cổng Khách Hàng & Đính Kèm Ảnh Lỗi (Customer Portal & Media Upload)
 Giao diện portal riêng biệt tối ưu hóa trải nghiệm người dùng cuối (`/portal`):
 - **Giao diện tự phục vụ thân thiện**: Khách hàng theo dõi danh sách "Vé của tôi", lọc theo trạng thái (Đang xử lý / Đã đóng), tìm kiếm theo mã vé.
 - **Tải tệp & Hình ảnh chụp lỗi trực quan (Attachment Dropzone)**:
@@ -151,9 +296,9 @@ Giao diện portal riêng biệt tối ưu hóa trải nghiệm người dùng c
 
 ---
 
-### 3.8. Phân Hệ 8: Khảo Sát & Đo Lường Độ Hài Lòng Khách Hàng (CSAT Feedback)
+### 5.8. Phân Hệ 8: Khảo Sát & Đo Lường Độ Hài Lòng Khách Hàng (CSAT Feedback)
 Đo lường trực tiếp chất lượng phục vụ của đội ngũ hỗ trợ kỹ thuật:
-- **Cơ sở dữ liệu**: Bổ sung các trường `CsatRating` (1 - 5 sao), `CsatComment` (Nhận xét góp ý), `CsatSubmittedAt` (Thời gian đánh giá) vào bảng `AppTickets` qua migration `20260909072858_Add_Ticket_CSAT_Fields`.
+- **Cơ sở dữ liệu**: Bổ sung các trường `CsatRating` (1 - 5 sao), `CsatComment` (Nhận xét góp ý), `CsatSubmittedAt` (Thời gian đánh giá) vào bảng `AppTickets`.
 - **Luồng đánh giá trên Customer Portal**:
   - Khi sự vụ chuyển sang trạng thái đã xử lý (`Resolved`) hoặc đã đóng (`Closed`), khung đánh giá CSAT 5 sao tương tác sẽ tự động xuất hiện nổi bật tại trang chi tiết `/portal/tickets/:id`.
   - Khách hàng chọn số sao (từ 1 sao "Rất không hài lòng" đến 5 sao "Rất tuyệt vời"), điền nhận xét và gửi đánh giá.
@@ -167,7 +312,65 @@ Giao diện portal riêng biệt tối ưu hóa trải nghiệm người dùng c
 
 ---
 
-### 3.9. Dữ Liệu Khởi Tạo Chuẩn (Data Seeding)
+### 5.9. Phân Hệ 9: Cảnh Báo Discord Webhook Qua Background Jobs (Discord Alerts)
+Tự động hóa kênh liên lạc khẩn cấp trực tiếp vào Discord channel của đội IT Support:
+- **Kiến trúc Bất đồng bộ hóa qua ABP Background Jobs (Cấp độ 2)**:
+  - Tách rời hoàn toàn luồng gửi HTTP POST sang Discord khỏi luồng HTTP Request của người dùng bằng `IBackgroundJobManager` và `AsyncBackgroundJob<DiscordNotificationArgs>`.
+  - Giảm thời gian phản hồi của API tạo và cập nhật vé từ ~1s xuống chỉ còn **~50ms** (gần như tức thì).
+  - Tự động lưu job vào bảng `AbpBackgroundJobs` trên PostgreSQL và kích hoạt cơ chế **Auto-Retry (Exponential Backoff)** khi Discord bị Rate Limit (HTTP 429) hoặc lỗi mạng tạm thời.
+- **Discord Webhook Rich Embeds**:
+  - Gửi các thẻ thông tin **Discord Embed Card** nhiều màu sắc trực quan (Xanh dương cho vé mới, Vàng cam khi phân công, Đỏ cho sự cố Critical hoặc vi phạm hạn SLA, Xanh lá khi xử lý hoàn tất).
+  - Cung cấp đầy đủ thông tin: Mã vé `TK-xxxx`, Tiêu đề, Người yêu cầu, Mức ưu tiên, Danh mục, Hạn chót SLA và nút mở xem trực tiếp trên web.
+- **Cấu hình động đa tầng (Dynamic Setting Management)**:
+  - Cho phép Quản trị viên thay đổi Webhook URL, Bật/Tắt các loại thông báo trực tiếp trên giao diện web `/discord-settings` mà không cần khởi động lại máy chủ.
+  - Tích hợp nút kiểm tra kết nối tức thời (**Test Webhook**) với phản hồi trạng thái chi tiết.
+
+---
+
+### 5.10. Phân Hệ 10: Bot Trợ Lý Kỹ Thuật Viên & Tương Tác 2 Chiều Discord (Interactive Gateway Bot)
+Nâng cấp từ thông báo 1 chiều thành nền tảng điều phối hỗ trợ 2 chiều hoàn chỉnh trực tiếp trên Discord:
+- **Kết nối Gateway thời gian thực (`DiscordSocketClient` - Discord.Net v3.18)**:
+  - Bot tự động duy trì kết nối WebSocket Gateway liên tục khi backend khởi động.
+  - Đăng ký lắng nghe sự kiện: `Ready`, `ButtonExecuted`, `ModalSubmitted`, `SlashCommandExecuted`, `MessageReceived`.
+- **Nút bấm tương tác trên tin nhắn vé (Interactive Buttons)**:
+  - **Nút `[🎯 Nhận vé này]`**: Khi kỹ thuật viên bấm nút, bot tự động nhận diện tài khoản, gán người phụ trách (Assignee), chuyển trạng thái vé sang **Đang xử lý (In Progress)**, cập nhật embed sang màu vàng cam và hiển thị nút **`[🏁 Hoàn thành vé]`**.
+  - **Nút `[🏁 Hoàn thành vé]`**: Bấm nút sẽ bật ngay **Discord Popup Modal** yêu cầu nhập ghi chú / cách khắc phục sự cố. Khi gửi Modal, hệ thống tự động:
+    - Đổi trạng thái vé sang **Đã giải quyết (Resolved)** và đóng lại.
+    - Lưu ghi chú vào bảng `AppTicketComments`.
+    - Ghi nhận hoạt động vào `AppTicketActivities`.
+    - Đổi embed tin nhắn gốc sang màu **Xanh lá (Resolved)** và khóa các nút bấm.
+- **Hệ thống Lệnh Slash Command (`/`) & Đăng ký Guild-level**:
+  - **`/link-helpdesk <username>`**: Liên kết tài khoản Discord của kỹ thuật viên với tài khoản Helpdesk tương ứng (lưu vào `AbpUsers.ExtraProperties`).
+  - **`/my-tickets`**: Tra cứu danh sách các vé đang được phân công cho kỹ thuật viên. Đặc biệt, **mỗi vé được gắn kèm ngay nút bấm `[🏁 Hoàn thành {Mã vé}]`** màu xanh lá, giúp kỹ thuật viên có thể đóng vé ngay từ danh sách mà không cần tìm lại tin nhắn cũ.
+  - **Cơ chế Guild Command**: Tự động đăng ký trực tiếp vào Server Discord của tổ chức ngay khi bot Online, giúp lệnh xuất hiện **ngay lập tức (0 giây)**, khắc phục hoàn toàn độ trễ 1 giờ của Discord Global cache.
+- **Hỗ trợ Lệnh Tin Nhắn Thường (Prefix Commands Fallback)**:
+  - Kỹ thuật viên có thể gõ trực tiếp trong kênh chat:
+    - **`!my-tickets`** hoặc **`!tickets`**: Hiển thị danh sách vé kèm các nút bấm hoàn thành.
+    - **`!link <username>`**: Liên kết nhanh tài khoản (VD: `!link admin`).
+
+---
+
+### 5.11. Phân Hệ 11: Điều Phối & Phân Công Tự Động (Auto-Assignment & Round Robin)
+Tự động hóa việc phân bổ công việc công bằng và nhanh chóng:
+- **Cơ chế Assignment Rules đa điều kiện**:
+  - Khớp luật theo thứ tự ưu tiên (`Order`): Theo Danh mục, Mức độ ưu tiên, Phòng ban.
+  - Bật/tắt linh hoạt từng quy tắc (`IsActive`).
+- **Chiến lược định tuyến (Routing Strategies)**:
+  - **Round Robin (Xoay vòng)**: Tự động phân công lần lượt cho các kỹ thuật viên trong danh sách dựa theo mốc thời gian nhận vé gần nhất (`LastAssignedTime`).
+  - **Least Busy**: Ưu tiên phân cho kỹ thuật viên có ít vé đang mở nhất.
+  - **Manual**: Để trạng thái chờ tiếp nhận thủ công qua nút bấm Discord hoặc quản trị.
+
+---
+
+### 5.12. Phân Hệ 12: Trung Tâm Thông Báo Thời Gian Thực (In-App Notifications)
+Hệ thống thông báo tức thời gắn trực tiếp trên thanh điều hướng web:
+- Biểu tượng quả chuông thông báo hiển thị số lượng thông báo chưa đọc (Badge).
+- Tự động tạo thông báo khi: Có vé mới được giao, trạng thái vé thay đổi, có phản hồi mới từ khách hàng.
+- Bấm vào từng thông báo để đánh dấu đã đọc và chuyển hướng tức thời tới trang chi tiết sự vụ tương ứng.
+
+---
+
+### 5.13. Dữ Liệu Khởi Tạo Chuẩn (Data Seeding)
 Hệ thống tích hợp sẵn `HelpdeskDataSeedContributor` tự động nạp dữ liệu mẫu hoàn chỉnh:
 - **10 sự vụ mẫu** đa dạng trạng thái, mức ưu tiên, kênh tiếp nhận, hạn SLA chuẩn thực tế.
 - **6 danh mục sự cố**, 4 mức độ ưu tiên chuẩn, 7 trạng thái vòng đời vé, 5 kênh tiếp nhận, 2 phòng ban kỹ thuật.
@@ -209,12 +412,13 @@ cd d:\helpdesk\Helpdesk
 dotnet ef database update --project src/Helpdesk.EntityFrameworkCore --startup-project src/Helpdesk.HttpApi.Host
 ```
 
-### 4. Khởi Động Backend API
+### 4. Khởi Động Backend API & Discord Bot
 ```powershell
-cd d:\helpdesk\Helpdesk
-dotnet run --project src/Helpdesk.HttpApi.Host
+cd d:\helpdesk\Helpdesk\src\Helpdesk.HttpApi.Host
+dotnet run --launch-profile Helpdesk.HttpApi.Host
 ```
 - **Backend API & Swagger UI**: `https://localhost:44346/swagger`
+- **Discord Gateway Bot**: Tự động đăng nhập và kết nối trực tiếp vào Discord Server.
 
 ### 5. Khởi Động Frontend Angular
 ```powershell
@@ -243,7 +447,6 @@ Trong toàn bộ quá trình phát triển và hoàn thiện hệ thống, các 
 - **Nguyên nhân**:
   1. Khi bổ sung nhóm quyền mới `Helpdesk.Tickets` trong code, database chưa tự động cấp các quyền này cho vai trò `admin` trong bảng `AbpPermissionGrants`.
   2. Backend API đang chạy vẫn giữ bộ nhớ đệm (Permission Cache) từ lúc khởi động.
-  3. Lỗi từ API phụ trợ (như nạp danh sách user `IdentityUserService.getList()`) bị Interceptor mặc định của ABP chuyển hướng toàn bộ trang sang 403.
 - **Cách khắc phục**:
   - Cấp toàn bộ quyền `Helpdesk.Tickets.*` cho vai trò `admin` vào bảng `AbpPermissionGrants`:
     ```sql
@@ -258,14 +461,13 @@ Trong toàn bộ quá trình phát triển và hoàn thiện hệ thống, các 
     ON CONFLICT DO NOTHING;
     ```
   - Khởi động lại Backend API để làm mới cache quyền.
-  - Trên Angular: Bọc các lệnh gọi API phụ trong `tickets.component.ts` bằng `catchError(() => of(...))` từ RxJS.
 
 ---
 
-### 3. Khóa file DLL khi chạy `dotnet build` hoặc `dotnet ef migrations` (Lỗi MSB3027 / MSB3021)
+### 3. Khóa file DLL khi chạy `dotnet build` (Lỗi MSB3027 / MSB3021)
 - **Hiện tượng**: Báo lỗi không thể sao chép hoặc ghi đè file `*.dll` trong thư mục `bin\Debug\net10.0\` vì file đang bị tiến trình khác sử dụng (*"The process cannot access the file because it is being used by another process"*).
 - **Nguyên nhân**: Tiến trình Backend `Helpdesk.HttpApi.Host` đang chạy ngầm và khóa các file DLL của solution.
-- **Cách khắc phục**: Tắt tiến trình Backend API (Ctrl+C hoặc kill process) trước khi biên dịch hoặc tạo migration mới, sau đó khởi động lại.
+- **Cách khắc phục**: Tắt tiến trình Backend API (dùng PowerShell: `Stop-Process -Name "Helpdesk.HttpApi.Host" -Force`) trước khi biên dịch hoặc tạo migration mới, sau đó khởi động lại.
 
 ---
 
@@ -283,29 +485,21 @@ Trong toàn bộ quá trình phát triển và hoàn thiện hệ thống, các 
 ### 5. Lỗi đường dẫn import và sai lệch trường DTO khi chạy `abp generate-proxy -t ng`
 - **Hiện tượng**: Sau khi chạy lệnh sinh mã proxy Angular, một số component cũ bị lỗi compile: `Cannot find module ...` hoặc báo lỗi thuộc tính không tồn tại trên DTO.
 - **Nguyên nhân**: ABP CLI phiên bản mới tự động phân tách proxy thành các thư mục con theo từng namespace backend (`proxy/tickets/`, `proxy/categories/`, `proxy/ticket-statuses/`...).
-- **Cách khắc phục**:
-  - Cập nhật lại đường dẫn import tương đối trỏ chính xác vào thư mục con (`../../proxy/categories/category.service`).
-  - Đồng bộ lại các trường trong Reactive Form và HTML template đúng với cấu trúc `models.ts` được sinh ra bởi ABP Proxy.
+- **Cách khắc phục**: Cập nhật lại đường dẫn import tương đối trỏ chính xác vào thư mục con (`../../proxy/categories/category.service`) và đồng bộ lại các trường trong Reactive Form.
 
 ---
 
 ### 6. Lỗi TypeScript Strict Nullability (`TS2322: undefined is not assignable to string`)
 - **Hiện tượng**: Lệnh `ng build` bị lỗi do Angular 19 bật cấu hình kiểm tra kiểu nghiêm ngặt (Strict Type Checking): `Type 'string | undefined' is not assignable to type 'string'`.
 - **Nguyên nhân**: Các trường trong ABP EntityDto sinh ra dạng optional (`title?: string`, `name?: string`). Khi truyền trực tiếp vào các hàm yêu cầu kiểu `string`, TypeScript sẽ chặn lại.
-- **Cách khắc phục**:
-  - Bổ sung giá trị dự phòng (fallback): `item.name ?? ''`, `item.title ?? ''`.
-  - Sử dụng non-null assertion `item.id!` khi đã chắc chắn dữ liệu tồn tại.
+- **Cách khắc phục**: Bổ sung giá trị dự phòng (fallback): `item.name ?? ''`, `item.title ?? ''` hoặc sử dụng non-null assertion `item.id!`.
 
 ---
 
 ### 7. Lỗi bảng rỗng dù footer báo "Tổng: 10 sự vụ" (Lệch chuẩn chỉ số trang 0-index vs 1-index)
 - **Hiện tượng**: Footer trang luôn báo đúng tổng số bản ghi (ví dụ: *"Tổng: 10 sự vụ"*), nhưng thân bảng rỗng hoàn toàn: *"Không tìm thấy sự vụ nào"*.
-- **Nguyên nhân gốc rễ**:
-  1. Service phân trang của ABP Framework (`ListService`) hoạt động theo chuẩn **0-indexed** (`_page = 0` là trang đầu; `skipCount = _page * maxResultCount = 0 * 10 = 0`).
-  2. Component `<ngb-pagination>` của Angular UI Bootstrap lại hoạt động theo chuẩn **1-indexed** (trang đầu tiên bắt buộc phải là `1`).
-  3. Gắn binding hai chiều `[(page)]="list.page"` làm `<ngb-pagination>` tự ép giá trị thành `1` và gọi `pageChange` gán ngược `list.page = 1`.
-  4. Backend nhận `SkipCount = 10` nên bỏ qua toàn bộ 10 bản ghi hiện có và trả về danh sách rỗng.
-- **Cách khắc phục**: Chuẩn hóa lại cơ chế binding giữa `0-indexed` và `1-indexed` trên toàn bộ template HTML:
+- **Nguyên nhân**: Service phân trang ABP (`ListService`) dùng chuẩn **0-indexed**, trong khi `<ngb-pagination>` Bootstrap dùng **1-indexed**. Gán binding hai chiều làm `list.page = 1` khiến backend bỏ qua 10 bản ghi đầu tiên.
+- **Cách khắc phục**: Chuẩn hóa lại cơ chế binding giữa `0-indexed` và `1-indexed`:
   ```html
   <ngb-pagination
     [page]="list.page + 1"
@@ -318,10 +512,10 @@ Trong toàn bộ quá trình phát triển và hoàn thiện hệ thống, các 
 
 ---
 
-### 8. Lỗi Modal Tạo Yêu Cầu Mới bị cắt mất chân trang (Mất nút "Tạo Yêu Cầu" và "Đóng")
+### 8. Lỗi Modal Tạo Yêu Cầu Mới bị cắt mất chân trang
 - **Hiện tượng**: Mở modal nhập thông tin sự vụ trên `/tickets`, nhưng phía đáy không có nút "Tạo Yêu Cầu" hay "Đóng"; form bị cắt cụt ngang ô thông tin người gửi.
-- **Nguyên nhân**: Cấu trúc Flexbox trong modal Bootstrap kết hợp `modal-dialog-scrollable` chưa thiết lập `min-height: 0` và `overflow-y: auto` cho `.modal-body`, khiến form giãn dài tự do và đẩy footer ra ngoài khung nhìn của container `overflow: hidden`.
-- **Cách khắc phục**: Cấu trúc lại thẻ `<form>` và `.modal-body`:
+- **Nguyên nhân**: Cấu trúc Flexbox trong modal Bootstrap kết hợp `modal-dialog-scrollable` chưa thiết lập `min-height: 0` và `overflow-y: auto` cho `.modal-body`.
+- **Cách khắc phục**:
   - Header và Footer đặt class `flex-shrink-0`.
   - Thẻ `<form>`: `class="d-flex flex-column flex-grow-1 overflow-hidden" style="min-height: 0;"`.
   - Thẻ `.modal-body`: `class="modal-body p-4 flex-grow-1" style="overflow-y: auto;"`.
@@ -338,58 +532,51 @@ Trong toàn bộ quá trình phát triển và hoàn thiện hệ thống, các 
 ### 10. Trình duyệt chặn API do chứng chỉ SSL tự ký trên cổng HTTPS 44346
 - **Hiện tượng**: Mở ứng dụng Angular tại `http://localhost:4200` nhưng không nạp được dữ liệu từ backend; console báo `Failed to fetch` hoặc `Network Error`.
 - **Nguyên nhân**: Backend chạy trên `https://localhost:44346` với chứng chỉ SSL phát triển nội bộ chưa được trình duyệt tin cậy.
-- **Cách khắc phục**: Mở tab mới truy cập trực tiếp `https://localhost:44346/swagger` $\rightarrow$ Nhấp **Nâng cao (Advanced)** $\rightarrow$ Chọn **Tiếp tục truy cập localhost (Proceed to localhost)**, sau đó quay lại trang Angular tải lại (Ctrl + F5).
+- **Cách khắc phục**: Mở tab mới truy cập `https://localhost:44346/swagger` $\rightarrow$ Nhấp **Nâng cao (Advanced)** $\rightarrow$ Chọn **Tiếp tục truy cập localhost (Proceed to localhost)**, sau đó quay lại trang Angular tải lại (Ctrl + F5).
 
 ---
 
-### 11. Lỗi `cannot convert from 'byte[]' to 'System.IO.Stream'` khi lưu Blob vào IBlobContainer
-- **Hiện tượng**: Trình biên dịch báo lỗi `CS1503: Argument 2: cannot convert from 'byte[]' to 'System.IO.Stream'` khi gọi `_blobContainer.SaveAsync(blobName, bytes, overrideExisting: true)`.
-- **Nguyên nhân**: `IBlobContainer` cốt lõi chỉ định nghĩa phương thức nhận `Stream`. Phương thức nhận mảng byte `byte[]` là một Extension Method nằm trong namespace `Volo.Abp.BlobStoring`.
-- **Cách khắc phục**: Bổ sung `using Volo.Abp.BlobStoring;` ở đầu file Service C# để đưa extension method vào tầm vực hoạt động.
+### 11. Lỗi `cannot convert from 'byte[]' to 'System.IO.Stream'` khi lưu Blob
+- **Hiện tượng**: Trình biên dịch báo lỗi `CS1503: Argument 2: cannot convert from 'byte[]' to 'System.IO.Stream'` khi gọi `_blobContainer.SaveAsync(...)`.
+- **Nguyên nhân**: `IBlobContainer` cốt lõi chỉ nhận `Stream`. Phương thức nhận mảng `byte[]` là Extension Method nằm trong namespace `Volo.Abp.BlobStoring`.
+- **Cách khắc phục**: Bổ sung `using Volo.Abp.BlobStoring;` ở đầu file Service C#.
 
 ---
 
 ### 12. Lỗi 403 Forbidden khi người dùng Customer tải lên hoặc xem ảnh đính kèm
 - **Hiện tượng**: Khách hàng tạo vé hoặc phản hồi trong Customer Portal tải ảnh lên thì backend từ chối với mã lỗi 403 Forbidden.
-- **Nguyên nhân**: Phương thức `UploadAttachmentAsync` và `DownloadAttachmentAsync` nằm trong `TicketAppService` và bị bảo vệ bởi quyền `[Authorize(HelpdeskPermissions.Tickets.Default)]` dành riêng cho kỹ thuật viên/quản trị.
+- **Nguyên nhân**: Phương thức `UploadAttachmentAsync` trong `TicketAppService` bị bảo vệ bởi quyền kỹ thuật viên.
+- **Cách khắc phục**: Bổ sung API riêng trong `CustomerPortalAppService`: `UploadMyAttachmentAsync` và `DownloadMyAttachmentAsync` kèm hàm kiểm tra quyền sở hữu vé `CheckCustomerAccess(ticket)`.
+
+---
+
+### 13. Giao diện Discord Webhook bị treo quay spinner loading mãi mãi trên Angular
+- **Hiện tượng**: Mở trang cấu hình `/discord-settings`, vòng tròn xoay loading hiển thị liên tục, form nhập liệu không xuất hiện dù API đã trả về dữ liệu thành công HTTP 200.
+- **Nguyên nhân**: Trong Angular Standalone component, khi Observable trả về dữ liệu bất đồng bộ và gán `this.isLoading = false;`, chu kỳ phát hiện thay đổi (Change Detection) không tự kích hoạt nếu không gọi `cdr.detectChanges()`.
+- **Cách khắc phục**: Tiêm `ChangeDetectorRef` vào `DiscordSettingsComponent` và gọi `this.cdr.detectChanges()` ngay khi nhận kết quả thành công hoặc lỗi.
+
+---
+
+### 14. Lỗi `There is no entity Ticket with id = ...` khi Tạo Yêu Cầu Mới
+- **Hiện tượng**: Nhập biểu mẫu tạo vé mới trên modal và bấm "Tạo Yêu Cầu", hệ thống báo lỗi popup: `An error has occurred! There is no entity Ticket with id = <guid>!`.
+- **Nguyên nhân**: Trong `TicketAppService.cs`, phương thức `CreateAsync` gọi `await _ticketRepository.InsertAsync(ticket)` nhưng thiếu tham số `autoSave: true`. Khi đó EF Core chưa commit xuống cơ sở dữ liệu và lệnh `GetAsync(ticket.Id)` ngay sau đó không tìm thấy bản ghi.
+- **Cách khắc phục**: Bổ sung tham số `autoSave: true`: `await _ticketRepository.InsertAsync(ticket, autoSave: true);`.
+
+---
+
+### 15. Lỗi Slash Command Discord không hiển thị khi gõ `/my-tickets` (Propagation Delay)
+- **Hiện tượng**: Kỹ thuật viên gõ `/my-tickets` hoặc `/link-helpdesk` trong Discord nhưng không thấy bot gợi ý lệnh.
+- **Nguyên nhân**: Lệnh đăng ký bằng `CreateGlobalApplicationCommandAsync` mất từ **30 phút đến 1 giờ** để Discord cache và đồng bộ tới người dùng toàn cầu. Ngoài ra client Discord cũng lưu cache local.
 - **Cách khắc phục**:
-  - Bổ sung 2 API chuyên biệt trong `CustomerPortalAppService`: `UploadMyAttachmentAsync` và `DownloadMyAttachmentAsync`.
-  - Áp dụng hàm bảo mật `CheckCustomerAccess(ticket)` để xác thực nghiêm ngặt rằng vé thuộc quyền sở hữu của chính người dùng đang đăng nhập trước khi cho phép tải/xem tệp.
+  1. **Đăng ký cấp Guild (Server Command)**: Duyệt danh sách `_client.Guilds` và gọi `guild.CreateApplicationCommandAsync(...)`. Lệnh có hiệu lực **ngay lập tức (0 giây)**.
+  2. Bấm **`Ctrl + R`** trên ứng dụng Discord để làm mới cache client.
+  3. **Hỗ trợ lệnh tin nhắn thường (Prefix Command)**: Bổ sung lắng nghe `!my-tickets`, `!tickets`, `!link <username>` qua sự kiện `MessageReceived` để kỹ thuật viên dùng được ngay không cần đợi Slash Command.
 
 ---
 
-### 13. Lỗi `The ConnectionString property has not been initialized` khi chạy DbMigrator
-- **Hiện tượng**: Chạy lệnh `dotnet run --project src/Helpdesk.DbMigrator` từ thư mục gốc bị lỗi crash với thông báo chuỗi kết nối chưa được khởi tạo.
-- **Nguyên nhân**: Dự án `DbMigrator` đọc file cấu hình `appsettings.json` tại thư mục làm việc hiện tại (Working Directory). Nếu chạy từ bên ngoài mà không chuyển thư mục, tiến trình không nạp được cấu hình kết nối.
-- **Cách khắc phục**: Sử dụng trực tiếp công cụ Entity Framework Core CLI với tham số chỉ định rõ startup project:
-  ```powershell
-  dotnet ef database update --project src/Helpdesk.EntityFrameworkCore --startup-project src/Helpdesk.HttpApi.Host
-  ```
-
----
-
-### 14. Lỗi TypeScript Strict Mode: `Type 'undefined' cannot be used as an index type` (TS2538)
-- **Hiện tượng**: Lệnh biên dịch Angular (`ng build`) báo lỗi `TS2538: Type 'undefined' cannot be used as an index type` khi sử dụng `att.id` làm khóa truy cập object lưu thumbnail `this.thumbnails[att.id]`.
-- **Nguyên nhân**: Interface `TicketAttachmentDto` khai báo trường `id` dạng optional (`id?: string`). Angular 19 với cờ `strict` ngăn cản việc dùng giá trị có thể mang kiểu `undefined` làm key cho dictionary.
-- **Cách khắc phục**: Áp dụng cơ chế thu hẹp kiểu (Type Narrowing):
-  ```typescript
-  const attId = att.id;
-  if (attId) {
-    this.thumbnails[attId] = url;
-  }
-  ```
-  Hoặc xây dựng hàm helper: `getImageUrl(attachmentId?: string): string`.
-
----
-
-### 15. Lỗi `The type or namespace name 'Mvc' does not exist in 'Microsoft.AspNetCore'` trong tầng Application
-- **Hiện tượng**: Thêm annotation `[Microsoft.AspNetCore.Mvc.HttpPost]` vào phương thức trong `CustomerPortalAppService` gây lỗi build dự án `Helpdesk.Application`.
-- **Nguyên nhân**: Tầng `Application` trong kiến trúc chuẩn ABP Framework tách biệt hoàn toàn với Web/MVC, không tham chiếu trực tiếp tới assembly ASP.NET Core MVC.
-- **Cách khắc phục**: Loại bỏ attribute MVC. Hệ thống Conventional API của ABP Framework sẽ tự động nhận diện và chuyển đổi các phương thức có tiền tố `Submit...`, `Create...`, `Upload...` thành HTTP POST endpoint tương ứng.
-
----
-
-### 16. Xung đột và cấp phép thương mại khi xử lý Excel trên .NET 10
-- **Hiện tượng**: Sử dụng các thư viện như `EPPlus` đòi hỏi bản quyền thương mại và cấu hình LicenseContext phức tạp; các thư viện COM Interop hoặc `ClosedXML` cũ gây tốn nhiều RAM và cảnh báo tương thích với .NET 10.
-- **Nguyên nhân**: .NET 10 nâng cấp cơ chế JIT và tối ưu hóa bộ nhớ, nhiều thư viện Excel đời cũ chưa tương thích hoàn toàn.
-- **Cách khắc phục**: Tích hợp **MiniExcel 1.46.0** — thư viện stream Excel mã nguồn mở hiệu năng cao hàng đầu thế giới cho .NET, ghi trực tiếp luồng nhị phân vào `MemoryStream`, tối ưu hóa bộ nhớ RAM ở mức tối đa và tương thích 100% với .NET 10.
+### 16. Không hiển thị nút bấm Hoàn thành vé khi gõ `/my-tickets`
+- **Hiện tượng**: Kỹ thuật viên chạy lệnh `/my-tickets` xem danh sách vé đang xử lý, nhưng tin nhắn trả về chỉ có văn bản và liên kết web mà không có nút bấm tương tác để hoàn thành vé.
+- **Nguyên nhân**: Hàm `GenerateMyTicketsResponseAsync` ban đầu chỉ tạo `EmbedBuilder` mà chưa khởi tạo `ComponentBuilder` để gắn Action Buttons vào thông điệp phản hồi (`components: components`).
+- **Cách khắc phục**:
+  - Bổ sung `ComponentBuilder` trong hàm tạo phản hồi: Với mỗi vé đang xử lý (tối đa 5 vé), tạo một hàng gồm nút thành công **`[🏁 Hoàn thành {TicketNumber}]`** (`resolve_ticket_{t.Id}`) và nút liên kết **`[👁️ Xem trên Web]`**.
+  - Kỹ thuật viên bấm trực tiếp vào nút hoàn thành để mở Modal giải quyết sự cố ngay trên Discord.
