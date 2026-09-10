@@ -82,6 +82,10 @@ public class HelpdeskPermissionDefinitionProvider : PermissionDefinitionProvider
         rulesPermission.AddChild(HelpdeskPermissions.AssignmentRules.Edit, L("Permission:AssignmentRules.Edit"));
         rulesPermission.AddChild(HelpdeskPermissions.AssignmentRules.Delete, L("Permission:AssignmentRules.Delete"));
         rulesPermission.AddChild(HelpdeskPermissions.AssignmentRules.Manage, L("Permission:AssignmentRules.Manage"));
+
+        // Discord Settings
+        var discordPermission = helpdeskGroup.AddPermission(HelpdeskPermissions.DiscordSettings.Default, L("Permission:DiscordSettings"));
+        discordPermission.AddChild(HelpdeskPermissions.DiscordSettings.Manage, L("Permission:DiscordSettings.Manage"));
     }
 
     private static LocalizableString L(string name)

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Helpdesk.AssignmentRules;
 using Helpdesk.Categories;
 using Helpdesk.CustomerPortal.Dtos;
+using Helpdesk.Discord;
 using Helpdesk.Notifications;
 using Helpdesk.Permissions;
 using Helpdesk.Priorities;
@@ -42,6 +43,7 @@ public class CustomerPortalAppService : ApplicationService, ICustomerPortalAppSe
     private readonly SlaManager _slaManager;
     private readonly AutoAssignmentManager _autoAssignmentManager;
     private readonly NotificationManager _notificationManager;
+    private readonly IDiscordNotificationService _discordNotificationService;
 
     public CustomerPortalAppService(
         IRepository<Ticket, Guid> ticketRepository,
@@ -57,7 +59,8 @@ public class CustomerPortalAppService : ApplicationService, ICustomerPortalAppSe
         TicketManager ticketManager,
         SlaManager slaManager,
         AutoAssignmentManager autoAssignmentManager,
-        NotificationManager notificationManager)
+        NotificationManager notificationManager,
+        IDiscordNotificationService discordNotificationService)
     {
         _ticketRepository = ticketRepository;
         _commentRepository = commentRepository;
@@ -73,6 +76,7 @@ public class CustomerPortalAppService : ApplicationService, ICustomerPortalAppSe
         _slaManager = slaManager;
         _autoAssignmentManager = autoAssignmentManager;
         _notificationManager = notificationManager;
+        _discordNotificationService = discordNotificationService;
     }
 
     public async Task<PagedResultDto<CustomerTicketDto>> GetMyTicketsAsync(GetCustomerTicketListInput input)
@@ -328,6 +332,11 @@ public class CustomerPortalAppService : ApplicationService, ICustomerPortalAppSe
                 await _attachmentRepository.InsertAsync(attachment);
             }
         }
+
+        var category = await _categoryRepository.FindAsync(ticket.CategoryId);
+        var priority = await _priorityRepository.FindAsync(ticket.PriorityId);
+        var isCritical = priority?.Name.Contains("Critical", StringComparison.OrdinalIgnoreCase) == true;
+        await _discordNotificationService.SendTicketCreatedAsync(ticket, category?.Name ?? "Chung", priority?.Name ?? "Bình thường", isCritical);
 
         return await GetMyTicketAsync(ticket.Id);
     }

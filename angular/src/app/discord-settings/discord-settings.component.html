@@ -1,0 +1,313 @@
+<div class="discord-settings-page container-fluid py-4">
+  <!-- Header Banner -->
+  <div class="card header-card border-0 mb-4 shadow-sm overflow-hidden">
+    <div class="card-body p-4 text-white d-flex align-items-center justify-content-between flex-wrap gap-3">
+      <div class="d-flex align-items-center gap-3">
+        <div class="discord-logo-box d-flex align-items-center justify-content-center">
+          <i class="fa-brands fa-discord fs-1"></i>
+        </div>
+        <div>
+          <h2 class="h3 fw-bold mb-1">Tích Hợp Thông Báo Discord Webhook</h2>
+          <p class="mb-0 text-white-50">
+            Tự động bắn cảnh báo sự cố khẩn cấp, phân công kỹ thuật viên và vi phạm hạn SLA vào kênh Discord của đội IT.
+          </p>
+        </div>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <button
+          type="button"
+          class="btn btn-light fw-semibold text-primary px-3 shadow-sm d-flex align-items-center gap-2"
+          [disabled]="isTesting || isLoading"
+          (click)="testWebhook()"
+        >
+          <span *ngIf="isTesting" class="spinner-border spinner-border-sm" role="status"></span>
+          <i *ngIf="!isTesting" class="fa-solid fa-paper-plane"></i>
+          <span>Gửi Thử Nghiệm (Test)</span>
+        </button>
+        <button
+          type="button"
+          class="btn btn-success fw-semibold px-4 shadow-sm d-flex align-items-center gap-2"
+          [disabled]="isSaving || isLoading"
+          (click)="save()"
+        >
+          <span *ngIf="isSaving" class="spinner-border spinner-border-sm" role="status"></span>
+          <i *ngIf="!isSaving" class="fa-solid fa-floppy-disk"></i>
+          <span>Lưu Cấu Hình</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Đang tải...</span>
+    </div>
+    <p class="mt-3 text-muted">Đang tải cấu hình Discord từ hệ thống...</p>
+  </div>
+
+  <!-- Main Content Form -->
+  <div *ngIf="!isLoading" class="row g-4">
+    <!-- Left Column: Settings Form -->
+    <div class="col-lg-8">
+      <form [formGroup]="form" (ngSubmit)="save()">
+        <!-- Card 1: Kích hoạt & Webhook URL -->
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0 d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+              <i class="fa-solid fa-link text-primary"></i>
+              <span>Cấu Hình Kết Nối Webhook</span>
+            </h5>
+            <div class="form-check form-switch fs-5 mb-0">
+              <input
+                class="form-check-input custom-switch"
+                type="checkbox"
+                role="switch"
+                id="isEnabledSwitch"
+                formControlName="isEnabled"
+              />
+              <label class="form-check-label fs-6 fw-bold" for="isEnabledSwitch" [class.text-success]="form.get('isEnabled')?.value" [class.text-muted]="!form.get('isEnabled')?.value">
+                {{ form.get('isEnabled')?.value ? 'Đang Bật' : 'Đang Tắt' }}
+              </label>
+            </div>
+          </div>
+
+          <div class="card-body p-4">
+            <div class="mb-4">
+              <label for="webhookUrl" class="form-label fw-semibold">
+                Discord Webhook URL <span class="text-danger">*</span>
+              </label>
+              <div class="input-group">
+                <span class="input-group-text bg-light text-muted border-end-0">
+                  <i class="fa-brands fa-discord"></i>
+                </span>
+                <input
+                  type="url"
+                  id="webhookUrl"
+                  class="form-control border-start-0 ps-0 font-monospace"
+                  placeholder="https://discord.com/api/webhooks/123456789/abcdefgh..."
+                  formControlName="webhookUrl"
+                />
+              </div>
+              <div class="form-text mt-2 text-muted">
+                <i class="fa-solid fa-circle-info me-1"></i>
+                URL Webhook được sinh từ mục Tích hợp (Integrations) trong cài đặt kênh Discord của bạn.
+              </div>
+            </div>
+
+            <!-- Bot Identity -->
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label for="botName" class="form-label fw-semibold">Tên Bot Hiển Thị</label>
+                <div class="input-group">
+                  <span class="input-group-text bg-light text-muted">
+                    <i class="fa-solid fa-robot"></i>
+                  </span>
+                  <input
+                    type="text"
+                    id="botName"
+                    class="form-control"
+                    placeholder="Helpdesk Support Bot"
+                    formControlName="botName"
+                  />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label for="avatarUrl" class="form-label fw-semibold">Avatar Bot (Ảnh Đại Diện)</label>
+                <div class="input-group">
+                  <span class="input-group-text bg-light text-muted">
+                    <i class="fa-regular fa-image"></i>
+                  </span>
+                  <input
+                    type="url"
+                    id="avatarUrl"
+                    class="form-control"
+                    placeholder="https://example.com/bot-avatar.png"
+                    formControlName="avatarUrl"
+                  />
+                  <span class="input-group-text p-1 bg-white" *ngIf="form.get('avatarUrl')?.value">
+                    <img [src]="form.get('avatarUrl')?.value" class="rounded-circle" width="28" height="28" alt="Bot avatar" onerror="this.style.display='none'" />
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 2: Event Triggers -->
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+            <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+              <i class="fa-solid fa-bell text-warning"></i>
+              <span>Sự Kiện Bắn Cảnh Báo (Notification Triggers)</span>
+            </h5>
+            <p class="text-muted small mb-0 mt-1">Lựa chọn các sự kiện bạn muốn gửi thông báo vào Discord:</p>
+          </div>
+
+          <div class="card-body p-4">
+            <div class="row g-3">
+              <!-- Trigger 1: New Ticket -->
+              <div class="col-md-6">
+                <div class="trigger-box p-3 rounded-3 border d-flex align-items-start gap-3 h-100" [class.active-box]="form.get('notifyOnNewTicket')?.value">
+                  <div class="trigger-icon bg-primary-subtle text-primary rounded-circle p-2 d-flex align-items-center justify-content-center">
+                    <i class="fa-solid fa-ticket fs-5"></i>
+                  </div>
+                  <div class="flex-grow-1">
+                    <div class="form-check form-switch mb-1">
+                      <input class="form-check-input" type="checkbox" role="switch" id="notifyNew" formControlName="notifyOnNewTicket" />
+                      <label class="form-check-label fw-bold text-dark" for="notifyNew">Có sự vụ mới tạo</label>
+                    </div>
+                    <small class="text-muted d-block">Bắn thông báo ngay khi nhân viên hoặc khách hàng gửi yêu cầu hỗ trợ mới.</small>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Trigger 2: Critical Only Filter -->
+              <div class="col-md-6">
+                <div class="trigger-box p-3 rounded-3 border d-flex align-items-start gap-3 h-100" [class.active-box]="form.get('notifyOnCriticalOnly')?.value">
+                  <div class="trigger-icon bg-danger-subtle text-danger rounded-circle p-2 d-flex align-items-center justify-content-center">
+                    <i class="fa-solid fa-triangle-exclamation fs-5"></i>
+                  </div>
+                  <div class="flex-grow-1">
+                    <div class="form-check form-switch mb-1">
+                      <input class="form-check-input" type="checkbox" role="switch" id="notifyCriticalOnly" formControlName="notifyOnCriticalOnly" />
+                      <label class="form-check-label fw-bold text-dark" for="notifyCriticalOnly">Chỉ vé Khẩn cấp (Critical)</label>
+                    </div>
+                    <small class="text-muted d-block">Lọc chỉ gửi thông báo vé mới nếu mức ưu tiên là Critical để tránh loãng kênh.</small>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Trigger 3: Assigned -->
+              <div class="col-md-6">
+                <div class="trigger-box p-3 rounded-3 border d-flex align-items-start gap-3 h-100" [class.active-box]="form.get('notifyOnAssigned')?.value">
+                  <div class="trigger-icon bg-warning-subtle text-warning rounded-circle p-2 d-flex align-items-center justify-content-center">
+                    <i class="fa-solid fa-user-check fs-5"></i>
+                  </div>
+                  <div class="flex-grow-1">
+                    <div class="form-check form-switch mb-1">
+                      <input class="form-check-input" type="checkbox" role="switch" id="notifyAssign" formControlName="notifyOnAssigned" />
+                      <label class="form-check-label fw-bold text-dark" for="notifyAssign">Phân công kỹ thuật viên</label>
+                    </div>
+                    <small class="text-muted d-block">Thông báo khi vé được giao cho kỹ thuật viên xử lý (thủ công hoặc tự động).</small>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Trigger 4: SLA Breach -->
+              <div class="col-md-6">
+                <div class="trigger-box p-3 rounded-3 border d-flex align-items-start gap-3 h-100 border-danger-subtle" [class.active-box]="form.get('notifyOnSlaBreach')?.value">
+                  <div class="trigger-icon bg-danger text-white rounded-circle p-2 d-flex align-items-center justify-content-center">
+                    <i class="fa-solid fa-clock-rotate-left fs-5"></i>
+                  </div>
+                  <div class="flex-grow-1">
+                    <div class="form-check form-switch mb-1">
+                      <input class="form-check-input" type="checkbox" role="switch" id="notifySla" formControlName="notifyOnSlaBreach" />
+                      <label class="form-check-label fw-bold text-danger" for="notifySla">Cảnh báo Vi phạm SLA</label>
+                    </div>
+                    <small class="text-muted d-block">Bắn cảnh báo đỏ khẩn cấp khi vé trễ hạn phản hồi hoặc giải quyết cam kết SLA.</small>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Trigger 5: Resolved -->
+              <div class="col-md-6">
+                <div class="trigger-box p-3 rounded-3 border d-flex align-items-start gap-3 h-100" [class.active-box]="form.get('notifyOnResolved')?.value">
+                  <div class="trigger-icon bg-success-subtle text-success rounded-circle p-2 d-flex align-items-center justify-content-center">
+                    <i class="fa-solid fa-circle-check fs-5"></i>
+                  </div>
+                  <div class="flex-grow-1">
+                    <div class="form-check form-switch mb-1">
+                      <input class="form-check-input" type="checkbox" role="switch" id="notifyResolve" formControlName="notifyOnResolved" />
+                      <label class="form-check-label fw-bold text-dark" for="notifyResolve">Sự vụ hoàn tất (Resolved)</label>
+                    </div>
+                    <small class="text-muted d-block">Báo tin mừng khi sự cố được kỹ thuật viên xử lý xong và giải quyết thành công.</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- Right Column: Guide & Preview -->
+    <div class="col-lg-4">
+      <!-- Guide Card -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+          <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+            <i class="fa-solid fa-book-open text-info"></i>
+            <span>Cách Lấy Discord Webhook URL</span>
+          </h6>
+        </div>
+        <div class="card-body p-4">
+          <ol class="step-list ps-3 mb-0 text-muted small">
+            <li class="mb-2">
+              Mở ứng dụng <strong>Discord</strong>, chọn máy chủ và kênh chat bạn muốn nhận cảnh báo (VD: <span class="badge bg-light text-dark">#it-support</span>).
+            </li>
+            <li class="mb-2">
+              Bấm vào biểu tượng bánh răng <strong>Edit Channel (Chỉnh sửa kênh)</strong> $\rightarrow$ chọn mục <strong>Integrations (Tích hợp)</strong>.
+            </li>
+            <li class="mb-2">
+              Chọn <strong>Webhooks</strong> $\rightarrow$ bấm <strong>New Webhook (Tạo Webhook)</strong>.
+            </li>
+            <li class="mb-0">
+              Bấm <strong>Copy Webhook URL (Sao chép URL)</strong>, dán vào ô nhập liệu bên trái và bấm <strong>Gửi Thử Nghiệm</strong>!
+            </li>
+          </ol>
+        </div>
+      </div>
+
+      <!-- Preview Embed Card Mockup -->
+      <div class="card border-0 shadow-sm discord-mockup-card">
+        <div class="card-header bg-dark text-white border-0 py-3 px-4 d-flex align-items-center justify-content-between">
+          <span class="small fw-semibold text-white-50">
+            <i class="fa-brands fa-discord me-1"></i> Minh Họa Tin Nhắn Trên Discord
+          </span>
+          <span class="badge bg-secondary">Preview</span>
+        </div>
+        <div class="card-body p-4 bg-dark text-white font-monospace small">
+          <div class="d-flex align-items-center gap-2 mb-3">
+            <img [src]="form.get('avatarUrl')?.value || defaultAvatarUrl" width="36" height="36" class="rounded-circle" alt="Bot" onerror="this.style.display='none'" />
+            <div>
+              <span class="fw-bold text-white">{{ form.get('botName')?.value || defaultBotName }}</span>
+              <span class="badge bg-primary ms-2 px-1 py-0" style="font-size: 0.65rem;">BOT</span>
+              <span class="text-muted ms-2" style="font-size: 0.75rem;">Hôm nay lúc 08:30</span>
+            </div>
+          </div>
+
+          <!-- Discord Embed Box Mockup -->
+          <div class="discord-embed p-3 rounded-2 position-relative" style="background: #2b2d31; border-left: 4px solid #3498db;">
+            <div class="fw-bold text-primary mb-1">🎫 [TK-20260910-0001] Mạng wifi chập chờn phòng 204</div>
+            <div class="text-white-50 mb-3" style="font-size: 0.8rem;">
+              Khách hàng báo cáo tình trạng mất kết nối wifi từ đầu giờ sáng...
+            </div>
+            <div class="row g-2 mb-2" style="font-size: 0.75rem;">
+              <div class="col-6">
+                <span class="text-muted d-block">👤 Người yêu cầu</span>
+                <span class="text-white">Nguyễn Văn A</span>
+              </div>
+              <div class="col-6">
+                <span class="text-muted d-block">⚡ Mức ưu tiên</span>
+                <span class="text-warning">High</span>
+              </div>
+              <div class="col-6">
+                <span class="text-muted d-block">📁 Danh mục</span>
+                <span class="text-white">Mạng & Kết nối</span>
+              </div>
+              <div class="col-6">
+                <span class="text-muted d-block">⏱️ Hạn SLA</span>
+                <span class="text-info">10/09 17:30</span>
+              </div>
+            </div>
+            <div class="border-top border-secondary pt-2 mt-2 d-flex justify-content-between text-muted" style="font-size: 0.65rem;">
+              <span>Helpdesk ITSM System</span>
+              <span>10/09/2026</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

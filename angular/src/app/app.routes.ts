@@ -52,4 +52,13 @@ export const APP_ROUTES: Routes = [
     loadChildren: () =>
       import('./knowledge-base/knowledge-base.routes').then(m => m.KNOWLEDGE_BASE_ROUTES),
   },
+  {
+    path: 'discord-settings',
+    loadComponent: () =>
+      import('./discord-settings/discord-settings.component').then(c => c.DiscordSettingsComponent),
+    canActivate: [authGuard, permissionGuard],
+    data: {
+      requiredPolicy: 'Helpdesk.DiscordSettings',
+    },
+  },
 ];

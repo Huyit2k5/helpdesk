@@ -81,5 +81,14 @@ function configureMasterDataRoutes() {
       layout: eLayoutType.application,
       requiredPolicy: 'Helpdesk.AssignmentRules',
     },
+    {
+      path: '/discord-settings',
+      name: 'Discord Webhook',
+      parentName: '::Menu:MasterData',
+      iconClass: 'fab fa-discord',
+      order: 8,
+      layout: eLayoutType.application,
+      requiredPolicy: 'Helpdesk.DiscordSettings',
+    },
   ]);
 }

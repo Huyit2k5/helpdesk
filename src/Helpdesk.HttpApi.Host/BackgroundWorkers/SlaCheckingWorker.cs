@@ -78,6 +78,28 @@ public class SlaCheckingWorker : AsyncPeriodicBackgroundWorkerBase
                         );
                     }
                 }
+
+                if (newlyBreached)
+                {
+                    try
+                    {
+                        var discordService = workerContext.ServiceProvider.GetRequiredService<Helpdesk.Discord.IDiscordNotificationService>();
+                        var priorityRepo = workerContext.ServiceProvider.GetRequiredService<IRepository<Helpdesk.Priorities.Priority, Guid>>();
+                        var priority = await priorityRepo.FindAsync(ticket.PriorityId);
+                        var breachType = (ticket.IsResolutionBreached && !wasResolutionBreached)
+                            ? "Quá hạn giải quyết sự cố (Resolution Due)"
+                            : "Quá hạn phản hồi ban đầu (First Response Due)";
+                        var dueDate = (ticket.IsResolutionBreached && !wasResolutionBreached)
+                            ? (ticket.DueDate ?? DateTime.Now)
+                            : (ticket.FirstResponseDueDate ?? DateTime.Now);
+
+                        await discordService.SendSlaBreachAsync(ticket, breachType, dueDate, priority?.Name ?? "Bình thường");
+                    }
+                    catch (Exception discordEx)
+                    {
+                        Logger.LogWarning(discordEx, "Không thể gửi cảnh báo vi phạm SLA tới Discord cho vé {TicketNumber}", ticket.TicketNumber);
+                    }
+                }
             }
         }
         catch (Exception ex)

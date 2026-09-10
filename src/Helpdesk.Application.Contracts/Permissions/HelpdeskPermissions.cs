@@ -99,4 +99,10 @@ public static class HelpdeskPermissions
         public const string Delete = Default + ".Delete";
         public const string Manage = Default + ".Manage";
     }
+
+    public static class DiscordSettings
+    {
+        public const string Default = GroupName + ".DiscordSettings";
+        public const string Manage = Default + ".Manage";
+    }
 }

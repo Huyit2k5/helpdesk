@@ -1,9 +1,21 @@
-﻿namespace Helpdesk.Settings;
+namespace Helpdesk.Settings;
 
 public static class HelpdeskSettings
 {
     private const string Prefix = "Helpdesk";
 
-    //Add your own setting names here. Example:
-    //public const string MySetting1 = Prefix + ".MySetting1";
+    public static class Discord
+    {
+        private const string DiscordPrefix = Prefix + ".Discord";
+
+        public const string WebhookUrl = DiscordPrefix + ".WebhookUrl";
+        public const string IsEnabled = DiscordPrefix + ".IsEnabled";
+        public const string NotifyOnNewTicket = DiscordPrefix + ".NotifyOnNewTicket";
+        public const string NotifyOnCriticalOnly = DiscordPrefix + ".NotifyOnCriticalOnly";
+        public const string NotifyOnAssigned = DiscordPrefix + ".NotifyOnAssigned";
+        public const string NotifyOnSlaBreach = DiscordPrefix + ".NotifyOnSlaBreach";
+        public const string NotifyOnResolved = DiscordPrefix + ".NotifyOnResolved";
+        public const string BotName = DiscordPrefix + ".BotName";
+        public const string AvatarUrl = DiscordPrefix + ".AvatarUrl";
+    }
 }

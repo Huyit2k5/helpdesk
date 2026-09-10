@@ -1,0 +1,56 @@
+.discord-settings-page {
+  .header-card {
+    background: linear-gradient(135deg, #5865f2 0%, #4752c4 100%);
+    border-radius: 12px;
+
+    .discord-logo-box {
+      width: 56px;
+      height: 56px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      backdrop-filter: blur(8px);
+    }
+  }
+
+  .trigger-box {
+    background: #ffffff;
+    transition: all 0.2s ease-in-out;
+
+    &:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      transform: translateY(-2px);
+    }
+
+    &.active-box {
+      border-color: #5865f2 !important;
+      background: #f8f9ff;
+    }
+
+    .trigger-icon {
+      width: 40px;
+      height: 40px;
+      flex-shrink: 0;
+    }
+  }
+
+  .discord-mockup-card {
+    border-radius: 12px;
+    overflow: hidden;
+    background: #1e1f22;
+
+    .card-header {
+      background: #2b2d31 !important;
+    }
+  }
+
+  .custom-switch {
+    width: 2.8rem;
+    height: 1.4rem;
+    cursor: pointer;
+
+    &:checked {
+      background-color: #2ecc71;
+      border-color: #2ecc71;
+    }
+  }
+}

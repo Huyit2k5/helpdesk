@@ -8,6 +8,7 @@ using Helpdesk.AssignmentRules;
 using Helpdesk.CannedResponses;
 using Helpdesk.Categories;
 using Helpdesk.Departments;
+using Helpdesk.Discord;
 using Helpdesk.Notifications;
 using Helpdesk.Permissions;
 using Helpdesk.Priorities;
@@ -49,6 +50,7 @@ public class TicketAppService : ApplicationService, ITicketAppService
     private readonly AutoAssignmentManager _autoAssignmentManager;
     private readonly NotificationManager _notificationManager;
     private readonly IEmailSender _emailSender;
+    private readonly IDiscordNotificationService _discordNotificationService;
 
     public TicketAppService(
         IRepository<Ticket, Guid> ticketRepository,
@@ -67,7 +69,8 @@ public class TicketAppService : ApplicationService, ITicketAppService
         SlaManager slaManager,
         AutoAssignmentManager autoAssignmentManager,
         NotificationManager notificationManager,
-        IEmailSender emailSender)
+        IEmailSender emailSender,
+        IDiscordNotificationService discordNotificationService)
     {
         _ticketRepository = ticketRepository;
         _commentRepository = commentRepository;
@@ -86,6 +89,7 @@ public class TicketAppService : ApplicationService, ITicketAppService
         _autoAssignmentManager = autoAssignmentManager;
         _notificationManager = notificationManager;
         _emailSender = emailSender;
+        _discordNotificationService = discordNotificationService;
     }
 
     public async Task<PagedResultDto<TicketListDto>> GetListAsync(GetTicketListInput input)
@@ -387,7 +391,12 @@ public class TicketAppService : ApplicationService, ITicketAppService
             await _autoAssignmentManager.TryAssignTicketAsync(ticket);
         }
 
-        await _ticketRepository.InsertAsync(ticket);
+        await _ticketRepository.InsertAsync(ticket, autoSave: true);
+
+        var category = await _categoryRepository.FindAsync(ticket.CategoryId);
+        var priority = await _priorityRepository.FindAsync(ticket.PriorityId);
+        var isCritical = priority?.Name.Contains("Critical", StringComparison.OrdinalIgnoreCase) == true;
+        await _discordNotificationService.SendTicketCreatedAsync(ticket, category?.Name ?? "Chung", priority?.Name ?? "Bình thường", isCritical);
 
         return await GetAsync(ticket.Id);
     }
@@ -423,7 +432,7 @@ public class TicketAppService : ApplicationService, ITicketAppService
         ticket.DueDate = input.DueDate;
         ticket.Tags = input.Tags;
 
-        await _ticketRepository.UpdateAsync(ticket);
+        await _ticketRepository.UpdateAsync(ticket, autoSave: true);
 
         return await GetAsync(id);
     }
@@ -454,7 +463,7 @@ public class TicketAppService : ApplicationService, ITicketAppService
         }
 
         await _ticketManager.AssignAsync(ticket, input.AssigneeId, assigneeName, input.DepartmentId, departmentName);
-        await _ticketRepository.UpdateAsync(ticket);
+        await _ticketRepository.UpdateAsync(ticket, autoSave: true);
 
         if (input.AssigneeId.HasValue)
         {
@@ -465,6 +474,9 @@ public class TicketAppService : ApplicationService, ITicketAppService
                 $"Vé {ticket.TicketNumber} \"{ticket.Title}\" vừa được phân công cho bạn.",
                 ticket.Id
             );
+
+            var priority = await _priorityRepository.FindAsync(ticket.PriorityId);
+            await _discordNotificationService.SendTicketAssignedAsync(ticket, assigneeName ?? "Kỹ thuật viên", priority?.Name ?? "Normal");
 
             var assigneeUser = await _userRepository.FindAsync(input.AssigneeId.Value);
             if (!string.IsNullOrWhiteSpace(assigneeUser?.Email))
@@ -495,7 +507,7 @@ public class TicketAppService : ApplicationService, ITicketAppService
             await _slaManager.OnTicketResolvedAsync(ticket);
         }
 
-        await _ticketRepository.UpdateAsync(ticket);
+        await _ticketRepository.UpdateAsync(ticket, autoSave: true);
 
         if (!string.IsNullOrWhiteSpace(input.Comment))
         {
@@ -526,6 +538,12 @@ public class TicketAppService : ApplicationService, ITicketAppService
                 $"[Helpdesk] Vé {ticket.TicketNumber} đã được giải quyết",
                 $"Vé \"{ticket.Title}\" của bạn đã chuyển sang trạng thái \"{newStatus.Name}\". Cảm ơn bạn đã sử dụng dịch vụ hỗ trợ."
             );
+        }
+
+        if (isResolved)
+        {
+            var resolverName = CurrentUser.UserName ?? "Kỹ thuật viên";
+            await _discordNotificationService.SendTicketResolvedAsync(ticket, resolverName);
         }
 
         return await GetAsync(id);
