@@ -85,7 +85,7 @@ Hệ thống được thiết kế theo kiến trúc chuẩn **Domain-Driven Des
 
 ## 🖼️ BỘ SƯU TẬP GIAO DIỆN HỆ THỐNG (UI SHOWCASE)
 
-Dưới đây là hình ảnh thực tế các phân hệ chính đang hoạt động trên hệ thống:
+Dưới đây là hình ảnh thực tế toàn bộ các phân hệ chính đang hoạt động trên hệ thống:
 
 ### 1. Bảng Điều Khiển Giám Sát Trung Tâm (Dashboard Analytics)
 Màn hình giám sát 360 độ với các thẻ chỉ số trọng yếu (Total, Open, In Progress, Resolved, Overdue), tỷ lệ tuân thủ SLA, điểm CSAT trung bình, biểu đồ xu hướng Chart.js và bảng xếp hạng năng suất kỹ thuật viên:
@@ -105,25 +105,61 @@ Chế độ xem bảng Kanban trực quan cho phép kỹ thuật viên nắm b�
 
 ---
 
-### 4. Chi Tiết Sự Vụ & Dòng Thời Gian Xử Lý (Ticket Detail & Timeline)
+### 4. Hộp Thoại Tạo Yêu Cầu Hỗ Trợ Mới (Create Ticket Modal)
+Modal tạo sự vụ nhanh với kiểm tra dữ liệu đầu vào (Validation), chọn mức độ ưu tiên, phân loại danh mục, ngày hết hạn SLA và tải lên nhiều tệp đính kèm:
+![Create Ticket Modal](docs/images/create_ticket_modal.png)
+
+---
+
+### 5. Chi Tiết Sự Vụ & Dòng Thời Gian Xử Lý (Ticket Detail & Timeline)
 Màn hình chi tiết sự vụ toàn diện kết hợp luồng phản hồi khách hàng (Public Reply), ghi chú bảo mật nội bộ (Internal Note), nhật ký kiểm toán hệ thống (Audit Trail) và danh sách tệp đính kèm:
 ![Ticket Detail View](docs/images/ticket_detail.png)
 
 ---
 
-### 5. Cổng Người Dùng Cuối Tự Phục Vụ (Customer Portal)
+### 6. Quản Lý Chính Sách Cam Kết Dịch Vụ (SLA Policies)
+Màn hình thiết lập chính sách SLA linh hoạt theo từng cặp Danh mục sự cố và Mức độ ưu tiên (thời gian phản hồi lần đầu & thời gian giải quyết cam kết):
+![SLA Policies](docs/images/sla_policies.png)
+
+---
+
+### 7. Báo Cáo Tuân Thủ SLA & Vi Phạm (SLA Compliance Report)
+Báo cáo trực quan tỷ lệ phản hồi đúng hạn (%), tỷ lệ giải quyết đúng hạn (%) cùng danh sách chi tiết các vụ việc trễ hạn và nút xuất Excel kiểm toán:
+![SLA Compliance](docs/images/sla_compliance.png)
+
+---
+
+### 8. Quy Tắc Điều Phối Phân Công Tự Động (Auto-Assignment Rules)
+Cấu hình quy tắc gán sự vụ thông minh theo thứ tự ưu tiên, kết hợp chiến lược xoay vòng công bằng **Round Robin** hoặc Least Busy:
+![Assignment Rules](docs/images/assignment_rules.png)
+
+---
+
+### 9. Cơ Sở Tri Thức & Tra Cứu Giải Pháp (Knowledge Base & Self-Service)
+Thư viện bài viết hướng dẫn khắc phục sự cố văn phòng định dạng Markdown, phân mục khoa học, gắn tags và hỗ trợ bình chọn giải pháp hữu ích:
+![Knowledge Base](docs/images/knowledge_base.png)
+
+---
+
+### 10. Quản Lý Danh Mục Sự Cố (Categories Management)
+Giao diện quản lý danh mục phân cấp cha-con trực quan với mã code định danh, hỗ trợ tạo mới, chỉnh sửa và kích hoạt/vô hiệu hóa danh mục:
+![Categories Management](docs/images/categories_management.png)
+
+---
+
+### 11. Cổng Người Dùng Cuối Tự Phục Vụ (Customer Portal)
 Giao diện chuyên biệt dành cho khách hàng tự tạo yêu cầu hỗ trợ, kéo thả hình ảnh lỗi chụp màn hình và theo dõi tiến độ xử lý:
 ![Customer Portal](docs/images/customer_portal.png)
 
 ---
 
-### 6. Cấu Hình Tích Hợp Discord (Discord Integration Settings)
+### 12. Cấu Hình Tích Hợp Discord (Discord Integration Settings)
 Màn hình quản trị cho phép thiết lập linh hoạt Webhook URL, Bot Token, Kênh chỉ định (Channel ID) và bật/tắt từng loại cảnh báo:
 ![Discord Settings](docs/images/discord_settings.png)
 
 ---
 
-### 7. Tương Tác Hai Chiều Trên Discord (Discord Interactive Bot & Slash Commands)
+### 13. Tương Tác Hai Chiều Trên Discord (Discord Interactive Bot & Slash Commands)
 Kỹ thuật viên thao tác trực tiếp trên Discord: Nhận vé bằng nút bấm, chuyển trạng thái vé, hoàn thành vé qua hộp thoại Modal, tra cứu danh sách vé bằng `/my-tickets` hoặc `!my-tickets`:
 ![Discord Bot Chat](docs/images/discord_bot_chat.png)
 
