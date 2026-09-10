@@ -584,50 +584,57 @@ public class DiscordBotService : IDiscordBotService, ISingletonDependency, IDisp
 
             await uow.CompleteAsync();
 
-            // Cập nhật Embed trên tin nhắn gốc sang màu xanh lá
+            // Cập nhật Embed trên tin nhắn gốc sang màu xanh lá (nếu có thể)
             if (modal.Message != null)
             {
-                var oldEmbed = modal.Message.Embeds.FirstOrDefault();
-                var ticketUrl = BuildTicketUrl(ticket.Id);
-
-                var resolvedEmbed = new EmbedBuilder()
-                    .WithTitle(oldEmbed?.Title ?? $"[{ticket.TicketNumber}] {ticket.Title}")
-                    .WithDescription(oldEmbed?.Description ?? ticket.Description)
-                    .WithUrl(ticketUrl)
-                    .WithColor(new Color(0x2e, 0xcc, 0x71)) // Xanh lá: Resolved
-                    .WithFooter($"Giải quyết bởi @{userName} lúc {DateTime.Now:HH:mm dd/MM/yyyy}", "https://abp.io/assets/png/abp-logo.png")
-                    .WithCurrentTimestamp();
-
-                if (oldEmbed != null)
+                try
                 {
-                    foreach (var field in oldEmbed.Fields)
+                    var oldEmbed = modal.Message.Embeds.FirstOrDefault();
+                    var ticketUrl = BuildTicketUrl(ticket.Id);
+
+                    var resolvedEmbed = new EmbedBuilder()
+                        .WithTitle(oldEmbed?.Title ?? $"[{ticket.TicketNumber}] {ticket.Title}")
+                        .WithDescription(oldEmbed?.Description ?? ticket.Description)
+                        .WithUrl(ticketUrl)
+                        .WithColor(new Color(0x2e, 0xcc, 0x71)) // Xanh lá: Resolved
+                        .WithFooter($"Giải quyết bởi @{userName} lúc {DateTime.Now:HH:mm dd/MM/yyyy}", "https://abp.io/assets/png/abp-logo.png")
+                        .WithCurrentTimestamp();
+
+                    if (oldEmbed != null)
                     {
-                        if (field.Name.Contains("Trạng thái"))
+                        foreach (var field in oldEmbed.Fields)
                         {
-                            resolvedEmbed.AddField("📌 Trạng thái", "✅ Đã giải quyết (Resolved)", inline: true);
-                        }
-                        else
-                        {
-                            resolvedEmbed.AddField(field.Name, field.Value, inline: field.Inline);
+                            if (field.Name.Contains("Trạng thái"))
+                            {
+                                resolvedEmbed.AddField("📌 Trạng thái", "✅ Đã giải quyết (Resolved)", inline: true);
+                            }
+                            else
+                            {
+                                resolvedEmbed.AddField(field.Name, field.Value, inline: field.Inline);
+                            }
                         }
                     }
+
+                    if (!string.IsNullOrWhiteSpace(resolutionNote))
+                    {
+                        resolvedEmbed.AddField("📝 Ghi chú giải quyết", resolutionNote, inline: false);
+                    }
+
+                    var resolvedComponents = new ComponentBuilder()
+                        .WithButton($"✅ Đã giải quyết bởi {userName}", "resolved_disabled", ButtonStyle.Success, disabled: true)
+                        .WithButton("👁️ Xem trên Web", style: ButtonStyle.Link, url: ticketUrl)
+                        .Build();
+
+                    await modal.Message.ModifyAsync(msg =>
+                    {
+                        msg.Embed = resolvedEmbed.Build();
+                        msg.Components = resolvedComponents;
+                    });
                 }
-
-                if (!string.IsNullOrWhiteSpace(resolutionNote))
+                catch (Exception mEx)
                 {
-                    resolvedEmbed.AddField("📝 Ghi chú giải quyết", resolutionNote, inline: false);
+                    _logger.LogInformation("Không thể sửa tin nhắn gốc (thường xảy ra với tin nhắn ephemeral): {Message}", mEx.Message);
                 }
-
-                var resolvedComponents = new ComponentBuilder()
-                    .WithButton($"✅ Đã giải quyết bởi {userName}", "resolved_disabled", ButtonStyle.Success, disabled: true)
-                    .WithButton("👁️ Xem trên Web", style: ButtonStyle.Link, url: ticketUrl)
-                    .Build();
-
-                await modal.Message.ModifyAsync(msg =>
-                {
-                    msg.Embed = resolvedEmbed.Build();
-                    msg.Components = resolvedComponents;
-                });
             }
 
             await modal.FollowupAsync(
@@ -689,10 +696,10 @@ public class DiscordBotService : IDiscordBotService, ISingletonDependency, IDisp
         {
             try
             {
-                var (embed, text) = await GenerateMyTicketsResponseAsync(message.Author.Id, message.Author.Username);
+                var (embed, components, text) = await GenerateMyTicketsResponseAsync(message.Author.Id, message.Author.Username);
                 if (embed != null)
                 {
-                    await message.Channel.SendMessageAsync(text, embed: embed, messageReference: new MessageReference(message.Id));
+                    await message.Channel.SendMessageAsync(text, embed: embed, components: components, messageReference: new MessageReference(message.Id));
                 }
                 else
                 {
@@ -767,10 +774,10 @@ public class DiscordBotService : IDiscordBotService, ISingletonDependency, IDisp
     {
         await command.DeferAsync(ephemeral: true);
 
-        var (embed, text) = await GenerateMyTicketsResponseAsync(command.User.Id, command.User.Username);
+        var (embed, components, text) = await GenerateMyTicketsResponseAsync(command.User.Id, command.User.Username);
         if (embed != null)
         {
-            await command.FollowupAsync(text, embed: embed, ephemeral: true);
+            await command.FollowupAsync(text, embed: embed, components: components, ephemeral: true);
         }
         else
         {
@@ -778,7 +785,7 @@ public class DiscordBotService : IDiscordBotService, ISingletonDependency, IDisp
         }
     }
 
-    private async Task<(Embed? Embed, string? Message)> GenerateMyTicketsResponseAsync(ulong discordUserId, string discordUsername)
+    private async Task<(Embed? Embed, MessageComponent? Components, string? Message)> GenerateMyTicketsResponseAsync(ulong discordUserId, string discordUsername)
     {
         using var scope = _serviceScopeFactory.CreateScope();
         var userRepo = scope.ServiceProvider.GetRequiredService<IRepository<IdentityUser, Guid>>();
@@ -793,7 +800,7 @@ public class DiscordBotService : IDiscordBotService, ISingletonDependency, IDisp
 
         if (user == null)
         {
-            return (null,
+            return (null, null,
                 $"⚠️ Tài khoản Discord của bạn (**@{discordUsername}**) chưa được liên kết với nhân viên nào trong Helpdesk.\n" +
                 $"👉 Bạn có thể liên kết nhanh bằng cách gõ: `!link <tên_đăng_nhập>` (hoặc `/link-helpdesk <tên_đăng_nhập>`).");
         }
@@ -823,7 +830,7 @@ public class DiscordBotService : IDiscordBotService, ISingletonDependency, IDisp
         }
         else
         {
-            embed.WithDescription($"Bạn đang có **{myActiveTickets.Count}** sự vụ đang trong quá trình xử lý:");
+            embed.WithDescription($"Bạn đang có **{myActiveTickets.Count}** sự vụ đang trong quá trình xử lý:\n*Bấm các nút bên dưới để đánh dấu hoàn thành trực tiếp trên Discord:*");
 
             foreach (var t in myActiveTickets.OrderByDescending(x => x.CreationTime).Take(10))
             {
@@ -844,7 +851,28 @@ public class DiscordBotService : IDiscordBotService, ISingletonDependency, IDisp
             }
         }
 
-        return (embed.Build(), null);
+        // Tạo nút Hoàn thành vé cho tối đa 5 vé đang xử lý (mỗi vé 1 hàng gồm nút Hoàn thành + Link Web)
+        var compBuilder = new ComponentBuilder();
+        var row = 0;
+        foreach (var t in myActiveTickets.OrderByDescending(x => x.CreationTime).Take(5))
+        {
+            compBuilder.WithButton(
+                $"🏁 Hoàn thành {t.TicketNumber}",
+                $"resolve_ticket_{t.Id}",
+                ButtonStyle.Success,
+                row: row
+            );
+            compBuilder.WithButton(
+                "👁️ Xem trên Web",
+                style: ButtonStyle.Link,
+                url: BuildTicketUrl(t.Id),
+                row: row
+            );
+            row++;
+        }
+
+        var components = myActiveTickets.Count > 0 ? compBuilder.Build() : null;
+        return (embed.Build(), components, null);
     }
 
     private string BuildTicketUrl(Guid ticketId)
