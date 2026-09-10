@@ -90,11 +90,12 @@ public class DashboardAppService : ApplicationService, IDashboardAppService
         double resolutionRate = totalSla > 0 ? Math.Round((double)(totalSla - resolutionBreached) / totalSla * 100, 1) : 100;
 
         // === CSAT Metrics ===
+        // null khi chưa có lượt khảo sát nào - tránh hiển thị "hài lòng tuyệt đối" giả khi thực ra chưa ai đánh giá.
         var ratedTickets = allTickets.Where(t => t.CsatRating.HasValue).ToList();
         int totalRated = ratedTickets.Count;
-        double avgCsat = totalRated > 0 ? Math.Round(ratedTickets.Average(t => t.CsatRating!.Value), 1) : 5.0;
+        double? avgCsat = totalRated > 0 ? Math.Round(ratedTickets.Average(t => t.CsatRating!.Value), 1) : null;
         int satisfiedCount = ratedTickets.Count(t => t.CsatRating!.Value >= 4);
-        double satisfactionRate = totalRated > 0 ? Math.Round((double)satisfiedCount / totalRated * 100, 1) : 100.0;
+        double? satisfactionRate = totalRated > 0 ? Math.Round((double)satisfiedCount / totalRated * 100, 1) : null;
 
         // === Ticket Trend ===
         var trendDays = input.TrendDays > 0 ? input.TrendDays : 30;
@@ -245,7 +246,7 @@ public class DashboardAppService : ApplicationService, IDashboardAppService
                 : 100;
 
             var agentRated = agentTickets.Where(t => t.CsatRating.HasValue).ToList();
-            double agentAvgCsat = agentRated.Count > 0 ? Math.Round(agentRated.Average(t => t.CsatRating!.Value), 1) : 5.0;
+            double? agentAvgCsat = agentRated.Count > 0 ? Math.Round(agentRated.Average(t => t.CsatRating!.Value), 1) : null;
 
             return new AgentPerformanceDto
             {

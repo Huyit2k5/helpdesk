@@ -301,20 +301,24 @@
                 Hài Lòng Khách Hàng (CSAT)
               </h6>
               <span class="badge bg-warning-subtle text-dark fw-bold px-2 py-1 rounded-pill">
-                ⭐ {{ stats.avgCsatRating || 5.0 }}/5.0
+                @if (stats.totalRatedTickets) {
+                  ⭐ {{ stats.avgCsatRating }}/5.0
+                } @else {
+                  Chưa có dữ liệu
+                }
               </span>
             </div>
             <div class="d-flex align-items-center mb-2">
               <div class="flex-grow-1 me-3">
                 <div class="progress" style="height: 12px; border-radius: 6px;">
                   <div class="progress-bar bg-warning" role="progressbar"
-                    [style.width.%]="stats.csatSatisfactionRate || 100"
+                    [style.width.%]="stats.totalRatedTickets ? stats.csatSatisfactionRate : 0"
                     style="border-radius: 6px; transition: width 0.8s ease;">
                   </div>
                 </div>
               </div>
               <span class="fw-bold fs-5 text-dark">
-                {{ stats.csatSatisfactionRate || 100 }}%
+                {{ stats.totalRatedTickets ? (stats.csatSatisfactionRate + '%') : '—' }}
               </span>
             </div>
             <p class="text-muted small mb-0">
@@ -395,9 +399,11 @@
                       </td>
                       <td class="text-center">
                         <span class="badge bg-warning-subtle text-dark fw-bold px-2 py-1 rounded-pill">
-                          ⭐ {{ agent.avgCsatRating || 5.0 }}
                           @if (agent.ratedTicketsCount) {
+                            ⭐ {{ agent.avgCsatRating }}
                             <small class="text-muted fw-normal">({{ agent.ratedTicketsCount }})</small>
+                          } @else {
+                            <small class="text-muted fw-normal">Chưa có đánh giá</small>
                           }
                         </span>
                       </td>

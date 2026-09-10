@@ -33,6 +33,7 @@ public class HelpdeskDataSeedContributor : IDataSeedContributor, ITransientDepen
     private readonly Volo.Abp.Identity.IdentityRoleManager _roleManager;
     private readonly Volo.Abp.Identity.IdentityUserManager _userManager;
     private readonly Volo.Abp.PermissionManagement.IPermissionDataSeeder _permissionDataSeeder;
+    private readonly Volo.Abp.Authorization.Permissions.IPermissionDefinitionManager _permissionDefinitionManager;
 
     public HelpdeskDataSeedContributor(
         ICategoryRepository categoryRepository,
@@ -49,6 +50,7 @@ public class HelpdeskDataSeedContributor : IDataSeedContributor, ITransientDepen
         Volo.Abp.Identity.IdentityRoleManager roleManager,
         Volo.Abp.Identity.IdentityUserManager userManager,
         Volo.Abp.PermissionManagement.IPermissionDataSeeder permissionDataSeeder,
+        Volo.Abp.Authorization.Permissions.IPermissionDefinitionManager permissionDefinitionManager,
         IGuidGenerator guidGenerator)
     {
         _categoryRepository = categoryRepository;
@@ -65,6 +67,7 @@ public class HelpdeskDataSeedContributor : IDataSeedContributor, ITransientDepen
         _roleManager = roleManager;
         _userManager = userManager;
         _permissionDataSeeder = permissionDataSeeder;
+        _permissionDefinitionManager = permissionDefinitionManager;
         _guidGenerator = guidGenerator;
     }
 
@@ -320,8 +323,19 @@ public class HelpdeskDataSeedContributor : IDataSeedContributor, ITransientDepen
             "Helpdesk.TicketSources"
         };
 
-        // Ensure admin has all permissions
-        var allPermissions = managerPermissions.Union(agentPermissions).Union(customerPermissions).Distinct().ToList();
+        // Ensure admin has all permissions. Dùng danh sách quyền tĩnh phía trên làm nền, cộng thêm TOÀN BỘ
+        // quyền "Helpdesk.*" hiện có trong PermissionDefinitionProvider (kể cả các module thêm sau này như
+        // AssignmentRules, DiscordSettings...) - tránh phải nhớ ra sửa tay + chạy SQL grant mỗi lần thêm module mới.
+        var allHelpdeskPermissions = (await _permissionDefinitionManager.GetPermissionsAsync())
+            .Where(p => p.Name.StartsWith("Helpdesk.", StringComparison.Ordinal))
+            .Select(p => p.Name);
+
+        var allPermissions = managerPermissions
+            .Union(agentPermissions)
+            .Union(customerPermissions)
+            .Union(allHelpdeskPermissions)
+            .Distinct()
+            .ToList();
         await _permissionDataSeeder.SeedAsync("R", "admin", allPermissions);
 
         // Create Roles with pre-assigned permissions

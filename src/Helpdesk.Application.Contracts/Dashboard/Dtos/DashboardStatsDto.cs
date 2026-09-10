@@ -18,10 +18,10 @@ public class DashboardStatsDto
     public double ResolutionComplianceRate { get; set; }
     public int SlaBreachedCount { get; set; }
 
-    // CSAT Metrics
-    public double AvgCsatRating { get; set; }
+    // CSAT Metrics - null nghĩa là chưa có lượt khảo sát nào, khác với "hài lòng tuyệt đối"
+    public double? AvgCsatRating { get; set; }
     public int TotalRatedTickets { get; set; }
-    public double CsatSatisfactionRate { get; set; }
+    public double? CsatSatisfactionRate { get; set; }
 
     // Overdue
     public int OverdueTicketCount { get; set; }
@@ -63,7 +63,7 @@ public class AgentPerformanceDto
     public int ResolvedCount { get; set; }
     public double AvgResolutionMinutes { get; set; }
     public double SlaComplianceRate { get; set; }
-    public double AvgCsatRating { get; set; }
+    public double? AvgCsatRating { get; set; }
     public int RatedTicketsCount { get; set; }
 }
 

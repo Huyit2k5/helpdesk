@@ -23,7 +23,8 @@ Dự án xây dựng hệ thống Helpdesk & Quản lý Dịch vụ Công nghệ
    - [Phân Hệ 10: Bot Trợ Lý Kỹ Thuật Viên & Tương Tác 2 Chiều Discord (Interactive Gateway Bot)](#510-phân-hệ-10-bot-trợ-lý-kỹ-thuật-viên--tương-tác-2-chiều-discord-interactive-gateway-bot)
    - [Phân Hệ 11: Điều Phối & Phân Công Tự Động (Auto-Assignment & Round Robin)](#511-phân-hệ-11-điều-phối--phân-công-tự-động-auto-assignment--round-robin)
    - [Phân Hệ 12: Trung Tâm Thông Báo Thời Gian Thực (In-App Notifications)](#512-phân-hệ-12-trung-tâm-thông-báo-thời-gian-thực-in-app-notifications)
-   - [Dữ Liệu Khởi Tạo Chuẩn (Data Seeding)](#513-dữ-liệu-khởi-tạo-chuẩn-data-seeding)
+   - [Phân Hệ 13: Hệ Thống Thông Báo Email HTML Tự Động (Responsive HTML Email Notifications)](#513-phân-hệ-13-hệ-thống-thông-báo-email-html-tự-động-responsive-html-email-notifications)
+   - [Dữ Liệu Khởi Tạo Chuẩn (Data Seeding)](#514-dữ-liệu-khởi-tạo-chuẩn-data-seeding)
 6. [Tài Khoản Mặc Định & Phân Quyền Vai Trò](#-tài-khoản-mặc-định--phân-quyền-vai-trò)
 7. [Hướng Dẫn Cài Đặt, Migrate CSDL & Khởi Chạy](#-hướng-dẫn-cài-đặt-migrate-csdl--khởi-chạy)
 8. [Tổng Hợp Các Lỗi Phát Sinh & Cách Khắc Phục (Troubleshooting Guide)](#-tổng-hợp-các-lỗi-phát-sinh--cách-khắc-phục-troubleshooting-guide)
@@ -77,9 +78,10 @@ Hệ thống được thiết kế theo kiến trúc chuẩn **Domain-Driven Des
 | **7** | **Cổng Khách Hàng (Customer Portal)** | Giao diện tự phục vụ của khách hàng, tạo vé kèm ảnh lỗi (Dropzone), xem tiến độ, trao đổi phản hồi | **Hoàn thành 100%** |
 | **8** | **Đo Lường Độ Hài Lòng (CSAT Survey)** | Đánh giá 5 sao & nhận xét sau khi vé giải quyết, thống kê CSAT Dashboard, Bảng xếp hạng hỗ trợ viên | **Hoàn thành 100%** |
 | **9** | **Cảnh Báo Discord Webhook (Discord Alerts)** | Bắn Discord Embed Card tức thời qua Background Jobs (Vé mới, Khẩn cấp, Phân công, Vi phạm SLA, Hoàn tất) | **Hoàn thành 100%** |
-| **10**| **Discord Interactive Bot (Gateway Bot)** | Nút bấm `[🎯 Nhận vé]`, `[🏁 Hoàn thành vé]` mở Modal nhập ghi chú, Slash command `/my-tickets`, `/link-helpdesk`, Prefix `!my-tickets` | **Hoàn thành 100%** |
+| **10**| **Discord Interactive Bot (Gateway Bot)** | Nút bấm `[🎯 Nhận vé]`, `[🏁 Hoàn thành vé]` mở Modal, Lệnh `/create-ticket` mở Modal tạo vé, Discord Thread 2 chiều & Tự động lưu ảnh lỗi vào Web | **Hoàn thành 100%** |
 | **11**| **Điều Phối Tự Động (Assignment Rules)** | Phân công thông minh theo Danh mục, Mức độ ưu tiên, Phòng ban; Thuật toán Round Robin xoay vòng | **Hoàn thành 100%** |
 | **12**| **Thông Báo Thời Gian Thực (Notifications)** | Chuông thông báo góc trên web, đếm số chưa đọc, đánh dấu đã đọc, điều hướng trực tiếp tới vé | **Hoàn thành 100%** |
+| **13**| **Thông Báo Email HTML Tự Động (Email Alerts)** | Tự động gửi Email thông báo (Tạo vé, Phân công kỹ thuật viên, Giải quyết vé + link CSAT 5 sao) mẫu HTML Responsive | **Hoàn thành 100%** |
 
 ---
 
@@ -165,6 +167,12 @@ Kỹ thuật viên thao tác trực tiếp trên Discord: Nhận vé bằng nút
 
 ---
 
+### 14. Tạo Sự Vụ Trực Tiếp Qua Lệnh Discord `/create-ticket` (Discord Create Ticket Modal)
+Người dùng chỉ cần gõ `/create-ticket` trong máy chủ Discord để mở ngay Popup Modal chuẩn của Discord, điền tiêu đề, danh mục và mô tả sự cố. Hệ thống tự động tạo vé, tính SLA, kích hoạt Discord Thread thảo luận và lưu ảnh đính kèm:
+![Discord Modal Create Ticket](docs/images/discord_modal_create_ticket.png)
+
+---
+
 ## 🗄️ MÔ HÌNH CƠ SỞ DỮ LIỆU & MỐI QUAN HỆ (DATABASE SCHEMA & ERD)
 
 ### 1. Sơ Đồ Thực Thể Quan Hệ (Entity Relationship Diagram - ERD)
@@ -195,6 +203,7 @@ erDiagram
         int CsatRating
         string CsatComment
         timestamp CsatSubmittedAt
+        string DiscordThreadId
     }
 
     AppTicketComments {
@@ -203,6 +212,7 @@ erDiagram
         uuid UserId FK
         string Content
         boolean IsInternal
+        string AuthorName
     }
 
     AppTicketAttachments {
@@ -550,14 +560,30 @@ Nâng cấp từ thông báo 1 chiều thành nền tảng điều phối hỗ t
 - **Kết nối Gateway thời gian thực (`DiscordSocketClient` - Discord.Net v3.18)**:
   - Bot tự động duy trì kết nối WebSocket Gateway liên tục khi backend khởi động.
   - Đăng ký lắng nghe sự kiện: `Ready`, `ButtonExecuted`, `ModalSubmitted`, `SlashCommandExecuted`, `MessageReceived`.
-- **Nút bấm tương tác trên tin nhắn vé (Interactive Buttons)**:
-  - **Nút `[🎯 Nhận vé này]`**: Khi kỹ thuật viên bấm nút, bot tự động nhận diện tài khoản, gán người phụ trách (Assignee), chuyển trạng thái vé sang **Đang xử lý (In Progress)**, cập nhật embed sang màu vàng cam và hiển thị nút **`[🏁 Hoàn thành vé]`**.
+- **Tạo sự vụ trực tiếp qua Slash Command `/create-ticket` với Discord Modal**:
+  - Người dùng hoặc nhân viên chỉ cần gõ `/create-ticket` trong máy chủ Discord để mở ngay **Cửa sổ Popup (Discord Modal)** chuẩn.
+  - Biểu mẫu gồm: **Tiêu đề sự cố / yêu cầu** (bắt buộc), **Danh mục** (tự động phân loại hoặc gợi ý), **Mô tả chi tiết sự cố** (bắt buộc).
+  - Khi gửi form: Hệ thống tự động tạo vé vào PostgreSQL, kích hoạt SLA Engine tính hạn chót, kích hoạt Auto-Assignment, đồng thời phản hồi xác nhận riêng tư (ephemeral) kèm mã vé `TK-xxxx` và đường dẫn xem chi tiết trên Web.
+- **Tự động kích hoạt Discord Thread (Luồng thảo luận) cho từng sự vụ**:
+  - Mỗi khi có sự vụ mới tạo (từ Web hoặc Discord), Bot tự động tạo một **Discord Thread** riêng gắn liền với tin nhắn thông báo (VD: `[#TK-202609-0053] Lỗi kết nối...`).
+  - Bot tự động tag người yêu cầu (`<@discordUserId>`) trong tin nhắn chào đón đầu tiên để luồng thảo luận xuất hiện ngay trên thanh điều hướng của người đó.
+  - **Đồng bộ bình luận 2 chiều (Bidirectional Sync)**:
+    - Bất kỳ ai nhắn tin trao đổi trong Thread -> Bot tự động bắt sự kiện `MessageReceived` và lưu thành bình luận (`TicketComment`) trên Web kèm tên tác giả `@[username] (Discord)` và thả cảm xúc `✅`.
+    - Bất kỳ bình luận công khai nào trên giao diện Web -> Bot tự động chuyển tiếp vào Discord Thread.
+- **Tự động Đồng bộ Hình ảnh & Tệp đính kèm từ Discord Thread lên Web (Media & Screenshot Sync)**:
+  - Để khắc phục hạn chế của Discord Modal (không hỗ trợ component upload file trong modal), người dùng chỉ cần **chụp màn hình rồi nhấn `Ctrl + V`** (hoặc kéo thả ảnh/file) trực tiếp vào Discord Thread của sự vụ.
+  - Bot tự động tải ảnh từ Discord CDN, lưu trữ an toàn vào **PostgreSQL Blob Storage** (`IBlobContainer`), tạo bản ghi `TicketAttachment` liên kết với bình luận và sự vụ.
+  - Hình ảnh lập tức xuất hiện trong timeline trao đổi và mục "Tệp Đính Kèm & Tài Liệu" của Ticket trên Web (hỗ trợ Xem trước ảnh phóng to và Tải về).
+  - Bot tự động thả biểu tượng `📎` và `✅` vào tin nhắn Discord để xác nhận tệp đã được đồng bộ an toàn lên Web.
+- **Nút bấm tương tác trên tin nhắn vé (Interactive Buttons & Safe Lifecycle)**:
+  - **Nút `[🎯 Nhận vé này]`**: Khi kỹ thuật viên bấm nút, bot tự động nhận diện tài khoản kỹ thuật viên, gán người phụ trách (`AssigneeId`), chuyển trạng thái vé sang **Đang xử lý (In Progress)**, gửi thông báo phân công vào Discord Thread, cập nhật tin nhắn gốc qua `Message.ModifyAsync` an toàn sang màu vàng cam và hiển thị nút **`[🏁 Hoàn thành vé]`**.
   - **Nút `[🏁 Hoàn thành vé]`**: Bấm nút sẽ bật ngay **Discord Popup Modal** yêu cầu nhập ghi chú / cách khắc phục sự cố. Khi gửi Modal, hệ thống tự động:
     - Đổi trạng thái vé sang **Đã giải quyết (Resolved)** và đóng lại.
     - Lưu ghi chú vào bảng `AppTicketComments`.
     - Ghi nhận hoạt động vào `AppTicketActivities`.
     - Đổi embed tin nhắn gốc sang màu **Xanh lá (Resolved)** và khóa các nút bấm.
 - **Hệ thống Lệnh Slash Command (`/`) & Đăng ký Guild-level**:
+  - **`/create-ticket`**: Mở popup tạo yêu cầu hỗ trợ mới trực tiếp từ Discord.
   - **`/link-helpdesk <username>`**: Liên kết tài khoản Discord của kỹ thuật viên với tài khoản Helpdesk tương ứng (lưu vào `AbpUsers.ExtraProperties`).
   - **`/my-tickets`**: Tra cứu danh sách các vé đang được phân công cho kỹ thuật viên. Đặc biệt, **mỗi vé được gắn kèm ngay nút bấm `[🏁 Hoàn thành {Mã vé}]`** màu xanh lá, giúp kỹ thuật viên có thể đóng vé ngay từ danh sách mà không cần tìm lại tin nhắn cũ.
   - **Cơ chế Guild Command**: Tự động đăng ký trực tiếp vào Server Discord của tổ chức ngay khi bot Online, giúp lệnh xuất hiện **ngay lập tức (0 giây)**, khắc phục hoàn toàn độ trễ 1 giờ của Discord Global cache.
@@ -588,7 +614,24 @@ Hệ thống thông báo tức thời gắn trực tiếp trên thanh điều h�
 
 ---
 
-### 5.13. Dữ Liệu Khởi Tạo Chuẩn (Data Seeding)
+### 5.13. Phân Hệ 13: Hệ Thống Thông Báo Email HTML Tự Động (Responsive HTML Email Notifications)
+Hệ thống tự động hóa kênh giao tiếp chuyên nghiệp qua Email sử dụng `IEmailNotificationService` kết hợp thư viện gửi mail của ABP Framework:
+- **Thiết kế Email HTML Responsive Hiện Đại**: Mẫu giao diện tối ưu trên cả ứng dụng di động (Gmail, Outlook) và máy tính, dùng bảng màu thương hiệu sang trọng, thẻ Card nổi bật, typography rõ ràng và các nút Call-to-Action (CTA) trực quan.
+- **3 Kịch Bản Thông Báo Tự Động**:
+  1. **Xác nhận tạo sự vụ thành công (Ticket Created Confirmation)**:
+     - Tự động gửi tới email khách hàng ngay khi tạo vé (qua Web, Portal hoặc Discord).
+     - Cung cấp: Mã vé `TK-xxxx`, Tiêu đề, Tóm tắt mô tả, Mức độ ưu tiên, Thời hạn cam kết SLA và nút bấm mở xem chi tiết.
+  2. **Cảnh báo phân công sự vụ cho Kỹ thuật viên (Ticket Assigned Alert)**:
+     - Tự động gửi tới email của kỹ thuật viên được giao việc (qua điều phối tự động hoặc gán thủ công).
+     - Nhắc nhở hạn chót SLA, hướng dẫn kiểm tra thông tin và link truy cập nhanh để xử lý.
+  3. **Thông báo xử lý hoàn tất & Khảo sát đánh giá CSAT (Ticket Resolved & CSAT Survey)**:
+     - Gửi cho khách hàng khi vé chuyển sang trạng thái Resolved.
+     - Cảm ơn khách hàng, đính kèm giải pháp/ghi chú khắc phục sự cố từ kỹ thuật viên.
+     - Tích hợp cụm nút khảo sát **Đánh giá 5 sao CSAT** trực tiếp, bấm vào là chuyển hướng thẳng tới màn hình đánh giá trải nghiệm dịch vụ.
+
+---
+
+### 5.14. Dữ Liệu Khởi Tạo Chuẩn (Data Seeding)
 Hệ thống tích hợp sẵn `HelpdeskDataSeedContributor` tự động nạp dữ liệu mẫu hoàn chỉnh:
 - **10 sự vụ mẫu** đa dạng trạng thái, mức ưu tiên, kênh tiếp nhận, hạn SLA chuẩn thực tế.
 - **6 danh mục sự cố**, 4 mức độ ưu tiên chuẩn, 7 trạng thái vòng đời vé, 5 kênh tiếp nhận, 2 phòng ban kỹ thuật.
@@ -798,3 +841,50 @@ Trong toàn bộ quá trình phát triển và hoàn thiện hệ thống, các 
 - **Cách khắc phục**:
   - Bổ sung `ComponentBuilder` trong hàm tạo phản hồi: Với mỗi vé đang xử lý (tối đa 5 vé), tạo một hàng gồm nút thành công **`[🏁 Hoàn thành {TicketNumber}]`** (`resolve_ticket_{t.Id}`) và nút liên kết **`[👁️ Xem trên Web]`**.
   - Kỹ thuật viên bấm trực tiếp vào nút hoàn thành để mở Modal giải quyết sự cố ngay trên Discord.
+
+---
+
+### 17. Lỗi `Http failure response for https://localhost:44346/...: 0 undefined` (Mất kết nối Backend API)
+- **Hiện tượng**: Mở giao diện Angular (`http://localhost:4200`), các bảng vé, biểu đồ Dashboard báo lỗi đỏ góc phải hoặc console hiển thị `Http failure response for https://localhost:44346/api/app/...: 0 Unknown Error` hoặc `0 undefined`.
+- **Nguyên nhân**: Tiến trình Backend API `Helpdesk.HttpApi.Host` đã bị dừng, crash hoặc cổng 44346 chưa sẵn sàng đón nhận kết nối.
+- **Cách khắc phục**:
+  1. Kiểm tra tiến trình backend trong PowerShell:
+     ```powershell
+     Get-Process -Name "Helpdesk.HttpApi.Host" -ErrorAction SilentlyContinue
+     ```
+  2. Khởi động lại dịch vụ backend:
+     ```powershell
+     cd Helpdesk\src\Helpdesk.HttpApi.Host
+     dotnet run --launch-profile Helpdesk.HttpApi.Host
+     ```
+  3. Mở trình duyệt truy cập `https://localhost:44346/swagger` và chấp nhận chứng chỉ SSL bảo mật localhost.
+
+---
+
+### 18. Lỗi Slash Command `/create-ticket` không xuất hiện trên Discord
+- **Hiện tượng**: Người dùng gõ `/create-ticket` trong máy chủ Discord nhưng bot không hiển thị gợi ý lệnh trong danh sách Auto-complete.
+- **Nguyên nhân**:
+  1. Cấu hình Discord trong trang Quản trị (`/discord-settings`) đang tắt công tắc **"Kích hoạt Discord Bot & Nhận lệnh hai chiều"** (`IsEnabled = false`), dẫn đến `DiscordBotService` không kết nối vào Discord Gateway.
+  2. Bot Token hoặc Kênh chỉ định (Channel ID) bị sai lệch so với máy chủ Discord thực tế.
+  3. Discord Desktop App giữ cache client cục bộ các Slash Command cũ.
+- **Cách khắc phục**:
+  1. Truy cập Web Quản trị Helpdesk $\rightarrow$ **Cấu hình Discord** $\rightarrow$ Bật nút gạt **"Kích hoạt Discord Bot & Nhận lệnh hai chiều"** $\rightarrow$ Điền đúng Webhook URL, Bot Token và Channel ID $\rightarrow$ Bấm **Lưu cấu hình**.
+  2. Khởi động lại ứng dụng Backend để Bot Gateway kết nối lại với trạng thái `Ready` và tự động đăng ký Guild Command.
+  3. Trên ứng dụng Discord Desktop, nhấn tổ hợp phím **`Ctrl + R`** để làm mới toàn bộ cache client.
+
+---
+
+### 19. Lỗi `40060: Interaction has already been acknowledged` khi bấm nút `[🎯 Nhận vé này]`
+- **Hiện tượng**: Kỹ thuật viên click nút `[🎯 Nhận vé này]` trên thông báo Discord. Bot báo ephemeral: *"❌ Đã xảy ra lỗi khi xử lý thao tác nhận vé"*, log backend hiển thị `Discord.Net.HttpException: The server responded with 40060: Interaction has already been acknowledged`.
+- **Nguyên nhân**: Sau khi gọi `await component.DeferAsync(ephemeral: true);` để báo cho Discord rằng thao tác đang được xử lý (tránh lỗi 3-second timeout), việc tiếp tục gọi `await component.UpdateAsync(...)` trên cùng đối tượng tương tác sẽ vi phạm vòng đời tương tác của Discord API.
+- **Cách khắc phục**:
+  - Dùng `component.Message.ModifyAsync(...)` để cập nhật trực tiếp tin nhắn gốc của Bot (đổi màu Embed sang màu nhận xử lý, hiển thị tên kỹ thuật viên phụ trách, và vô hiệu hóa nút bấm sang `[✅ Đã nhận vé]`):
+    ```csharp
+    await component.Message.ModifyAsync(msg =>
+    {
+        msg.Embed = updatedEmbed;
+        msg.Components = updatedComponents;
+    });
+    ```
+  - Đồng thời gửi thông báo xác nhận riêng cho người bấm thông qua `component.FollowupAsync(..., ephemeral: true);`.
+
