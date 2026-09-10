@@ -20,7 +20,8 @@ public interface IDiscordBotService
         DateTime? dueDate,
         string categoryName,
         string priorityName,
-        bool isCritical);
+        bool isCritical,
+        ulong? discordUserId = null);
 
     Task<bool> SendEmbedMessageAsync(
         ulong channelId,

@@ -16,6 +16,9 @@ using Helpdesk.TicketStatuses;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System.IO;
+using System.Net.Http;
+using Volo.Abp.BlobStoring;
 using Volo.Abp.Data;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Domain.Repositories;
@@ -124,7 +127,8 @@ public class DiscordBotService : IDiscordBotService, ISingletonDependency, IDisp
         DateTime? dueDate,
         string categoryName,
         string priorityName,
-        bool isCritical)
+        bool isCritical,
+        ulong? discordUserId = null)
     {
         if (_client == null || _client.ConnectionState != ConnectionState.Connected)
         {
@@ -199,12 +203,12 @@ public class DiscordBotService : IDiscordBotService, ISingletonDependency, IDisp
                             await uow.CompleteAsync();
                         }
 
+                        var userMention = discordUserId.HasValue ? $" <@{discordUserId.Value}>" : string.Empty;
                         await thread.SendMessageAsync(
                             $"🧵 **Luồng thảo luận cho sự vụ [{ticketNumber}] đã được kích hoạt!**\n" +
-                            $"• Tiêu đề: **{title}**\n" +
-                            $"• Người yêu cầu: **{requesterName}**\n" +
-                            $"• Danh mục: **{categoryName}** | Mức độ: **{priorityName}**\n" +
-                            $"💬 Mọi tin nhắn trao đổi trong luồng này sẽ tự động đồng bộ về mục Bình luận trên hệ thống Web."
+                            (discordUserId.HasValue ? $"Chào{userMention}! Bạn có thể thảo luận trực tiếp với đội ngũ kỹ thuật tại đây.\n" : string.Empty) +
+                            $"📸 **Mẹo gửi hình ảnh**: Hãy dán (Ctrl+V) hoặc kéo thả trực tiếp ảnh chụp màn hình/tệp tin vào luồng này, hệ thống sẽ tự động đồng bộ vào mục Tệp đính kèm trên Web!\n" +
+                            $"💬 Mọi tin nhắn trao đổi trong luồng này đều được đồng bộ 2 chiều với hệ thống Helpdesk."
                         );
                         _logger.LogInformation("Đã tạo Discord Thread {ThreadId} cho sự vụ {TicketNumber}", thread.Id, ticketNumber);
                     }
@@ -1137,6 +1141,7 @@ public class DiscordBotService : IDiscordBotService, ISingletonDependency, IDisp
                 $"• Mã sự vụ: **{ticket.TicketNumber}**\n" +
                 $"• Tiêu đề: **{ticket.Title}**\n" +
                 $"• Danh mục: **{category.Name}** | Hạn chót SLA: **{ticket.DueDate?.ToString("HH:mm dd/MM/yyyy") ?? "Đang tính"}**\n" +
+                $"📸 **Đính kèm hình ảnh**: Hãy mở **Luồng thảo luận (Thread)** vừa tạo và dán (Ctrl+V) hoặc kéo thả ảnh chụp màn hình vào, hệ thống sẽ tự động đồng bộ vào mục Tệp đính kèm trên Web!\n" +
                 $"🔗 [Xem chi tiết trên Web]({ticketUrl})",
                 ephemeral: true);
 
@@ -1155,7 +1160,8 @@ public class DiscordBotService : IDiscordBotService, ISingletonDependency, IDisp
                     ticket.DueDate,
                     category.Name,
                     priority.Name,
-                    isCritical
+                    isCritical,
+                    discordUserId: modal.User.Id
                 );
             }
         }
@@ -1178,6 +1184,8 @@ public class DiscordBotService : IDiscordBotService, ISingletonDependency, IDisp
             var ticketRepo = scope.ServiceProvider.GetRequiredService<IRepository<Ticket, Guid>>();
             var commentRepo = scope.ServiceProvider.GetRequiredService<IRepository<TicketComment, Guid>>();
             var activityRepo = scope.ServiceProvider.GetRequiredService<IRepository<TicketActivity, Guid>>();
+            var attachmentRepo = scope.ServiceProvider.GetRequiredService<IRepository<TicketAttachment, Guid>>();
+            var blobContainer = scope.ServiceProvider.GetRequiredService<IBlobContainer>();
             var uowManager = scope.ServiceProvider.GetRequiredService<IUnitOfWorkManager>();
 
             var threadIdStr = threadChannel.Id.ToString();
@@ -1190,15 +1198,78 @@ public class DiscordBotService : IDiscordBotService, ISingletonDependency, IDisp
             }
 
             var authorName = message.Author.Username;
+            var hasAttachments = message.Attachments != null && message.Attachments.Any();
+            var content = message.Content?.Trim() ?? string.Empty;
+
+            if (string.IsNullOrWhiteSpace(content) && hasAttachments)
+            {
+                content = $"[Đã gửi {message.Attachments.Count} tệp/hình ảnh đính kèm từ Discord]";
+            }
+            else if (string.IsNullOrWhiteSpace(content))
+            {
+                return;
+            }
+
             var comment = new TicketComment(
                 Guid.NewGuid(),
                 ticket.Id,
-                message.Content,
+                content,
                 isInternal: false,
                 authorName: $"{authorName} (Discord)"
             );
 
             await commentRepo.InsertAsync(comment, autoSave: true);
+
+            // Đồng bộ tải các hình ảnh hoặc tệp tin đính kèm từ Discord vào Blob Storage & AppTicketAttachments
+            if (hasAttachments && message.Attachments != null)
+            {
+                using var httpClient = new HttpClient();
+                foreach (var att in message.Attachments)
+                {
+                    try
+                    {
+                        var fileBytes = await httpClient.GetByteArrayAsync(att.Url);
+                        var ext = Path.GetExtension(att.Filename);
+                        if (string.IsNullOrWhiteSpace(ext))
+                        {
+                            ext = ".png";
+                        }
+
+                        var blobName = $"{ticket.Id}/{Guid.NewGuid():N}{ext}";
+                        await blobContainer.SaveAsync(blobName, fileBytes, overrideExisting: true);
+
+                        var safeFileName = att.Filename.Length > 250 ? att.Filename.Substring(0, 245) + ext : att.Filename;
+                        var safeContentType = string.IsNullOrWhiteSpace(att.ContentType) ? "application/octet-stream" : (att.ContentType.Length > 120 ? att.ContentType.Substring(0, 120) : att.ContentType);
+
+                        var ticketAttachment = new TicketAttachment(
+                            Guid.NewGuid(),
+                            ticket.Id,
+                            safeFileName,
+                            fileBytes.Length,
+                            safeContentType,
+                            blobName,
+                            commentId: comment.Id
+                        );
+
+                        await attachmentRepo.InsertAsync(ticketAttachment, autoSave: true);
+
+                        var attActivity = new TicketActivity(
+                            Guid.NewGuid(),
+                            ticket.Id,
+                            TicketActivityType.AttachmentAdded,
+                            "Attachment",
+                            null,
+                            safeFileName,
+                            $"@{authorName} đã gửi tệp đính kèm từ Discord: {safeFileName}"
+                        );
+                        await activityRepo.InsertAsync(attActivity, autoSave: true);
+                    }
+                    catch (Exception attEx)
+                    {
+                        _logger.LogWarning(attEx, "Không thể tải hoặc lưu tệp đính kèm {FileName} từ Discord", att.Filename);
+                    }
+                }
+            }
 
             var activity = new TicketActivity(
                 Guid.NewGuid(),
@@ -1213,10 +1284,14 @@ public class DiscordBotService : IDiscordBotService, ISingletonDependency, IDisp
             try
             {
                 await message.AddReactionAsync(new Emoji("✅"));
+                if (hasAttachments)
+                {
+                    await message.AddReactionAsync(new Emoji("📎"));
+                }
             }
             catch { }
 
-            _logger.LogInformation("Đã đồng bộ tin nhắn từ Discord Thread {ThreadId} vào sự vụ {TicketNumber}", threadChannel.Id, ticket.TicketNumber);
+            _logger.LogInformation("Đã đồng bộ tin nhắn & tệp đính kèm từ Discord Thread {ThreadId} vào sự vụ {TicketNumber}", threadChannel.Id, ticket.TicketNumber);
         }
         catch (Exception ex)
         {

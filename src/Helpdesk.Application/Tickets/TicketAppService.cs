@@ -328,7 +328,7 @@ public class TicketAppService : ApplicationService, ITicketAppService
                 TicketId = c.TicketId,
                 Content = c.Content,
                 IsInternal = c.IsInternal,
-                CreatorName = c.CreatorId.HasValue ? userDict.GetValueOrDefault(c.CreatorId.Value) : null,
+                CreatorName = c.CreatorId.HasValue ? userDict.GetValueOrDefault(c.CreatorId.Value) : (string.IsNullOrWhiteSpace(c.AuthorName) ? "Ẩn danh" : c.AuthorName),
                 Attachments = attachments.Where(a => a.CommentId == c.Id).OrderBy(a => a.CreationTime).Select(a => new TicketAttachmentDto
                 {
                     Id = a.Id,
@@ -339,7 +339,7 @@ public class TicketAppService : ApplicationService, ITicketAppService
                     ContentType = a.ContentType,
                     CreationTime = a.CreationTime,
                     CreatorId = a.CreatorId,
-                    CreatorName = a.CreatorId.HasValue ? userDict.GetValueOrDefault(a.CreatorId.Value) : null
+                    CreatorName = a.CreatorId.HasValue ? userDict.GetValueOrDefault(a.CreatorId.Value) : (string.IsNullOrWhiteSpace(c.AuthorName) ? "Người dùng Discord" : c.AuthorName)
                 }).ToList()
             }).ToList(),
             Activities = activities.OrderByDescending(a => a.CreationTime).Select(a => new TicketActivityDto
@@ -365,7 +365,7 @@ public class TicketAppService : ApplicationService, ITicketAppService
                 ContentType = a.ContentType,
                 CreationTime = a.CreationTime,
                 CreatorId = a.CreatorId,
-                CreatorName = a.CreatorId.HasValue ? userDict.GetValueOrDefault(a.CreatorId.Value) : null
+                CreatorName = a.CreatorId.HasValue ? userDict.GetValueOrDefault(a.CreatorId.Value) : "Người dùng Discord"
             }).ToList()
         };
     }
