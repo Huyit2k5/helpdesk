@@ -16,7 +16,9 @@ public class HelpdeskSettingDefinitionProvider : SettingDefinitionProvider
             new SettingDefinition(HelpdeskSettings.Discord.NotifyOnSlaBreach, defaultValue: "true", isVisibleToClients: true),
             new SettingDefinition(HelpdeskSettings.Discord.NotifyOnResolved, defaultValue: "true", isVisibleToClients: true),
             new SettingDefinition(HelpdeskSettings.Discord.BotName, defaultValue: DiscordConsts.DefaultBotName, isVisibleToClients: true),
-            new SettingDefinition(HelpdeskSettings.Discord.AvatarUrl, defaultValue: DiscordConsts.DefaultAvatarUrl, isVisibleToClients: true)
+            new SettingDefinition(HelpdeskSettings.Discord.AvatarUrl, defaultValue: DiscordConsts.DefaultAvatarUrl, isVisibleToClients: true),
+            new SettingDefinition(HelpdeskSettings.Discord.BotToken, defaultValue: string.Empty, isVisibleToClients: false, isEncrypted: true),
+            new SettingDefinition(HelpdeskSettings.Discord.ChannelId, defaultValue: string.Empty, isVisibleToClients: true)
         );
     }
 }

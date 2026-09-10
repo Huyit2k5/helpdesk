@@ -134,6 +134,82 @@
           </div>
         </div>
 
+        <!-- Card: Cấu Hình Discord Bot 2 Chiều (Interactive Bot Gateway) -->
+        <div class="card border-0 shadow-sm mb-4 border-start border-primary border-4">
+          <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+            <h5 class="fw-bold mb-0 text-dark d-flex align-items-center justify-content-between flex-wrap gap-2">
+              <span class="d-flex align-items-center gap-2">
+                <i class="fa-solid fa-gamepad text-primary"></i>
+                <span>Discord Bot Tương Tác 2 Chiều (Nút Bấm Nhận Vé)</span>
+              </span>
+              <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-2 fw-semibold">
+                <i class="fa-solid fa-bolt me-1"></i> Tính năng tương tác
+              </span>
+            </h5>
+          </div>
+
+          <div class="card-body p-4">
+            <div class="alert alert-info border-0 d-flex align-items-center gap-3 mb-4 rounded-3">
+              <i class="fa-solid fa-circle-check fs-4 text-info"></i>
+              <div class="small">
+                Khi cấu hình <strong>Bot Token</strong> và <strong>ID Kênh</strong>, hệ thống sẽ tự động gửi thông báo vé mới kèm nút bấm <strong>[🎯 Nhận vé này]</strong>. Kỹ thuật viên có thể bấm trực tiếp trên Discord để nhận việc ngay mà không cần mở website!
+              </div>
+            </div>
+
+            <div class="row g-3">
+              <div class="col-md-7">
+                <label for="botToken" class="form-label fw-semibold">
+                  Discord Bot Token
+                </label>
+                <div class="input-group">
+                  <span class="input-group-text bg-light text-muted">
+                    <i class="fa-solid fa-key"></i>
+                  </span>
+                  <input
+                    [type]="showBotToken ? 'text' : 'password'"
+                    id="botToken"
+                    class="form-control font-monospace"
+                    placeholder="Nhập mã Bot Token từ Developer Portal..."
+                    formControlName="botToken"
+                  />
+                  <button
+                    type="button"
+                    class="btn btn-outline-secondary"
+                    (click)="toggleBotTokenVisibility()"
+                    title="Ẩn/Hiện Token"
+                  >
+                    <i [class]="showBotToken ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye'"></i>
+                  </button>
+                </div>
+                <div class="form-text mt-1 text-muted">
+                  Lấy từ Discord Developer Portal &gt; App của bạn &gt; mục <strong>Bot</strong> &gt; <strong>Reset Token</strong>.
+                </div>
+              </div>
+
+              <div class="col-md-5">
+                <label for="channelId" class="form-label fw-semibold">
+                  ID Kênh Nhận Vé (Channel ID)
+                </label>
+                <div class="input-group">
+                  <span class="input-group-text bg-light text-muted">
+                    <i class="fa-solid fa-hashtag"></i>
+                  </span>
+                  <input
+                    type="text"
+                    id="channelId"
+                    class="form-control font-monospace"
+                    placeholder="VD: 123456789012345678"
+                    formControlName="channelId"
+                  />
+                </div>
+                <div class="form-text mt-1 text-muted">
+                  Bật Developer Mode trên Discord &gt; Chuột phải vào kênh cần nhận vé &gt; <strong>Copy Channel ID</strong>.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Card 2: Event Triggers -->
         <div class="card border-0 shadow-sm mb-4">
           <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">

@@ -25,15 +25,22 @@ export class DiscordSettingsComponent implements OnInit {
 
   defaultBotName = 'Helpdesk Support Bot';
   defaultAvatarUrl = 'https://cdn-icons-png.flaticon.com/512/4712/4712035.png';
+  showBotToken = false;
 
   ngOnInit(): void {
     this.buildForm();
     this.loadSettings();
   }
 
+  toggleBotTokenVisibility(): void {
+    this.showBotToken = !this.showBotToken;
+  }
+
   buildForm(): void {
     this.form = this.fb.group({
       webhookUrl: ['', [Validators.maxLength(500)]],
+      botToken: [''],
+      channelId: [''],
       isEnabled: [false],
       notifyOnNewTicket: [true],
       notifyOnCriticalOnly: [false],
@@ -54,6 +61,8 @@ export class DiscordSettingsComponent implements OnInit {
         if (settings) {
           this.form.patchValue({
             webhookUrl: settings.webhookUrl || '',
+            botToken: settings.botToken || '',
+            channelId: settings.channelId || '',
             isEnabled: settings.isEnabled,
             notifyOnNewTicket: settings.notifyOnNewTicket,
             notifyOnCriticalOnly: settings.notifyOnCriticalOnly,
@@ -83,6 +92,8 @@ export class DiscordSettingsComponent implements OnInit {
     const val = this.form.value;
     const updateDto: UpdateDiscordSettingsDto = {
       webhookUrl: val.webhookUrl || '',
+      botToken: val.botToken || '',
+      channelId: val.channelId || '',
       isEnabled: !!val.isEnabled,
       notifyOnNewTicket: !!val.notifyOnNewTicket,
       notifyOnCriticalOnly: !!val.notifyOnCriticalOnly,

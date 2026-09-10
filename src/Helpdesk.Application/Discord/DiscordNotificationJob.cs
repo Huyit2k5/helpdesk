@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Helpdesk.Settings;
+using Helpdesk.Tickets;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Volo.Abp.BackgroundJobs;
@@ -19,17 +20,20 @@ public class DiscordNotificationJob : AsyncBackgroundJob<DiscordNotificationArgs
     private readonly ISettingProvider _settingProvider;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IConfiguration _configuration;
+    private readonly IDiscordBotService _discordBotService;
     private readonly ILogger<DiscordNotificationJob> _logger;
 
     public DiscordNotificationJob(
         ISettingProvider settingProvider,
         IHttpClientFactory httpClientFactory,
         IConfiguration configuration,
+        IDiscordBotService discordBotService,
         ILogger<DiscordNotificationJob> logger)
     {
         _settingProvider = settingProvider;
         _httpClientFactory = httpClientFactory;
         _configuration = configuration;
+        _discordBotService = discordBotService;
         _logger = logger;
     }
 
@@ -41,21 +45,28 @@ public class DiscordNotificationJob : AsyncBackgroundJob<DiscordNotificationArgs
             if (!isEnabled) return;
 
             var webhookUrl = await _settingProvider.GetOrNullAsync(HelpdeskSettings.Discord.WebhookUrl);
-            if (string.IsNullOrWhiteSpace(webhookUrl)) return;
+            var channelIdStr = await _settingProvider.GetOrNullAsync(HelpdeskSettings.Discord.ChannelId);
+            ulong? channelId = null;
+            if (!string.IsNullOrWhiteSpace(channelIdStr) && ulong.TryParse(channelIdStr.Trim(), out var parsedChannelId))
+            {
+                channelId = parsedChannelId;
+            }
+
+            if (string.IsNullOrWhiteSpace(webhookUrl) && !channelId.HasValue) return;
 
             switch (args.Type)
             {
                 case DiscordNotificationType.TicketCreated:
-                    await HandleTicketCreatedAsync(args, webhookUrl);
+                    await HandleTicketCreatedAsync(args, webhookUrl, channelId);
                     break;
                 case DiscordNotificationType.TicketAssigned:
-                    await HandleTicketAssignedAsync(args, webhookUrl);
+                    await HandleTicketAssignedAsync(args, webhookUrl, channelId);
                     break;
                 case DiscordNotificationType.SlaBreached:
-                    await HandleSlaBreachedAsync(args, webhookUrl);
+                    await HandleSlaBreachedAsync(args, webhookUrl, channelId);
                     break;
                 case DiscordNotificationType.TicketResolved:
-                    await HandleTicketResolvedAsync(args, webhookUrl);
+                    await HandleTicketResolvedAsync(args, webhookUrl, channelId);
                     break;
             }
         }
@@ -71,13 +82,38 @@ public class DiscordNotificationJob : AsyncBackgroundJob<DiscordNotificationArgs
         }
     }
 
-    private async Task HandleTicketCreatedAsync(DiscordNotificationArgs args, string webhookUrl)
+    private async Task HandleTicketCreatedAsync(DiscordNotificationArgs args, string? webhookUrl, ulong? channelId)
     {
         var notifyOnNewTicket = await _settingProvider.GetAsync<bool>(HelpdeskSettings.Discord.NotifyOnNewTicket);
         if (!notifyOnNewTicket) return;
 
         var notifyOnCriticalOnly = await _settingProvider.GetAsync<bool>(HelpdeskSettings.Discord.NotifyOnCriticalOnly);
         if (notifyOnCriticalOnly && !args.IsCritical) return;
+
+        // Ưu tiên gửi qua Discord Bot kèm nút bấm tương tác [🎯 Nhận vé này]
+        if (channelId.HasValue)
+        {
+            var sentViaBot = await _discordBotService.SendTicketWithButtonsAsync(
+                channelId.Value,
+                args.TicketId,
+                args.TicketNumber,
+                args.Title,
+                args.Description,
+                args.RequesterName,
+                args.DueDate,
+                args.CategoryName,
+                args.PriorityName,
+                args.IsCritical
+            );
+
+            if (sentViaBot)
+            {
+                return; // Đã gửi thành công qua Bot kèm nút bấm tương tác!
+            }
+        }
+
+        // Nếu Bot chưa cấu hình hoặc gửi không thành công, fallback về gửi qua Webhook
+        if (string.IsNullOrWhiteSpace(webhookUrl)) return;
 
         var ticketUrl = BuildTicketUrl(args.TicketId);
         var color = args.IsCritical ? DiscordConsts.ColorDanger : DiscordConsts.ColorInfo;
@@ -99,13 +135,14 @@ public class DiscordNotificationJob : AsyncBackgroundJob<DiscordNotificationArgs
         await PostToDiscordAsync(webhookUrl, title, description, ticketUrl, color, fields);
     }
 
-    private async Task HandleTicketAssignedAsync(DiscordNotificationArgs args, string webhookUrl)
+    private async Task HandleTicketAssignedAsync(DiscordNotificationArgs args, string? webhookUrl, ulong? channelId)
     {
         var notifyOnAssigned = await _settingProvider.GetAsync<bool>(HelpdeskSettings.Discord.NotifyOnAssigned);
         if (!notifyOnAssigned) return;
 
         var ticketUrl = BuildTicketUrl(args.TicketId);
         var title = $"👉 [{args.TicketNumber}] Đã phân công xử lý: {args.Title}";
+        var description = "Sự vụ đã được điều phối và chỉ định người phụ trách.";
 
         var fields = new List<object>
         {
@@ -114,16 +151,26 @@ public class DiscordNotificationJob : AsyncBackgroundJob<DiscordNotificationArgs
             new { name = "⏱️ Hạn xử lý SLA", value = args.DueDate?.ToString("dd/MM/yyyy HH:mm") ?? "N/A", inline = true }
         };
 
-        await PostToDiscordAsync(webhookUrl, title, "Sự vụ đã được điều phối và chỉ định người phụ trách.", ticketUrl, DiscordConsts.ColorWarning, fields);
+        if (channelId.HasValue)
+        {
+            var sent = await _discordBotService.SendEmbedMessageAsync(channelId.Value, title, description, ticketUrl, DiscordConsts.ColorWarning, fields);
+            if (sent) return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(webhookUrl))
+        {
+            await PostToDiscordAsync(webhookUrl, title, description, ticketUrl, DiscordConsts.ColorWarning, fields);
+        }
     }
 
-    private async Task HandleSlaBreachedAsync(DiscordNotificationArgs args, string webhookUrl)
+    private async Task HandleSlaBreachedAsync(DiscordNotificationArgs args, string? webhookUrl, ulong? channelId)
     {
         var notifyOnSlaBreach = await _settingProvider.GetAsync<bool>(HelpdeskSettings.Discord.NotifyOnSlaBreach);
         if (!notifyOnSlaBreach) return;
 
         var ticketUrl = BuildTicketUrl(args.TicketId);
         var title = $"⚠️ [VI PHẠM SLA] [{args.TicketNumber}] {args.Title}";
+        var description = "Sự vụ đã vượt quá thời hạn cam kết SLA. Vui lòng ưu tiên xử lý khẩn cấp!";
 
         var fields = new List<object>
         {
@@ -133,16 +180,26 @@ public class DiscordNotificationJob : AsyncBackgroundJob<DiscordNotificationArgs
             new { name = "👤 Người yêu cầu", value = string.IsNullOrWhiteSpace(args.RequesterName) ? "N/A" : args.RequesterName, inline = true }
         };
 
-        await PostToDiscordAsync(webhookUrl, title, "Sự vụ đã vượt quá thời hạn cam kết SLA. Vui lòng ưu tiên xử lý khẩn cấp!", ticketUrl, DiscordConsts.ColorDanger, fields);
+        if (channelId.HasValue)
+        {
+            var sent = await _discordBotService.SendEmbedMessageAsync(channelId.Value, title, description, ticketUrl, DiscordConsts.ColorDanger, fields);
+            if (sent) return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(webhookUrl))
+        {
+            await PostToDiscordAsync(webhookUrl, title, description, ticketUrl, DiscordConsts.ColorDanger, fields);
+        }
     }
 
-    private async Task HandleTicketResolvedAsync(DiscordNotificationArgs args, string webhookUrl)
+    private async Task HandleTicketResolvedAsync(DiscordNotificationArgs args, string? webhookUrl, ulong? channelId)
     {
         var notifyOnResolved = await _settingProvider.GetAsync<bool>(HelpdeskSettings.Discord.NotifyOnResolved);
         if (!notifyOnResolved) return;
 
         var ticketUrl = BuildTicketUrl(args.TicketId);
         var title = $"✅ [{args.TicketNumber}] Sự vụ đã được giải quyết: {args.Title}";
+        var description = "Sự vụ đã được đánh dấu giải quyết thành công.";
 
         var fields = new List<object>
         {
@@ -150,7 +207,16 @@ public class DiscordNotificationJob : AsyncBackgroundJob<DiscordNotificationArgs
             new { name = "⏱️ Thời gian giải quyết", value = args.ResolvedAt?.ToString("dd/MM/yyyy HH:mm") ?? DateTime.Now.ToString("dd/MM/yyyy HH:mm"), inline = true }
         };
 
-        await PostToDiscordAsync(webhookUrl, title, "Sự vụ đã được đánh dấu giải quyết thành công.", ticketUrl, DiscordConsts.ColorSuccess, fields);
+        if (channelId.HasValue)
+        {
+            var sent = await _discordBotService.SendEmbedMessageAsync(channelId.Value, title, description, ticketUrl, DiscordConsts.ColorSuccess, fields);
+            if (sent) return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(webhookUrl))
+        {
+            await PostToDiscordAsync(webhookUrl, title, description, ticketUrl, DiscordConsts.ColorSuccess, fields);
+        }
     }
 
     private async Task PostToDiscordAsync(

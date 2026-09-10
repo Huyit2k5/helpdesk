@@ -21,6 +21,10 @@ public class DiscordSettingsDto
     public string BotName { get; set; } = string.Empty;
 
     public string AvatarUrl { get; set; } = string.Empty;
+
+    public string BotToken { get; set; } = string.Empty;
+
+    public string ChannelId { get; set; } = string.Empty;
 }
 
 public class UpdateDiscordSettingsDto
@@ -45,6 +49,10 @@ public class UpdateDiscordSettingsDto
 
     [MaxLength(DiscordConsts.MaxAvatarUrlLength)]
     public string AvatarUrl { get; set; } = string.Empty;
+
+    public string? BotToken { get; set; }
+
+    public string? ChannelId { get; set; }
 }
 
 public class SendTestDiscordInput

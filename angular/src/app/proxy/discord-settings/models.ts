@@ -8,6 +8,8 @@ export interface DiscordSettingsDto {
   notifyOnResolved: boolean;
   botName: string;
   avatarUrl: string;
+  botToken?: string;
+  channelId?: string;
 }
 
 export interface UpdateDiscordSettingsDto {
@@ -20,6 +22,8 @@ export interface UpdateDiscordSettingsDto {
   notifyOnResolved: boolean;
   botName: string;
   avatarUrl: string;
+  botToken?: string;
+  channelId?: string;
 }
 
 export interface SendTestDiscordInput {

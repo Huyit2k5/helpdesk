@@ -17,5 +17,7 @@ public static class HelpdeskSettings
         public const string NotifyOnResolved = DiscordPrefix + ".NotifyOnResolved";
         public const string BotName = DiscordPrefix + ".BotName";
         public const string AvatarUrl = DiscordPrefix + ".AvatarUrl";
+        public const string BotToken = DiscordPrefix + ".BotToken";
+        public const string ChannelId = DiscordPrefix + ".ChannelId";
     }
 }
