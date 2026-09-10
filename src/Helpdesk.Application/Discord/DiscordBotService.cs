@@ -450,9 +450,18 @@ public class DiscordBotService : IDiscordBotService, ISingletonDependency, IDisp
             if (ticket.AssigneeId.HasValue && ticket.AssigneeId.Value != Guid.Empty)
             {
                 var currentAssignee = allUsers.FirstOrDefault(u => u.Id == ticket.AssigneeId.Value);
-                await component.FollowupAsync(
-                    $"⚠️ Vé **[{ticket.TicketNumber}]** đã được tiếp nhận trước đó bởi kỹ thuật viên **{currentAssignee?.UserName ?? "khác"}**!",
-                    ephemeral: true);
+                if (ticket.AssigneeId.Value == user.Id)
+                {
+                    await component.FollowupAsync(
+                        $"ℹ️ Bạn (**{user.UserName}**) đã tiếp nhận sự vụ **[{ticket.TicketNumber}]** này trước đó rồi.",
+                        ephemeral: true);
+                }
+                else
+                {
+                    await component.FollowupAsync(
+                        $"⚠️ Vé **[{ticket.TicketNumber}]** đã được tiếp nhận trước đó bởi kỹ thuật viên **{currentAssignee?.UserName ?? "khác"}**!",
+                        ephemeral: true);
+                }
                 return;
             }
 
@@ -513,47 +522,68 @@ public class DiscordBotService : IDiscordBotService, ISingletonDependency, IDisp
             // Cập nhật giao diện tin nhắn gốc trên Discord kèm nút [🏁 Hoàn thành vé]
             if (component.Message != null)
             {
-                var oldEmbed = component.Message.Embeds.FirstOrDefault();
-                var ticketUrl = BuildTicketUrl(ticket.Id);
-
-                var updatedEmbed = new EmbedBuilder()
-                    .WithTitle(oldEmbed?.Title ?? $"[{ticket.TicketNumber}] {ticket.Title}")
-                    .WithDescription(oldEmbed?.Description ?? ticket.Description)
-                    .WithUrl(ticketUrl)
-                    .WithColor(new Color(0xf3, 0x9c, 0x12)) // Vàng cam: Đang xử lý
-                    .WithFooter($"Tiếp nhận bởi @{user.UserName} lúc {DateTime.Now:HH:mm dd/MM/yyyy}", "https://abp.io/assets/png/abp-logo.png")
-                    .WithCurrentTimestamp();
-
-                if (oldEmbed != null)
+                try
                 {
-                    foreach (var field in oldEmbed.Fields)
+                    var oldEmbed = component.Message.Embeds.FirstOrDefault();
+                    var ticketUrl = BuildTicketUrl(ticket.Id);
+
+                    var updatedEmbed = new EmbedBuilder()
+                        .WithTitle(oldEmbed?.Title ?? $"[{ticket.TicketNumber}] {ticket.Title}")
+                        .WithDescription(oldEmbed?.Description ?? ticket.Description)
+                        .WithUrl(ticketUrl)
+                        .WithColor(new Color(0xf3, 0x9c, 0x12)) // Vàng cam: Đang xử lý
+                        .WithFooter($"Tiếp nhận bởi @{user.UserName} lúc {DateTime.Now:HH:mm dd/MM/yyyy}", "https://abp.io/assets/png/abp-logo.png")
+                        .WithCurrentTimestamp();
+
+                    if (oldEmbed != null)
                     {
-                        if (field.Name.Contains("Kỹ thuật viên"))
+                        foreach (var field in oldEmbed.Fields)
                         {
-                            updatedEmbed.AddField("👨‍💻 Kỹ thuật viên phụ trách", $"✅ {user.UserName}", inline: true);
-                        }
-                        else if (field.Name.Contains("Trạng thái"))
-                        {
-                            updatedEmbed.AddField("📌 Trạng thái", "Đang xử lý (In Progress)", inline: true);
-                        }
-                        else
-                        {
-                            updatedEmbed.AddField(field.Name, field.Value, inline: field.Inline);
+                            if (field.Name.Contains("Kỹ thuật viên"))
+                            {
+                                updatedEmbed.AddField("👨‍💻 Kỹ thuật viên phụ trách", $"✅ {user.UserName}", inline: true);
+                            }
+                            else if (field.Name.Contains("Trạng thái"))
+                            {
+                                updatedEmbed.AddField("📌 Trạng thái", "Đang xử lý (In Progress)", inline: true);
+                            }
+                            else
+                            {
+                                updatedEmbed.AddField(field.Name, field.Value, inline: field.Inline);
+                            }
                         }
                     }
+
+                    var updatedComponents = new ComponentBuilder()
+                        .WithButton($"✅ Đã nhận bởi {user.UserName}", "claimed_disabled", ButtonStyle.Secondary, disabled: true)
+                        .WithButton("🏁 Hoàn thành vé", $"resolve_ticket_{ticket.Id}", ButtonStyle.Success)
+                        .WithButton("👁️ Xem trên Web", style: ButtonStyle.Link, url: ticketUrl)
+                        .Build();
+
+                    await component.Message.ModifyAsync(msg =>
+                    {
+                        msg.Embed = updatedEmbed.Build();
+                        msg.Components = updatedComponents;
+                    });
                 }
-
-                var updatedComponents = new ComponentBuilder()
-                    .WithButton($"✅ Đã nhận bởi {user.UserName}", "claimed_disabled", ButtonStyle.Secondary, disabled: true)
-                    .WithButton("🏁 Hoàn thành vé", $"resolve_ticket_{ticket.Id}", ButtonStyle.Success)
-                    .WithButton("👁️ Xem trên Web", style: ButtonStyle.Link, url: ticketUrl)
-                    .Build();
-
-                await component.UpdateAsync(msg =>
+                catch (Exception mEx)
                 {
-                    msg.Embed = updatedEmbed.Build();
-                    msg.Components = updatedComponents;
-                });
+                    _logger.LogWarning(mEx, "Không thể cập nhật giao diện tin nhắn Discord sau khi nhận vé: {Message}", mEx.Message);
+                }
+            }
+
+            // Thông báo vào Thread nếu có
+            if (!string.IsNullOrWhiteSpace(ticket.DiscordThreadId) && ulong.TryParse(ticket.DiscordThreadId, out var threadId) && _client != null)
+            {
+                try
+                {
+                    var thread = await _client.GetChannelAsync(threadId) as IThreadChannel;
+                    if (thread != null)
+                    {
+                        await thread.SendMessageAsync($"👨‍💻 Kỹ thuật viên **@{user.UserName}** đã tiếp nhận xử lý sự vụ **[{ticket.TicketNumber}]**.");
+                    }
+                }
+                catch { }
             }
 
             await component.FollowupAsync(
