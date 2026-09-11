@@ -81,6 +81,15 @@ export const MASTER_DATA_ROUTES: Routes = [
             c => c.MacrosComponent
           ),
       },
+      {
+        path: 'ai-settings',
+        canActivate: [permissionGuard],
+        data: { requiredPolicy: 'Helpdesk.AiSettings' },
+        loadComponent: () =>
+          import('../ai-settings/ai-settings.component').then(
+            c => c.AiSettingsComponent
+          ),
+      },
     ],
   },
 ];

@@ -122,6 +122,8 @@ public class HelpdeskHttpApiHostModule : AbpModule
                 .AddRazorRuntimeCompilation();
         }
 
+        context.Services.AddHttpClient("AiAssistantClient");
+
         ConfigureStudio(hostingEnvironment);
         ConfigureAuthentication(context);
         ConfigureUrls(configuration);

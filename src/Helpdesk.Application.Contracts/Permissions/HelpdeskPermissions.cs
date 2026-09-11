@@ -123,5 +123,17 @@ public static class HelpdeskPermissions
         public const string Delete = Default + ".Delete";
         public const string Apply = Default + ".Apply";
     }
+
+    public static class AiSettings
+    {
+        public const string Default = GroupName + ".AiSettings";
+        public const string Manage = Default + ".Manage";
+    }
+
+    public static class AiAssistant
+    {
+        public const string Default = GroupName + ".AiAssistant";
+        public const string Use = Default + ".Use";
+    }
 }
 

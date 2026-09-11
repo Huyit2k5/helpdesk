@@ -12,5 +12,6 @@ import * as TicketSources from './ticket-sources';
 import * as TicketStatuses from './ticket-statuses';
 import * as Tickets from './tickets';
 import * as Automations from './automations';
-export { AssignmentRules, Automations, CannedResponses, Categories, CustomerPortal, Departments, DiscordSettings, KnowledgeBase, Notifications, Priorities, Sla, TicketSources, TicketStatuses, Tickets };
+import * as Ai from './ai';
+export { Ai, AssignmentRules, Automations, CannedResponses, Categories, CustomerPortal, Departments, DiscordSettings, KnowledgeBase, Notifications, Priorities, Sla, TicketSources, TicketStatuses, Tickets };
 

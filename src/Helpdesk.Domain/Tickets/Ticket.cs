@@ -1,4 +1,5 @@
 using System;
+using Helpdesk.Ai;
 using Volo.Abp;
 using Volo.Abp.Domain.Entities.Auditing;
 using Volo.Abp.MultiTenancy;
@@ -90,6 +91,21 @@ public class Ticket : FullAuditedAggregateRoot<Guid>, IMultiTenant
     /// Thời điểm khách hàng gửi đánh giá hài lòng.
     /// </summary>
     public DateTime? CsatSubmittedAt { get; set; }
+
+    /// <summary>
+    /// Tóm tắt diễn biến sự cố do AI tạo.
+    /// </summary>
+    public string? AiSummary { get; set; }
+
+    /// <summary>
+    /// Mức độ cảm xúc khách hàng được AI nhận diện.
+    /// </summary>
+    public CustomerSentiment? AiSentiment { get; set; }
+
+    /// <summary>
+    /// Giải thích lý do đánh giá cảm xúc từ AI.
+    /// </summary>
+    public string? AiSentimentReason { get; set; }
 
     protected Ticket()
     {

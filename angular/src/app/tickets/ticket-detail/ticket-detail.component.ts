@@ -11,6 +11,8 @@ import { CannedResponseService } from '../../proxy/canned-responses/canned-respo
 import { CannedResponseDto } from '../../proxy/canned-responses/models';
 import { MacroService } from '../../proxy/automations/macro.service';
 import { MacroDto } from '../../proxy/automations/models';
+import { AiAssistantService } from '../../proxy/ai/ai-assistant.service';
+import { AiReplyTone, CustomerSentiment, TicketAiSummaryDto, GenerateAiReplyResultDto, AnalyzeSentimentResultDto } from '../../proxy/ai/models';
 import { ToasterService, ConfirmationService, Confirmation } from '@abp/ng.theme.shared';
 import { catchError, forkJoin, of } from 'rxjs';
 
@@ -39,9 +41,13 @@ export class TicketDetailComponent implements OnInit {
   private userSvc = inject(IdentityUserService);
   private cannedSvc = inject(CannedResponseService);
   private macroSvc = inject(MacroService);
+  private aiService = inject(AiAssistantService);
   private toaster = inject(ToasterService);
   private confirmation = inject(ConfirmationService);
   private cdr = inject(ChangeDetectorRef);
+
+  AiReplyTone = AiReplyTone;
+  CustomerSentiment = CustomerSentiment;
 
   ticketId = '';
   ticket?: TicketDetailDto;
@@ -65,6 +71,20 @@ export class TicketDetailComponent implements OnInit {
   activeMacros: MacroDto[] = [];
   isApplyingMacro = false;
   isMacroDropdownOpen = false;
+
+  // AI Assistant States
+  isSummarizing = false;
+  aiSummary: TicketAiSummaryDto | null = null;
+  isAnalyzingSentiment = false;
+  sentimentResult: AnalyzeSentimentResultDto | null = null;
+
+  // AI Smart Reply Modal
+  showAiReplyModal = false;
+  selectedReplyTone: AiReplyTone = AiReplyTone.Professional;
+  customReplyPrompt = '';
+  includeKnowledgeBase = true;
+  isGeneratingReply = false;
+  generatedReplyResult: GenerateAiReplyResultDto | null = null;
 
   // Modals / Dropdowns
   isStatusModalOpen = false;
@@ -479,5 +499,158 @@ export class TicketDetailComponent implements OnInit {
 
   toggleMacroDropdown(): void {
     this.isMacroDropdownOpen = !this.isMacroDropdownOpen;
+  }
+
+  // --- AI Copilot & Smart Assistant Methods ---
+
+  summarizeWithAi(): void {
+    if (!this.ticketId) return;
+    this.isSummarizing = true;
+    this.cdr.markForCheck();
+
+    this.aiService.summarizeTicket(this.ticketId).subscribe({
+      next: (res) => {
+        this.aiSummary = res;
+        if (this.ticket) {
+          this.ticket.aiSummary = res.summary;
+        }
+        this.isSummarizing = false;
+        this.toaster.success('Đã hoàn thành tóm tắt vé thông minh!', 'AI Copilot');
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        this.isSummarizing = false;
+        this.toaster.error(err?.error?.message || 'Không thể tóm tắt sự vụ', 'Lỗi AI');
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  analyzeSentiment(): void {
+    if (!this.ticketId) return;
+    this.isAnalyzingSentiment = true;
+    this.cdr.markForCheck();
+
+    this.aiService.analyzeTicketSentiment(this.ticketId).subscribe({
+      next: (res) => {
+        this.sentimentResult = res;
+        if (this.ticket) {
+          this.ticket.aiSentiment = res.sentiment;
+          this.ticket.aiSentimentReason = res.reason;
+        }
+        this.isAnalyzingSentiment = false;
+        this.toaster.success('Đã phân tích tâm lý khách hàng!', 'AI Copilot');
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        this.isAnalyzingSentiment = false;
+        this.toaster.error(err?.error?.message || 'Không thể phân tích tâm lý', 'Lỗi AI');
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  openAiReplyModal(): void {
+    this.showAiReplyModal = true;
+    this.generatedReplyResult = null;
+    this.cdr.markForCheck();
+  }
+
+  closeAiReplyModal(): void {
+    this.showAiReplyModal = false;
+    this.cdr.markForCheck();
+  }
+
+  generateAiReply(): void {
+    if (!this.ticketId) return;
+    this.isGeneratingReply = true;
+    this.cdr.markForCheck();
+
+    this.aiService.generateReply({
+      ticketId: this.ticketId,
+      tone: Number(this.selectedReplyTone),
+      userGuidance: this.customReplyPrompt ? this.customReplyPrompt.trim() : undefined,
+      includeKnowledgeBase: this.includeKnowledgeBase
+    }).subscribe({
+      next: (res) => {
+        this.generatedReplyResult = res;
+        this.isGeneratingReply = false;
+        this.toaster.success('Đã tạo bản thảo câu trả lời thông minh!', 'AI Copilot');
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        this.isGeneratingReply = false;
+        this.toaster.error(err?.error?.message || 'Không thể tạo bản thảo câu trả lời', 'Lỗi AI');
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  applyAiReplyToComposer(): void {
+    if (!this.generatedReplyResult?.replyText) return;
+
+    if (this.commentContent && this.commentContent.trim()) {
+      this.commentContent += '\n\n' + this.generatedReplyResult.replyText;
+    } else {
+      this.commentContent = this.generatedReplyResult.replyText;
+    }
+
+    this.closeAiReplyModal();
+    this.toaster.info('Đã chèn nội dung AI vào khung soạn thảo!', 'Thành công');
+    this.cdr.markForCheck();
+  }
+
+  copySummaryToClipboard(): void {
+    const text = this.aiSummary?.summary || this.ticket?.aiSummary;
+    if (text) {
+      navigator.clipboard.writeText(text).then(() => {
+        this.toaster.success('Đã sao chép nội dung tóm tắt vào bộ nhớ đệm!');
+      });
+    }
+  }
+
+  getSentimentBadgeClass(sentiment?: number | null): string {
+    switch (sentiment) {
+      case CustomerSentiment.Positive:
+        return 'badge-sentiment-positive';
+      case CustomerSentiment.Neutral:
+        return 'badge-sentiment-neutral';
+      case CustomerSentiment.Frustrated:
+        return 'badge-sentiment-frustrated';
+      case CustomerSentiment.UrgentCrisis:
+        return 'badge-sentiment-crisis';
+      default:
+        return 'badge-sentiment-none';
+    }
+  }
+
+  getSentimentText(sentiment?: number | null): string {
+    switch (sentiment) {
+      case CustomerSentiment.Positive:
+        return 'Hài Lòng / Tích Cực';
+      case CustomerSentiment.Neutral:
+        return 'Trung Tính / Bình Thường';
+      case CustomerSentiment.Frustrated:
+        return 'Thất Vọng / Căng Thẳng';
+      case CustomerSentiment.UrgentCrisis:
+        return 'Khẩn Cấp / Khủng Hoảng';
+      default:
+        return 'Chưa phân tích';
+    }
+  }
+
+  getSentimentIcon(sentiment?: number | null): string {
+    switch (sentiment) {
+      case CustomerSentiment.Positive:
+        return 'fas fa-smile text-success';
+      case CustomerSentiment.Neutral:
+        return 'fas fa-meh text-secondary';
+      case CustomerSentiment.Frustrated:
+        return 'fas fa-frown text-warning';
+      case CustomerSentiment.UrgentCrisis:
+        return 'fas fa-fire-alt text-danger';
+      default:
+        return 'fas fa-brain text-muted';
+    }
   }
 }

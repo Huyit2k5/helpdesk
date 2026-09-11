@@ -101,6 +101,8 @@ public static class HelpdeskDbContextModelCreatingExtensions
             b.Property(x => x.Tags).HasMaxLength(Helpdesk.Tickets.TicketConsts.MaxTagsLength);
             b.Property(x => x.CsatComment).HasMaxLength(1000);
             b.Property(x => x.DiscordThreadId).HasMaxLength(64);
+            b.Property(x => x.AiSummary).HasMaxLength(2000);
+            b.Property(x => x.AiSentimentReason).HasMaxLength(500);
 
             b.HasIndex(x => x.TicketNumber).IsUnique();
             b.HasIndex(x => x.StatusId);

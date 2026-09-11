@@ -56,6 +56,10 @@ public class TicketDetailDto : FullAuditedEntityDto<Guid>
     public string? CsatComment { get; set; }
     public DateTime? CsatSubmittedAt { get; set; }
 
+    public string? AiSummary { get; set; }
+    public Helpdesk.Ai.CustomerSentiment? AiSentiment { get; set; }
+    public string? AiSentimentReason { get; set; }
+
     public List<TicketCommentDto> Comments { get; set; } = new();
 
     public List<TicketActivityDto> Activities { get; set; } = new();

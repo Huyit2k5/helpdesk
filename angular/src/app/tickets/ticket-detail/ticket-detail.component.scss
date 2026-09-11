@@ -119,3 +119,96 @@
     }
   }
 }
+
+// AI Copilot & Smart Reply Styles
+.bg-gradient-ai {
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%) !important;
+}
+
+.btn-gradient-ai {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  border: none;
+  font-weight: 600;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.ai-copilot-card {
+  border-radius: 12px;
+  border: 1px solid #e0e7ff !important;
+
+  .card-header {
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+  }
+}
+
+.btn-xs {
+  font-size: 0.75rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+}
+
+.badge-sentiment-positive {
+  background-color: #dcfce7;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+
+.badge-sentiment-neutral {
+  background-color: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+}
+
+.badge-sentiment-frustrated {
+  background-color: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+
+.badge-sentiment-crisis {
+  background-color: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fca5a5;
+  animation: pulse-danger 2s infinite;
+}
+
+.badge-sentiment-none {
+  background-color: #f8fafc;
+  color: #94a3b8;
+  border: 1px dashed #cbd5e1;
+}
+
+@keyframes pulse-danger {
+  0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+  70% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+.tone-option-card {
+  background: #fff;
+  border: 1.5px solid #e2e8f0 !important;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: #a855f7 !important;
+    background-color: #faf5ff;
+  }
+
+  &.active {
+    border-color: #7c3aed !important;
+    background-color: #f5f3ff;
+    box-shadow: 0 2px 8px rgba(124, 58, 237, 0.15);
+  }
+}
+

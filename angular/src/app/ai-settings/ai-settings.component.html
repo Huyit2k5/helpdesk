@@ -1,0 +1,344 @@
+<div class="container-fluid py-4 ai-settings-page">
+  <!-- Header Banner -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm hero-banner overflow-hidden position-relative">
+        <div class="card-body p-4 position-relative z-1">
+          <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div class="d-flex align-items-center gap-3">
+              <div class="ai-avatar-glow">
+                <i class="fas fa-robot-astronomy fas fa-brain"></i>
+              </div>
+              <div>
+                <div class="d-flex align-items-center gap-2 mb-1">
+                  <h3 class="mb-0 fw-bold text-white">AI Copilot & Trợ Lý Thông Minh</h3>
+                  <span class="badge bg-gradient-info text-white px-3 py-1 rounded-pill">
+                    <i class="fas fa-sparkles me-1"></i> Phân Hệ 16
+                  </span>
+                </div>
+                <p class="text-white-50 mb-0">
+                  Tích hợp AI đa nền tảng (Gemini, OpenAI, Ollama, Smart NLP) giúp tóm tắt sự vụ, tự động soạn thảo phản hồi và phân tích cảm xúc khách hàng.
+                </p>
+              </div>
+            </div>
+
+            <div class="d-flex align-items-center gap-2">
+              <button
+                type="button"
+                class="btn btn-outline-light d-flex align-items-center gap-2"
+                (click)="loadSettings()"
+                [disabled]="isLoading || isSaving"
+              >
+                <i class="fas fa-sync-alt" [class.fa-spin]="isLoading"></i>
+                Làm mới
+              </button>
+              <button
+                type="button"
+                class="btn btn-primary btn-save-gradient d-flex align-items-center gap-2 px-4 shadow"
+                (click)="saveSettings()"
+                [disabled]="isLoading || isSaving"
+              >
+                <i class="fas fa-save" *ngIf="!isSaving"></i>
+                <i class="fas fa-spinner fa-spin" *ngIf="isSaving"></i>
+                <span>{{ isSaving ? 'Đang lưu...' : 'Lưu Cấu Hình' }}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="hero-bg-shapes"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"></div>
+    <p class="mt-3 text-muted fw-semibold">Đang tải cấu hình AI Copilot...</p>
+  </div>
+
+  <!-- Form Content -->
+  <form [formGroup]="form" *ngIf="!isLoading">
+    <div class="row g-4">
+      <!-- Left Column: Provider Selection & Keys -->
+      <div class="col-lg-8">
+        <!-- Master Enable Switch -->
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-center">
+              <div class="d-flex align-items-center gap-3">
+                <div class="icon-shape bg-primary-subtle text-primary rounded-circle p-3">
+                  <i class="fas fa-power-off fa-lg"></i>
+                </div>
+                <div>
+                  <h5 class="mb-1 fw-bold">Trạng Thái Hoạt Động Của Trợ Lý AI</h5>
+                  <p class="text-muted mb-0 small">
+                    Bật hoặc tắt toàn bộ các tính năng AI Copilot (Tóm tắt, Gợi ý câu trả lời, Phân tích tâm lý) trên toàn hệ thống Helpdesk.
+                  </p>
+                </div>
+              </div>
+              <div class="form-check form-switch form-switch-lg ms-3">
+                <input
+                  class="form-check-input switch-large"
+                  type="checkbox"
+                  role="switch"
+                  id="isEnabledSwitch"
+                  formControlName="isEnabled"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Provider Selection Cards -->
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-transparent border-0 pt-4 px-4 pb-2">
+            <div class="d-flex align-items-center gap-2">
+              <i class="fas fa-layer-group text-primary"></i>
+              <h5 class="mb-0 fw-bold">Chọn Động Cơ AI (Multi-Provider Engine)</h5>
+            </div>
+            <p class="text-muted small mb-0 mt-1">
+              Hệ thống hỗ trợ chuyển đổi linh hoạt giữa các dịch vụ đám mây mạnh mẽ nhất hoặc chạy cục bộ bảo mật cao.
+            </p>
+          </div>
+          <div class="card-body p-4">
+            <div class="row g-3">
+              <div class="col-md-6" *ngFor="let p of providers">
+                <div
+                  class="provider-card p-3 rounded-3 border transition-all h-100 cursor-pointer position-relative"
+                  [class.active]="form.get('provider')?.value === p.id"
+                  (click)="selectProvider(p.id)"
+                >
+                  <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div class="d-flex align-items-center gap-2">
+                      <div class="provider-icon">
+                        <i [class]="p.icon"></i>
+                      </div>
+                      <span class="fw-bold text-dark">{{ p.name }}</span>
+                    </div>
+                    <span class="badge" [ngClass]="p.badgeClass">{{ p.badge }}</span>
+                  </div>
+                  <p class="text-muted small mb-0">{{ p.desc }}</p>
+
+                  <div class="active-check-badge" *ngIf="form.get('provider')?.value === p.id">
+                    <i class="fas fa-check-circle text-primary"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Provider Details & Credentials -->
+        <div class="card border-0 shadow-sm mb-4" *ngIf="form.get('provider')?.value !== AiProviderType.BuiltInOffline">
+          <div class="card-header bg-transparent border-0 pt-4 px-4 pb-2">
+            <div class="d-flex align-items-center gap-2">
+              <i class="fas fa-key text-primary"></i>
+              <h5 class="mb-0 fw-bold">Thông Tin Xác Thực & Kết Nối API</h5>
+            </div>
+          </div>
+          <div class="card-body p-4">
+            <div class="row g-3">
+              <!-- API Key -->
+              <div class="col-12" *ngIf="form.get('provider')?.value === AiProviderType.GoogleGemini || form.get('provider')?.value === AiProviderType.OpenAI">
+                <label class="form-label fw-semibold">
+                  API Key <span class="text-danger">*</span>
+                </label>
+                <div class="input-group">
+                  <span class="input-group-text bg-light"><i class="fas fa-lock text-muted"></i></span>
+                  <input
+                    [type]="showApiKey ? 'text' : 'password'"
+                    class="form-control font-monospace"
+                    formControlName="apiKey"
+                    placeholder="Nhập khóa API bí mật của nhà cung cấp..."
+                  />
+                  <button
+                    class="btn btn-outline-secondary"
+                    type="button"
+                    (click)="toggleApiKeyVisibility()"
+                  >
+                    <i class="fas" [ngClass]="showApiKey ? 'fa-eye-slash' : 'fa-eye'"></i>
+                  </button>
+                </div>
+                <div class="form-text small text-muted">
+                  API Key được lưu trữ mã hóa an toàn trên máy chủ.
+                </div>
+              </div>
+
+              <!-- Model Name -->
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Tên Mô Hình (Model Name)</label>
+                <div class="input-group">
+                  <span class="input-group-text bg-light"><i class="fas fa-cube text-muted"></i></span>
+                  <input
+                    type="text"
+                    class="form-control font-monospace"
+                    formControlName="modelName"
+                    placeholder="Ví dụ: gemini-1.5-flash, gpt-4o-mini"
+                  />
+                </div>
+                <div class="form-text small text-muted">
+                  Mặc định gợi ý: Gemini (gemini-1.5-flash), OpenAI (gpt-4o-mini).
+                </div>
+              </div>
+
+              <!-- Base URL for Ollama / Custom Endpoint -->
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">
+                  Base URL
+                  <span *ngIf="form.get('provider')?.value === AiProviderType.LocalOllama" class="text-danger">*</span>
+                </label>
+                <div class="input-group">
+                  <span class="input-group-text bg-light"><i class="fas fa-link text-muted"></i></span>
+                  <input
+                    type="text"
+                    class="form-control font-monospace"
+                    formControlName="baseUrl"
+                    placeholder="http://localhost:11434"
+                  />
+                </div>
+                <div class="form-text small text-muted">
+                  Địa chỉ host dịch vụ Ollama nội bộ (mặc định: http://localhost:11434).
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Prompt Customization -->
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-transparent border-0 pt-4 px-4 pb-2">
+            <div class="d-flex align-items-center gap-2">
+              <i class="fas fa-sliders-h text-primary"></i>
+              <h5 class="mb-0 fw-bold">Tinh Chỉnh Chỉ Đạo & Giọng Văn (Prompt Tuning)</h5>
+            </div>
+          </div>
+          <div class="card-body p-4">
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Chỉ Đạo Toàn Cục Hệ Thống (Custom System Prompt)</label>
+              <textarea
+                class="form-control"
+                rows="3"
+                formControlName="customSystemPrompt"
+                placeholder="Ví dụ: Luôn xưng hô là 'Bộ phận Kỹ thuật IT Helpdesk', phong cách thân thiện, súc tích và luôn hỏi người dùng mã số máy hoặc UltraViewer nếu chưa có..."
+              ></textarea>
+              <div class="form-text small text-muted">
+                Áp dụng cho toàn bộ các lượt gợi ý câu trả lời và tương tác của Trợ lý AI.
+              </div>
+            </div>
+
+            <div>
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <label class="form-label fw-semibold mb-0">Độ Sáng Tạo / Nhiệt Độ (Temperature): {{ form.get('temperature')?.value }}</label>
+                <span class="badge bg-light text-dark">{{ form.get('temperature')?.value <= 0.3 ? 'Chính xác & Tập trung' : (form.get('temperature')?.value <= 0.7 ? 'Cân bằng' : 'Sáng tạo cao') }}</span>
+              </div>
+              <input
+                type="range"
+                class="form-range"
+                min="0.0"
+                max="1.0"
+                step="0.05"
+                formControlName="temperature"
+              />
+              <div class="d-flex justify-content-between text-muted small">
+                <span>0.0 (Tuyệt đối nhất quán)</span>
+                <span>0.5 (Cân bằng)</span>
+                <span>1.0 (Rất đa dạng)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Features, Test Connection & Summary -->
+      <div class="col-lg-4">
+        <!-- Automation Toggles -->
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-transparent border-0 pt-4 px-4 pb-2">
+            <div class="d-flex align-items-center gap-2">
+              <i class="fas fa-magic text-primary"></i>
+              <h5 class="mb-0 fw-bold">Tính Năng Tự Động</h5>
+            </div>
+          </div>
+          <div class="card-body p-4">
+            <div class="form-check form-switch mb-3">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                id="enableAutoSentiment"
+                formControlName="enableAutoSentiment"
+              />
+              <label class="form-check-label fw-semibold" for="enableAutoSentiment">
+                Tự động phân tích tâm lý khách hàng
+              </label>
+              <p class="text-muted small mb-0 mt-1">
+                Nhận diện trạng thái Hài lòng, Bình thường, Thất vọng hay Khủng hoảng khẩn cấp và hiển thị huy hiệu trên chi tiết vé.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Connection Test Box -->
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-transparent border-0 pt-4 px-4 pb-2">
+            <div class="d-flex align-items-center gap-2">
+              <i class="fas fa-plug text-primary"></i>
+              <h5 class="mb-0 fw-bold">Kiểm Tra Kết Nối AI</h5>
+            </div>
+          </div>
+          <div class="card-body p-4">
+            <p class="text-muted small mb-3">
+              Gửi một truy vấn ping ngắn tới nhà cung cấp đã chọn để kiểm tra tính hợp lệ của API Key và độ trễ phản hồi mạng.
+            </p>
+
+            <button
+              type="button"
+              class="btn btn-outline-primary w-100 d-flex align-items-center justify-content-center gap-2 py-2"
+              (click)="testConnection()"
+              [disabled]="isTesting || isLoading"
+            >
+              <i class="fas fa-vial" *ngIf="!isTesting"></i>
+              <i class="fas fa-spinner fa-spin" *ngIf="isTesting"></i>
+              <span>{{ isTesting ? 'Đang kiểm tra kết nối...' : 'Thử Nghiệm Kết Nối' }}</span>
+            </button>
+
+            <!-- Test Result Display -->
+            <div *ngIf="testResult" class="mt-3">
+              <div
+                class="alert d-flex align-items-start gap-2 mb-0"
+                [ngClass]="testResult.success ? 'alert-success' : 'alert-danger'"
+              >
+                <i
+                  class="fas mt-1"
+                  [ngClass]="testResult.success ? 'fa-check-circle text-success' : 'fa-exclamation-triangle text-danger'"
+                ></i>
+                <div class="small">
+                  <div class="fw-bold">{{ testResult.success ? 'Kết Nối Thành Công!' : 'Kết Nối Thất Bại' }}</div>
+                  <div>{{ testResult.message }}</div>
+                  <div *ngIf="testResult.latencyMs > 0" class="text-muted mt-1">
+                    Độ trễ: <strong>{{ testResult.latencyMs }} ms</strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Help Card -->
+        <div class="card border-0 shadow-sm bg-light-subtle">
+          <div class="card-body p-4">
+            <div class="d-flex align-items-center gap-2 mb-2 text-primary fw-bold">
+              <i class="fas fa-info-circle"></i>
+              <span>Về Built-in Smart NLP Engine</span>
+            </div>
+            <p class="text-muted small mb-2">
+              Nếu bạn không có sẵn khóa Google Gemini hay OpenAI API, hệ thống vẫn hoạt động trơn tru 100% nhờ bộ máy <strong>Built-in Smart NLP</strong> được huấn luyện sẵn với ngữ liệu IT Helpdesk chuyên sâu.
+            </p>
+            <p class="text-muted small mb-0">
+              Không gián đoạn công việc, phân tích tức thì và hoàn toàn miễn phí.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>

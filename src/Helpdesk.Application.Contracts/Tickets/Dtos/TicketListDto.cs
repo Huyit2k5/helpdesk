@@ -45,5 +45,6 @@ public class TicketListDto : FullAuditedEntityDto<Guid>
     public bool IsResolutionBreached { get; set; }
 
     public string? Tags { get; set; }
+    public Helpdesk.Ai.CustomerSentiment? AiSentiment { get; set; }
     public int CommentCount { get; set; }
 }

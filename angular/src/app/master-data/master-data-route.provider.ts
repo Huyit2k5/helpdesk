@@ -108,6 +108,15 @@ function configureMasterDataRoutes() {
       layout: eLayoutType.application,
       requiredPolicy: 'Helpdesk.Macros',
     },
+    {
+      path: '/ai-settings',
+      name: 'AI Copilot & Trợ Lý',
+      parentName: '::Menu:MasterData',
+      iconClass: 'fas fa-robot',
+      order: 11,
+      layout: eLayoutType.application,
+      requiredPolicy: 'Helpdesk.AiSettings',
+    },
   ]);
 
 }

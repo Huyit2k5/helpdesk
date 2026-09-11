@@ -250,6 +250,7 @@ public class TicketAppService : ApplicationService, ITicketAppService
                 IsFirstResponseBreached = t.IsFirstResponseBreached,
                 IsResolutionBreached = t.IsResolutionBreached,
                 Tags = t.Tags,
+                AiSentiment = t.AiSentiment,
                 CommentCount = commentCounts.GetValueOrDefault(t.Id, 0)
             };
         }).ToList();
@@ -324,6 +325,9 @@ public class TicketAppService : ApplicationService, ITicketAppService
             CsatRating = ticket.CsatRating,
             CsatComment = ticket.CsatComment,
             CsatSubmittedAt = ticket.CsatSubmittedAt,
+            AiSummary = ticket.AiSummary,
+            AiSentiment = ticket.AiSentiment,
+            AiSentimentReason = ticket.AiSentimentReason,
             Comments = comments.OrderBy(c => c.CreationTime).Select(c => new TicketCommentDto
             {
                 Id = c.Id,

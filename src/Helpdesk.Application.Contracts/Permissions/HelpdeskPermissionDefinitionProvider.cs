@@ -100,6 +100,12 @@ public class HelpdeskPermissionDefinitionProvider : PermissionDefinitionProvider
         macrosPermission.AddChild(HelpdeskPermissions.Macros.Edit, L("Permission:Macros.Edit"));
         macrosPermission.AddChild(HelpdeskPermissions.Macros.Delete, L("Permission:Macros.Delete"));
         macrosPermission.AddChild(HelpdeskPermissions.Macros.Apply, L("Permission:Macros.Apply"));
+
+        var aiSettingsPermission = helpdeskGroup.AddPermission(HelpdeskPermissions.AiSettings.Default, L("Permission:AiSettings"));
+        aiSettingsPermission.AddChild(HelpdeskPermissions.AiSettings.Manage, L("Permission:AiSettings.Manage"));
+
+        var aiAssistantPermission = helpdeskGroup.AddPermission(HelpdeskPermissions.AiAssistant.Default, L("Permission:AiAssistant"));
+        aiAssistantPermission.AddChild(HelpdeskPermissions.AiAssistant.Use, L("Permission:AiAssistant.Use"));
     }
 
 

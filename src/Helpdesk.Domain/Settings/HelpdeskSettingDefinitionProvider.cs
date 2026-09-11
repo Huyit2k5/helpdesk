@@ -18,7 +18,17 @@ public class HelpdeskSettingDefinitionProvider : SettingDefinitionProvider
             new SettingDefinition(HelpdeskSettings.Discord.BotName, defaultValue: DiscordConsts.DefaultBotName, isVisibleToClients: true),
             new SettingDefinition(HelpdeskSettings.Discord.AvatarUrl, defaultValue: DiscordConsts.DefaultAvatarUrl, isVisibleToClients: true),
             new SettingDefinition(HelpdeskSettings.Discord.BotToken, defaultValue: string.Empty, isVisibleToClients: false, isEncrypted: true),
-            new SettingDefinition(HelpdeskSettings.Discord.ChannelId, defaultValue: string.Empty, isVisibleToClients: true)
+            new SettingDefinition(HelpdeskSettings.Discord.ChannelId, defaultValue: string.Empty, isVisibleToClients: true),
+
+            // AI Copilot Settings
+            new SettingDefinition(HelpdeskSettings.Ai.IsEnabled, defaultValue: "true", isVisibleToClients: true),
+            new SettingDefinition(HelpdeskSettings.Ai.Provider, defaultValue: "BuiltInOffline", isVisibleToClients: true),
+            new SettingDefinition(HelpdeskSettings.Ai.ApiKey, defaultValue: string.Empty, isVisibleToClients: false, isEncrypted: true),
+            new SettingDefinition(HelpdeskSettings.Ai.ModelName, defaultValue: "gemini-1.5-flash", isVisibleToClients: true),
+            new SettingDefinition(HelpdeskSettings.Ai.BaseUrl, defaultValue: string.Empty, isVisibleToClients: true),
+            new SettingDefinition(HelpdeskSettings.Ai.Temperature, defaultValue: "0.3", isVisibleToClients: true),
+            new SettingDefinition(HelpdeskSettings.Ai.EnableAutoSentiment, defaultValue: "true", isVisibleToClients: true),
+            new SettingDefinition(HelpdeskSettings.Ai.CustomSystemPrompt, defaultValue: string.Empty, isVisibleToClients: true)
         );
     }
 }

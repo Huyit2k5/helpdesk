@@ -61,4 +61,13 @@ export const APP_ROUTES: Routes = [
       requiredPolicy: 'Helpdesk.DiscordSettings',
     },
   },
+  {
+    path: 'ai-settings',
+    loadComponent: () =>
+      import('./ai-settings/ai-settings.component').then(c => c.AiSettingsComponent),
+    canActivate: [authGuard, permissionGuard],
+    data: {
+      requiredPolicy: 'Helpdesk.AiSettings',
+    },
+  },
 ];

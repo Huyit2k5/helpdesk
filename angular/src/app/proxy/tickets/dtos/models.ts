@@ -112,6 +112,9 @@ export interface TicketDetailDto extends FullAuditedEntityDto<string> {
   csatRating?: number | null;
   csatComment?: string | null;
   csatSubmittedAt?: string | null;
+  aiSummary?: string | null;
+  aiSentiment?: number | null;
+  aiSentimentReason?: string | null;
   comments?: TicketCommentDto[];
   activities?: TicketActivityDto[];
   attachments?: TicketAttachmentDto[];
@@ -129,6 +132,7 @@ export interface TicketListDto extends FullAuditedEntityDto<string> {
   statusName?: string;
   statusColor?: string | null;
   statusGroup?: number;
+  aiSentiment?: number | null;
   sourceId?: string;
   sourceName?: string;
   departmentId?: string | null;

@@ -24,7 +24,10 @@ Dự án xây dựng hệ thống Helpdesk & Quản lý Dịch vụ Công nghệ
    - [Phân Hệ 11: Điều Phối & Phân Công Tự Động (Auto-Assignment & Round Robin)](#511-phân-hệ-11-điều-phối--phân-công-tự-động-auto-assignment--round-robin)
    - [Phân Hệ 12: Trung Tâm Thông Báo Thời Gian Thực (In-App Notifications)](#512-phân-hệ-12-trung-tâm-thông-báo-thời-gian-thực-in-app-notifications)
    - [Phân Hệ 13: Hệ Thống Thông Báo Email HTML Tự Động (Responsive HTML Email Notifications)](#513-phân-hệ-13-hệ-thống-thông-báo-email-html-tự-động-responsive-html-email-notifications)
-   - [Dữ Liệu Khởi Tạo Chuẩn (Data Seeding)](#514-dữ-liệu-khởi-tạo-chuẩn-data-seeding)
+   - [Phân Hệ 14: Tự Động Hóa Quy Trình (Workflow Automation & Rules Engine)](#514-phân-hệ-14-tự-động-hóa-quy-trình-workflow-automation--rules-engine)
+   - [Phân Hệ 15: Mẫu Thao Tác Nhanh 1-Click (Macros Engine)](#515-phân-hệ-15-mẫu-thao-tác-nhanh-1-click-macros-engine)
+   - [Phân Hệ 16: Trợ Lý Trí Tuệ Nhân Tạo & Gợi Ý Thông Minh (AI Helpdesk Copilot & Smart Assistant)](#516-phân-hệ-16-trợ-lý-trí-tuệ-nhân-tạo--gợi-ý-thông-minh-ai-helpdesk-copilot--smart-assistant)
+   - [Dữ Liệu Khởi Tạo Chuẩn (Data Seeding)](#517-dữ-liệu-khởi-tạo-chuẩn-data-seeding)
 6. [Tài Khoản Mặc Định & Phân Quyền Vai Trò](#-tài-khoản-mặc-định--phân-quyền-vai-trò)
 7. [Hướng Dẫn Cài Đặt, Migrate CSDL & Khởi Chạy](#-hướng-dẫn-cài-đặt-migrate-csdl--khởi-chạy)
 8. [Tổng Hợp Các Lỗi Phát Sinh & Cách Khắc Phục (Troubleshooting Guide)](#-tổng-hợp-các-lỗi-phát-sinh--cách-khắc-phục-troubleshooting-guide)
@@ -82,7 +85,9 @@ Hệ thống được thiết kế theo kiến trúc chuẩn **Domain-Driven Des
 | **11**| **Điều Phối Tự Động (Assignment Rules)** | Phân công thông minh theo Danh mục, Mức độ ưu tiên, Phòng ban; Thuật toán Round Robin xoay vòng | **Hoàn thành 100%** |
 | **12**| **Thông Báo Thời Gian Thực (Notifications)** | Chuông thông báo góc trên web, đếm số chưa đọc, đánh dấu đã đọc, điều hướng trực tiếp tới vé | **Hoàn thành 100%** |
 | **13**| **Thông Báo Email HTML Tự Động (Email Alerts)** | Tự động gửi Email thông báo (Tạo vé, Phân công kỹ thuật viên, Giải quyết vé + link CSAT 5 sao) mẫu HTML Responsive | **Hoàn thành 100%** |
-| **14**| **Tự Động Hóa Quy Trình & Macros (Workflow Automation & Macros)** | Tự động nâng độ ưu tiên khi có từ khóa nguy hiểm, đổi trạng thái khi có phản hồi, tự động đóng vé nhàn rỗi quá 48h theo lịch (Time-based), Mẫu thao tác 1-Click (Macros) áp dụng chuỗi hành động nhanh trên giao diện vé | **Hoàn thành 100%** |
+| **14**| **Tự Động Hóa Quy Trình (Workflow Automation Engine)** | Tự động kích hoạt hành động theo 4 sự kiện (Created, Updated, Comment, Scheduled Time-based 48h), đánh giá đa điều kiện | **Hoàn thành 100%** |
+| **15**| **Mẫu Thao Tác Nhanh 1-Click (Macros Engine)** | Kịch bản chuỗi hành động mẫu, áp dụng 1-click ngay trên giao diện vé (chèn phản hồi, đổi trạng thái, gán nhãn tức thời) | **Hoàn thành 100%** |
+| **16**| **Trợ Lý Trí Tuệ Nhân Tạo (AI Helpdesk Copilot)** | Đa động cơ (Gemini, OpenAI, Ollama, Smart NLP), 1-Click tóm tắt sự vụ 3 phần, Smart Reply theo 4 phong cách + RAG Knowledge Base, phân tích tâm lý khách hàng | **Hoàn thành 100%** |
 
 ---
 
@@ -192,6 +197,18 @@ Kỹ thuật viên thao tác trực tiếp trên trang chi tiết sự vụ: Nh�
 
 ---
 
+### 18. Cấu Hình AI Copilot & Đa Động Cơ Trí Tuệ Nhân Tạo (AI Copilot & Multi-Provider Settings)
+Màn hình quản trị trung tâm của Trợ lý AI: Lựa chọn linh hoạt giữa 4 động cơ AI hàng đầu (Built-in Smart NLP, Google Gemini, OpenAI, Local Ollama), quản lý khóa bảo mật API Key mã hóa, tinh chỉnh nhiệt độ sáng tạo (Temperature), thiết lập chỉ đạo phong cách (Custom System Prompt) và nút bấm kiểm tra kết nối thời gian thực:
+![AI Settings](docs/images/ai_settings.png)
+
+---
+
+### 19. Trợ Lý AI Copilot & Soạn Thảo Phản Hồi Thông Minh Trên Chi Tiết Sự Vụ (Ticket AI Copilot & Smart Reply Drafter)
+Kỹ thuật viên thao tác trực tiếp trên trang chi tiết sự vụ: Thẻ AI Copilot tự động phân tích tâm lý khách hàng (Customer Sentiment), tổng hợp 1-Click tóm tắt sự vụ chuẩn 3 mục (Vấn đề chính, Tiến trình đã làm, Bước tiếp theo), và hộp thoại Trợ lý soạn thảo phản hồi (Smart Reply Drafter) với 4 phong cách giọng văn, tự động truy xuất giải pháp từ Cẩm nang kỹ thuật (RAG Knowledge Base) và chèn thẳng vào khung soạn thảo:
+![Ticket AI Copilot](docs/images/ai_copilot_ticket.png)
+
+---
+
 ## 🗄️ MÔ HÌNH CƠ SỞ DỮ LIỆU & MỐI QUAN HỆ (DATABASE SCHEMA & ERD)
 
 ### 1. Sơ Đồ Thực Thể Quan Hệ (Entity Relationship Diagram - ERD)
@@ -223,6 +240,9 @@ erDiagram
         string CsatComment
         timestamp CsatSubmittedAt
         string DiscordThreadId
+        string AiSummary
+        int AiSentiment
+        string AiSentimentReason
     }
 
     AppTicketComments {
@@ -713,7 +733,50 @@ Công cụ hỗ trợ đắc lực giúp kỹ thuật viên giải quyết các 
 
 ---
 
-### 5.16. Dữ Liệu Khởi Tạo Chuẩn (Data Seeding)
+### 5.16. Phân Hệ 16: Trợ Lý Trí Tuệ Nhân Tạo & Gợi Ý Thông Minh (AI Helpdesk Copilot & Smart Assistant)
+Đột phá công nghệ đưa AI thế hệ mới (Generative AI) vào trực tiếp quy trình vận hành Helpdesk, giảm thiểu 70% thời gian xử lý sự vụ và nâng cao tính chuyên nghiệp trong giao tiếp với người dùng:
+
+- **1. Kiến Trúc Đa Động Cơ AI (Multi-Provider Engine)**:
+  - Hỗ trợ 4 nhà cung cấp AI tiên tiến nhất:
+    1. **Built-in Smart NLP Engine**: Công cụ xử lý ngôn ngữ tự nhiên tích hợp sẵn trong nhân hệ thống, hoạt động offline 100%, độ trễ cực thấp (< 50ms), không tốn chi phí và không phụ thuộc internet.
+    2. **Google Gemini**: Mô hình `gemini-1.5-flash` tốc độ cao, tối ưu xử lý tiếng Việt, hỗ trợ token ngữ cảnh lớn.
+    3. **OpenAI (ChatGPT)**: Mô hình `gpt-4o-mini` hoặc `gpt-4o` với khả năng suy luận kỹ thuật logic cao cấp.
+    4. **Local Ollama**: Kết nối các mô hình mã nguồn mở (Llama 3, Qwen 2.5, Mistral...) tự lưu trữ trên máy chủ nội bộ doanh nghiệp, bảo đảm 100% riêng tư và bảo mật dữ liệu tuyệt đối.
+  - **Graceful Fallback**: Tự động chuyển về Built-in Smart NLP nếu nhà cung cấp bên ngoài mất kết nối hoặc hết hạn ngạch API.
+
+- **2. Tóm Tắt Sự Vụ Tự Động 1-Click (1-Click Ticket Summarizer)**:
+  - Chỉ với 1 cú click chuột, AI phân tích toàn bộ tiêu đề, mô tả ban đầu và lịch sử trao đổi qua lại giữa khách hàng và kỹ thuật viên.
+  - Trả về cấu trúc 3 phần chuẩn mực:
+    - 📌 **VẤN ĐỀ CHÍNH**: Tóm lược nguyên nhân gốc rễ và hiện tượng sự cố.
+    - 🛠️ **TIẾN TRÌNH ĐÃ LÀM**: Các bước kiểm tra hoặc giải pháp kỹ thuật đã thực hiện.
+    - 🚀 **BƯỚC TIẾP THEO**: Hành động cụ thể cần làm tiếp theo và chỉ định rõ bên phụ trách (Khách hàng hay Kỹ thuật viên).
+  - Tự động lưu tóm tắt vào trường `AiSummary` của vé và hỗ trợ nút sao chép nhanh vào bộ nhớ đệm (Clipboard).
+
+- **3. Trợ Lý Soạn Thảo Phản Hồi Thông Minh (Smart Reply Drafter & RAG Context)**:
+  - Nút bấm **🪄 AI Soạn Phản Hồi** tích hợp trực tiếp trên thanh công cụ của khung soạn thảo phản hồi.
+  - **4 Phong Cách & Giọng Văn Chuyên Biệt**:
+    1. *Chuyên Nghiệp & Lịch Thiệp* (Professional): Giọng văn chuẩn mực, lịch sự, đồng cảm và trấn an khách hàng.
+    2. *Hướng Dẫn Kỹ Thuật (1-2-3)* (Technical Guide): Các bước chi tiết, đánh số thứ tự rõ ràng, dễ làm theo.
+    3. *Đề Nghị Bổ Sung Thông Tin* (Request More Info): Lịch sự xin ảnh chụp lỗi, thời điểm phát sinh hoặc ID UltraViewer/AnyDesk.
+    4. *Tiếp Nhận Khẩn & Đang Xử Lý* (Acknowledged & Investigating): Thông báo sự cố đang được đội ngũ tập trung giải quyết cấp bách.
+  - **Tích Hợp Ngữ Cảnh Tri Thức (RAG Knowledge Base Context)**: AI tự động quét kho bài viết cẩm nang kỹ thuật đã xuất bản, trích xuất giải pháp tương đồng nhất để đưa vào câu trả lời kèm trích dẫn nguồn tài liệu.
+  - **Chỉ Đạo Tùy Biến (User Guidance)**: Cho phép kỹ thuật viên gõ thêm yêu cầu riêng (ví dụ: *"Nhắc khách hàng khởi động lại modem"*).
+  - **1-Click Apply**: Xem trước bản thảo và nhấp **Chèn Vào Khung Soạn Thảo** để áp dụng trực tiếp vào ô soạn thảo phản hồi.
+
+- **4. Phân Tích Tâm Lý & Độ Khẩn Cấp Của Khách Hàng (Customer Sentiment Analysis)**:
+  - AI đọc hiểu sắc thái ngôn từ của khách hàng trong vé và bình luận, phân loại thành 4 mức độ trực quan:
+    - 😊 **Hài Lòng / Tích Cực** (`Positive`): Lời cảm ơn, khen ngợi hoặc phản hồi hài lòng.
+    - 😐 **Trung Tính / Bình Thường** (`Neutral`): Báo lỗi chuẩn mực, câu hỏi nghiệp vụ thông thường.
+    - 😟 **Thất Vọng / Căng Thẳng** (`Frustrated`): Phàn nàn về sự cố lặp lại hoặc chậm trễ.
+    - 🚨 **Khẩn Cấp / Khủng Hoảng** (`UrgentCrisis`): Sự cố ngưng trệ nghiêm trọng toàn công ty, cảm xúc bức xúc cao.
+  - Hiển thị nhãn huy hiệu (Badge) đổi màu sinh động kèm giải thích lý do tâm lý (`AiSentimentReason`) trên thẻ AI Copilot.
+
+- **5. Màn Hình Quản Trị AI Settings (`/master-data/ai-settings`)**:
+  - Giao diện quản lý toàn diện: Bật/tắt AI Copilot toàn hệ thống, chọn Provider, nhập API Key, chỉnh Temperature (0.0 - 1.0), cấu hình Custom System Prompt và nút bấm **Thử Nghiệm Kết Nối (Connection Test)** đo độ trễ mạng thời gian thực.
+
+---
+
+### 5.17. Dữ Liệu Khởi Tạo Chuẩn (Data Seeding)
 Hệ thống tích hợp sẵn `HelpdeskDataSeedContributor` tự động nạp dữ liệu mẫu hoàn chỉnh:
 - **10 sự vụ mẫu** đa dạng trạng thái, mức ưu tiên, kênh tiếp nhận, hạn SLA chuẩn thực tế.
 - **6 danh mục sự cố**, 4 mức độ ưu tiên chuẩn, 7 trạng thái vòng đời vé, 5 kênh tiếp nhận, 2 phòng ban kỹ thuật.

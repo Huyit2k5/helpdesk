@@ -20,4 +20,18 @@ public static class HelpdeskSettings
         public const string BotToken = DiscordPrefix + ".BotToken";
         public const string ChannelId = DiscordPrefix + ".ChannelId";
     }
+
+    public static class Ai
+    {
+        private const string AiPrefix = Prefix + ".Ai";
+
+        public const string IsEnabled = AiPrefix + ".IsEnabled";
+        public const string Provider = AiPrefix + ".Provider"; // "BuiltInOffline", "GoogleGemini", "OpenAI", "LocalOllama"
+        public const string ApiKey = AiPrefix + ".ApiKey";
+        public const string ModelName = AiPrefix + ".ModelName"; // "gemini-1.5-flash", "gpt-4o-mini", etc.
+        public const string BaseUrl = AiPrefix + ".BaseUrl"; // for Ollama e.g. http://localhost:11434
+        public const string Temperature = AiPrefix + ".Temperature"; // "0.3"
+        public const string EnableAutoSentiment = AiPrefix + ".EnableAutoSentiment"; // "true"
+        public const string CustomSystemPrompt = AiPrefix + ".CustomSystemPrompt";
+    }
 }
