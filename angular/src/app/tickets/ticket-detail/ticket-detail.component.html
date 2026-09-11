@@ -53,7 +53,39 @@
           </div>
 
           <!-- Quick Action Buttons -->
-          <div class="d-flex gap-2">
+          <div class="d-flex gap-2 align-items-center">
+            @if (activeMacros.length > 0) {
+              <div class="dropdown position-relative">
+                <button
+                  class="btn btn-outline-warning text-dark dropdown-toggle d-flex align-items-center shadow-sm"
+                  type="button"
+                  id="macroDropdownBtn"
+                  (click)="toggleMacroDropdown()"
+                  [disabled]="isApplyingMacro"
+                  title="Thực hiện chuỗi hành động nhanh 1-Click"
+                >
+                  <i class="fas fa-bolt me-1 text-warning"></i>
+                  <span class="fw-semibold">Áp dụng Macro</span>
+                </button>
+                @if (isMacroDropdownOpen) {
+                  <ul class="dropdown-menu show shadow mt-1 end-0" style="min-width: 260px; z-index: 1050;">
+                    <li class="dropdown-header small text-muted text-uppercase fw-bold">
+                      <i class="fas fa-bolt me-1 text-warning"></i> Macros 1-Click
+                    </li>
+                    @for (macro of activeMacros; track macro.id) {
+                      <li>
+                        <button class="dropdown-item py-2" type="button" (click)="applyMacro(macro)">
+                          <div class="fw-semibold text-dark">{{ macro.name }}</div>
+                          @if (macro.description) {
+                            <small class="text-muted d-block text-truncate" style="max-width: 240px;">{{ macro.description }}</small>
+                          }
+                        </button>
+                      </li>
+                    }
+                  </ul>
+                }
+              </div>
+            }
             @if (!ticket.assigneeId) {
               <button class="btn btn-outline-success" (click)="onAutoAssign()" id="btn-auto-assign" title="Tự động phân công theo quy tắc">
                 <i class="fas fa-random me-1"></i> Tự động phân công

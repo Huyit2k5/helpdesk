@@ -82,6 +82,7 @@ Hệ thống được thiết kế theo kiến trúc chuẩn **Domain-Driven Des
 | **11**| **Điều Phối Tự Động (Assignment Rules)** | Phân công thông minh theo Danh mục, Mức độ ưu tiên, Phòng ban; Thuật toán Round Robin xoay vòng | **Hoàn thành 100%** |
 | **12**| **Thông Báo Thời Gian Thực (Notifications)** | Chuông thông báo góc trên web, đếm số chưa đọc, đánh dấu đã đọc, điều hướng trực tiếp tới vé | **Hoàn thành 100%** |
 | **13**| **Thông Báo Email HTML Tự Động (Email Alerts)** | Tự động gửi Email thông báo (Tạo vé, Phân công kỹ thuật viên, Giải quyết vé + link CSAT 5 sao) mẫu HTML Responsive | **Hoàn thành 100%** |
+| **14**| **Tự Động Hóa Quy Trình & Macros (Workflow Automation & Macros)** | Tự động nâng độ ưu tiên khi có từ khóa nguy hiểm, đổi trạng thái khi có phản hồi, tự động đóng vé nhàn rỗi quá 48h theo lịch (Time-based), Mẫu thao tác 1-Click (Macros) áp dụng chuỗi hành động nhanh trên giao diện vé | **Hoàn thành 100%** |
 
 ---
 
@@ -173,10 +174,28 @@ Người dùng chỉ cần gõ `/create-ticket` trong máy chủ Discord để m
 
 ---
 
+### 15. Quản Trị Quy Tắc Tự Động Hóa (Workflow Automation Rules)
+Giao diện cấu hình linh hoạt các quy tắc "NẾU... THÌ..." tự động kích hoạt theo 4 sự kiện chính (Khi tạo vé mới, Khi cập nhật sự vụ, Khi có phản hồi mới, và Quét ngầm định kỳ Time-based). Cho phép lọc điều kiện theo từ khóa, mức độ ưu tiên, danh mục, trạng thái và tự động thực thi các hành động đồng loạt:
+![Automation Rules](docs/images/automation_rules.png)
+
+---
+
+### 16. Quản Trị Mẫu Thao Tác Nhanh (Macros 1-Click Management)
+Định nghĩa sẵn các kịch bản mẫu giúp kỹ thuật viên tiết kiệm thời gian xử lý các sự vụ lặp lại (ví dụ: *Hướng Dẫn Reset Mật Khẩu*, *Đã Hỗ Trợ Xong Qua UltraViewer/TeamViewer*). Mỗi Macro tích hợp chuỗi hành động chuẩn hóa: chèn nội dung phản hồi mẫu, đổi trạng thái vé, gán thẻ phân loại:
+![Macros Management](docs/images/macros_management.png)
+
+---
+
+### 17. Áp Dụng Macro Nhanh 1-Click Trên Giao Diện Chi Tiết Sự Vụ (Ticket Detail Macro Execution)
+Kỹ thuật viên thao tác trực tiếp trên trang chi tiết sự vụ: Nhấp nút **⚡ Áp Dụng Macro** để mở danh sách Macro khả dụng, xác nhận áp dụng để toàn bộ chuỗi hành động tự động thực thi ngay lập tức trong 1 giây (đổi trạng thái, gán thẻ, chèn câu trả lời và ghi nhật ký hoạt động vào Timeline):
+![Ticket Detail Macro Applied](docs/images/ticket_macro_applied.png)
+
+---
+
 ## 🗄️ MÔ HÌNH CƠ SỞ DỮ LIỆU & MỐI QUAN HỆ (DATABASE SCHEMA & ERD)
 
 ### 1. Sơ Đồ Thực Thể Quan Hệ (Entity Relationship Diagram - ERD)
-*Sơ đồ chỉ tập trung hiển thị toàn bộ **19 bảng nghiệp vụ tùy biến** được xây dựng riêng cho dự án Helpdesk (loại trừ các bảng hệ thống mặc định của ABP Framework như `AbpUsers`, `AbpRoles`, `AbpSettings`...):*
+*Sơ đồ chỉ tập trung hiển thị toàn bộ **21 bảng nghiệp vụ tùy biến** được xây dựng riêng cho dự án Helpdesk (loại trừ các bảng hệ thống mặc định của ABP Framework như `AbpUsers`, `AbpRoles`, `AbpSettings`...):*
 
 ```mermaid
 erDiagram
@@ -368,6 +387,27 @@ erDiagram
         boolean IsRead
     }
 
+    AppAutomationRules {
+        uuid Id PK
+        string Name
+        string Description
+        int TriggerType
+        int ExecutionOrder
+        boolean IsActive
+        boolean StopProcessing
+        string ConditionsJson
+        string ActionsJson
+    }
+
+    AppMacros {
+        uuid Id PK
+        string Name
+        string Description
+        int Order
+        boolean IsActive
+        string ActionsJson
+    }
+
     %% Các mối quan hệ thực thể cốt lõi
     AppCategories ||--o{ AppTickets : "categorizes"
     AppCategories ||--o{ AppCategories : "parent_child"
@@ -407,7 +447,7 @@ erDiagram
 | **`AppTickets`** | Lưu trữ toàn bộ thông tin yêu cầu hỗ trợ (Aggregate Root). | `Id` (PK), `TicketNumber` (Unique), `Title`, `Description`, `CategoryId` (FK), `PriorityId` (FK), `DepartmentId` (FK), `StatusId` (FK), `SourceId` (FK), `AssigneeId` (FK $\rightarrow$ AbpUsers), `RequesterId` (FK $\rightarrow$ AbpUsers), `RequesterName`, `RequesterEmail`, `RequesterPhone`, `DueDate`, `FirstResponseDueDate`, `FirstResponseAt`, `ResolvedAt`, `ClosedAt`, `Tags`, `CsatRating`, `CsatComment`, `CsatSubmittedAt`. |
 | **`AppTicketComments`** | Nội dung phản hồi và ghi chú nội bộ của sự vụ. | `Id` (PK), `TicketId` (FK $\rightarrow$ AppTickets), `UserId` (FK $\rightarrow$ AbpUsers), `Content`, `IsInternal` (phân biệt Public Reply vs Internal Note). |
 | **`AppTicketAttachments`**| Thông tin siêu dữ liệu của tệp đính kèm và hình ảnh lỗi. | `Id` (PK), `TicketId` (FK $\rightarrow$ AppTickets), `CommentId` (FK $\rightarrow$ AppTicketComments), `FileName`, `FileSize`, `ContentType`, `BlobName` (khóa trỏ vào bảng lưu Blob). |
-| **`AppTicketActivities`** | Lịch sử vết hoạt động (Audit Trail Timeline) của sự vụ. | `Id` (PK), `TicketId` (FK $\rightarrow$ AppTickets), `UserId` (FK $\rightarrow$ AbpUsers), `ActivityType` (Tạo, Đổi trạng thái, Phân công, Giải quyết, CSAT...), `Description`. |
+| **`AppTicketActivities`** | Lịch sử vết hoạt động (Audit Trail Timeline) của sự vụ. | `Id` (PK), `TicketId` (FK $\rightarrow$ AppTickets), `UserId` (FK $\rightarrow$ AbpUsers), `ActivityType` (Tạo, Đổi trạng thái, Phân công, Giải quyết, CSAT, Tự động hóa...), `Description`. |
 
 #### 2.2. Nhóm Danh Mục Hệ Thống (Master Data)
 | Tên Bảng | Mô Tả Chức Năng | Các Trường Chính & Khóa Ngoại |
@@ -435,6 +475,12 @@ erDiagram
 | **`AppAssignmentRuleAgents`**| Danh sách kỹ thuật viên tham gia trong quy tắc định tuyến. | `Id` (PK), `RuleId` (FK $\rightarrow$ AppAssignmentRules), `UserId` (FK $\rightarrow$ AbpUsers), `Order`, `LastAssignedTime`. |
 | **`AppKnowledgeArticles`**| Bài viết hướng dẫn tự phục vụ (Knowledge Base). | `Id` (PK), `Title`, `Slug` (SEO URL), `Summary`, `Content` (Markdown), `CategoryId` (FK), `Tags`, `IsPublished`, `ViewCount`, `HelpfulCount`, `NotHelpfulCount`. |
 | **`AppNotifications`** | Trung tâm thông báo nội bộ hệ thống. | `Id` (PK), `RecipientUserId` (FK $\rightarrow$ AbpUsers), `Type`, `Title`, `Message`, `TicketId` (FK $\rightarrow$ AppTickets), `IsRead`. |
+
+#### 2.5. Nhóm Tự Động Hóa Quy Trình & Mẫu Thao Tác (Workflow Automation & Macros)
+| Tên Bảng | Mô Tả Chức Năng | Các Trường Chính & Khóa Ngoại |
+|:---|:---|:---|
+| **`AppAutomationRules`** | Quy tắc tự động hóa "NẾU... THÌ..." xử lý sự vụ theo sự kiện hoặc quét định kỳ. | `Id` (PK), `Name`, `Description`, `TriggerType` (Tạo vé, Cập nhật, Phản hồi, Quét ngầm), `ExecutionOrder`, `IsActive`, `StopProcessing`, `ConditionsJson` (Danh sách điều kiện lọc), `ActionsJson` (Chuỗi hành động thực thi). |
+| **`AppMacros`** | Mẫu kịch bản thao tác 1-Click dành cho kỹ thuật viên trên trang chi tiết sự vụ. | `Id` (PK), `Name`, `Description`, `Order`, `IsActive`, `ActionsJson` (Chuỗi hành động mẫu: chèn câu trả lời, đổi trạng thái, gắn thẻ...). |
 
 ---
 
@@ -631,7 +677,43 @@ Hệ thống tự động hóa kênh giao tiếp chuyên nghiệp qua Email sử
 
 ---
 
-### 5.14. Dữ Liệu Khởi Tạo Chuẩn (Data Seeding)
+### 5.14. Phân Hệ 14: Tự Động Hóa Quy Trình (Workflow Automation & Rules Engine)
+Hệ thống động cơ luật xử lý sự vụ thông minh "NẾU... THÌ..." (Condition-Action Rule Engine) giúp chuẩn hóa và tối ưu hóa vận hành:
+- **4 Loại Sự Kiện Kích Hoạt (Automation Triggers)**:
+  1. `OnTicketCreated`: Kích hoạt ngay khi vé mới được tạo (qua Web, Portal hoặc Discord).
+  2. `OnTicketUpdated`: Kích hoạt khi có thay đổi trường dữ liệu của vé.
+  3. `OnCommentAdded`: Kích hoạt khi có phản hồi mới từ kỹ thuật viên hoặc khách hàng.
+  4. `ScheduledTime`: Kích hoạt định kỳ qua Background Worker ngầm.
+- **Động Cơ Đánh Giá Điều Kiện Linh Hoạt (`AutomationRuleEngine`)**:
+  - Hỗ trợ đánh giá nhiều trường: `Title`, `Description`, `Category`, `Priority`, `Status`, `Assignee`, `Source`, `Tags`, `HoursSinceLastUpdate`, `HoursSinceCreated`, `IsUnassigned`.
+  - Hỗ trợ các toán tử so sánh: `Equals`, `NotEquals`, `Contains`, `NotContains`, `GreaterThan`, `LessThan`, `IsEmpty`, `IsNotEmpty`.
+- **Chuỗi Hành Động Đa Năng (Automated Actions)**:
+  - Tự động chuyển trạng thái (`ChangeStatus`), nâng/hạ mức độ ưu tiên (`ChangePriority`).
+  - Gán người xử lý (`AssignToUser`), gán phòng ban (`AssignToDepartment`).
+  - Gắn nhãn phân loại (`AddTags`), thêm bình luận công khai hoặc ghi chú nội bộ (`AddComment`).
+  - Tự động bắn thông báo cảnh báo qua Discord Webhook (`SendDiscordAlert`) hoặc gửi Email (`SendEmail`).
+- **Quét Định Kỳ Ngầm (Time-based Worker)**:
+  - `AutomationPeriodicWorker` kế thừa `AsyncPeriodicBackgroundWorkerBase`, chạy tự động mỗi 60 giây.
+  - Tự động quét và đóng các sự vụ đang ở trạng thái `Pending` hoặc `Resolved` quá 48 giờ không có tương tác mới.
+- **Bảo Vệ Kiểm Toán (Audit Trail Integration)**:
+  - Tự động ghi vết hoạt động vào `TicketActivity` với loại `AutomationExecuted` (loại 13), ghi nhận rõ ràng quy tắc nào đã kích hoạt hành động.
+
+---
+
+### 5.15. Phân Hệ 15: Mẫu Thao Tác Nhanh 1-Click (Macros Engine)
+Công cụ hỗ trợ đắc lực giúp kỹ thuật viên giải quyết các yêu cầu hỗ trợ quen thuộc chỉ với 1 cú click chuột:
+- **Khái Niệm Macro**: Là một kịch bản chuỗi hành động được định nghĩa sẵn (ví dụ: *Hướng Dẫn Reset Mật Khẩu*, *Đã Hỗ Trợ Qua Remote Xong*).
+- **Thao Tác 1-Click Ngay Trên Trang Chi Tiết Vé**:
+  - Kỹ thuật viên nhấp vào nút **⚡ Áp Dụng Macro** trên thanh tác vụ của trang chi tiết sự vụ.
+  - Dropdown hiển thị danh sách các Macro đang kích hoạt kèm mô tả ngắn gọn.
+  - Sau khi xác nhận qua hộp thoại an toàn, backend gọi `POST /api/app/ticket/{id}/apply-macro/{macroId}`.
+  - Hệ thống tự động thực thi đồng loạt: Chèn câu trả lời hướng dẫn chi tiết vào dòng thời gian trao đổi, tự động đổi trạng thái vé (ví dụ sang `Pending` hoặc `Resolved`), và tự động gắn thẻ nhận diện (ví dụ `Password-Reset`).
+- **Quản Trị Macros Tập Trung (`/master-data/macros`)**:
+  - Giao diện quản lý thêm, sửa, xóa, sắp xếp thứ tự hiển thị và bật/tắt kích hoạt (`IsActive`) các Macro mẫu.
+
+---
+
+### 5.16. Dữ Liệu Khởi Tạo Chuẩn (Data Seeding)
 Hệ thống tích hợp sẵn `HelpdeskDataSeedContributor` tự động nạp dữ liệu mẫu hoàn chỉnh:
 - **10 sự vụ mẫu** đa dạng trạng thái, mức ưu tiên, kênh tiếp nhận, hạn SLA chuẩn thực tế.
 - **6 danh mục sự cố**, 4 mức độ ưu tiên chuẩn, 7 trạng thái vòng đời vé, 5 kênh tiếp nhận, 2 phòng ban kỹ thuật.
@@ -887,4 +969,21 @@ Trong toàn bộ quá trình phát triển và hoàn thiện hệ thống, các 
     });
     ```
   - Đồng thời gửi thông báo xác nhận riêng cho người bấm thông qua `component.FollowupAsync(..., ephemeral: true);`.
+
+---
+
+### 20. Lỗi HTTP 405 Method Not Allowed khi gọi API Áp Dụng Macro (`ApplyMacroAsync`)
+- **Hiện tượng**: Bấm nút **Áp Dụng Macro** trên trang chi tiết vé, xác nhận Modal nhưng hệ thống báo lỗi đỏ: `An error has occurred! Error detail not sent by the server`, log backend ghi nhận `Request finished HTTP/2 POST /api/app/ticket/{id}/apply-macro?macroId=... - 405 Method Not Allowed`.
+- **Nguyên nhân**: Trong ABP Framework Auto-API Controller, phương thức `ApplyMacroAsync(Guid id, Guid macroId)` được ánh xạ mặc định theo quy ước Route với `macroId` là **tham số đường dẫn (Path Parameter)**: `/api/app/ticket/{id}/apply-macro/{macroId}`, chứ không phải là Query Parameter (`?macroId=...`). Khi client Angular gửi dưới dạng query string, ASP.NET Core không tìm thấy endpoint POST tương ứng nên trả về mã 405.
+- **Cách khắc phục**:
+  - Cập nhật hàm gọi API trong Angular Proxy `ticket.service.ts` đưa `macroId` vào đường dẫn URL chính xác:
+    ```typescript
+    applyMacro = (id: string, macroId: string, config?: Partial<Rest.Config>) =>
+      this.restService.request<any, TicketDetailDto>({
+        method: 'POST',
+        headers: { Accept: 'application/json' },
+        url: `/api/app/ticket/${id}/apply-macro/${macroId}`,
+      },
+      { apiName: this.apiName, ...config });
+    ```
 

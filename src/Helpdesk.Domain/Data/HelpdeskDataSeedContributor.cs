@@ -30,6 +30,8 @@ public class HelpdeskDataSeedContributor : IDataSeedContributor, ITransientDepen
     private readonly Volo.Abp.Domain.Repositories.IRepository<Helpdesk.Tickets.Ticket, Guid> _ticketRepository;
     private readonly Volo.Abp.Domain.Repositories.IRepository<Helpdesk.Tickets.TicketActivity, Guid> _ticketActivityRepository;
     private readonly Volo.Abp.Domain.Repositories.IRepository<Helpdesk.KnowledgeBase.KnowledgeArticle, Guid> _articleRepository;
+    private readonly Volo.Abp.Domain.Repositories.IRepository<Helpdesk.Automations.AutomationRule, Guid> _automationRuleRepository;
+    private readonly Volo.Abp.Domain.Repositories.IRepository<Helpdesk.Automations.Macro, Guid> _macroRepository;
     private readonly Volo.Abp.Identity.IdentityRoleManager _roleManager;
     private readonly Volo.Abp.Identity.IdentityUserManager _userManager;
     private readonly Volo.Abp.PermissionManagement.IPermissionDataSeeder _permissionDataSeeder;
@@ -47,6 +49,8 @@ public class HelpdeskDataSeedContributor : IDataSeedContributor, ITransientDepen
         Volo.Abp.Domain.Repositories.IRepository<Helpdesk.Tickets.Ticket, Guid> ticketRepository,
         Volo.Abp.Domain.Repositories.IRepository<Helpdesk.Tickets.TicketActivity, Guid> ticketActivityRepository,
         Volo.Abp.Domain.Repositories.IRepository<Helpdesk.KnowledgeBase.KnowledgeArticle, Guid> articleRepository,
+        Volo.Abp.Domain.Repositories.IRepository<Helpdesk.Automations.AutomationRule, Guid> automationRuleRepository,
+        Volo.Abp.Domain.Repositories.IRepository<Helpdesk.Automations.Macro, Guid> macroRepository,
         Volo.Abp.Identity.IdentityRoleManager roleManager,
         Volo.Abp.Identity.IdentityUserManager userManager,
         Volo.Abp.PermissionManagement.IPermissionDataSeeder permissionDataSeeder,
@@ -64,6 +68,8 @@ public class HelpdeskDataSeedContributor : IDataSeedContributor, ITransientDepen
         _ticketRepository = ticketRepository;
         _ticketActivityRepository = ticketActivityRepository;
         _articleRepository = articleRepository;
+        _automationRuleRepository = automationRuleRepository;
+        _macroRepository = macroRepository;
         _roleManager = roleManager;
         _userManager = userManager;
         _permissionDataSeeder = permissionDataSeeder;
@@ -84,7 +90,9 @@ public class HelpdeskDataSeedContributor : IDataSeedContributor, ITransientDepen
         await SeedTicketsAsync();
         await SeedRolesAndUsersAsync();
         await SeedKnowledgeArticlesAsync();
+        await SeedAutomationsAndMacrosAsync();
     }
+
 
     private async Task SeedPrioritiesAsync()
     {
@@ -464,4 +472,125 @@ public class HelpdeskDataSeedContributor : IDataSeedContributor, ITransientDepen
             }
         }
     }
+
+    private async Task SeedAutomationsAndMacrosAsync()
+    {
+        var priorities = await _priorityRepository.GetListAsync();
+        var statuses = await _ticketStatusRepository.GetListAsync();
+
+        var criticalPriority = priorities.FirstOrDefault(p => p.Name == "Critical") ?? priorities.FirstOrDefault();
+        var pendingStatus = statuses.FirstOrDefault(s => s.Name == "Pending") ?? statuses.FirstOrDefault();
+        var inProgressStatus = statuses.FirstOrDefault(s => s.Name == "In Progress") ?? statuses.FirstOrDefault();
+        var resolvedStatus = statuses.FirstOrDefault(s => s.Name == "Resolved") ?? statuses.FirstOrDefault();
+        var newStatus = statuses.FirstOrDefault(s => s.Name == "New") ?? statuses.FirstOrDefault();
+
+        // Seed Automation Rules
+        if (await _automationRuleRepository.GetCountAsync() == 0)
+        {
+            // Rule 1: Phát hiện từ khóa khẩn cấp khi tạo vé -> nâng Critical
+            var rule1 = new Helpdesk.Automations.AutomationRule(
+                _guidGenerator.Create(),
+                "Cảnh Báo & Nâng Mức Khẩn Cấp Khi Có Từ Khóa Nguy Hiểm",
+                Helpdesk.Automations.AutomationTriggerType.OnTicketCreated,
+                executionOrder: 1,
+                description: "Tự động nâng độ ưu tiên lên Critical và gắn nhãn cảnh báo khi tiêu đề chứa từ khóa nghiêm trọng",
+                isActive: true
+            );
+            rule1.SetConditions(new List<Helpdesk.Automations.RuleCondition>
+            {
+                new() { Field = Helpdesk.Automations.ConditionField.Title, Operator = Helpdesk.Automations.ConditionOperator.Contains, Value = "sập server" }
+            });
+            rule1.SetActions(new List<Helpdesk.Automations.RuleAction>
+            {
+                new() { ActionType = Helpdesk.Automations.AutomationActionType.ChangePriority, TargetValue = criticalPriority?.Id.ToString() },
+                new() { ActionType = Helpdesk.Automations.AutomationActionType.AddTags, TargetValue = "Critical" },
+                new() { ActionType = Helpdesk.Automations.AutomationActionType.AddComment, TargetValue = "⚠️ [Tự Động Hóa] Hệ thống phát hiện sự cố nghiêm trọng qua từ khóa, tự động nâng độ ưu tiên lên Critical.", AdditionalValue = "true" },
+                new() { ActionType = Helpdesk.Automations.AutomationActionType.SendDiscordAlert, TargetValue = "Cảnh báo khẩn cấp!" }
+            });
+            await _automationRuleRepository.InsertAsync(rule1);
+
+            // Rule 2: Tự động chuyển sang In Progress khi có phản hồi mới
+            if (newStatus != null && inProgressStatus != null)
+            {
+                var rule2 = new Helpdesk.Automations.AutomationRule(
+                    _guidGenerator.Create(),
+                    "Tự Động Đổi Trạng Thái Sang Đang Xử Lý Khi Có Phản Hồi Mới",
+                    Helpdesk.Automations.AutomationTriggerType.OnCommentAdded,
+                    executionOrder: 2,
+                    description: "Chuyển vé từ New sang In Progress ngay khi kỹ thuật viên hoặc khách hàng gửi bình luận",
+                    isActive: true
+                );
+                rule2.SetConditions(new List<Helpdesk.Automations.RuleCondition>
+                {
+                    new() { Field = Helpdesk.Automations.ConditionField.Status, Operator = Helpdesk.Automations.ConditionOperator.Equals, Value = newStatus.Id.ToString() }
+                });
+                rule2.SetActions(new List<Helpdesk.Automations.RuleAction>
+                {
+                    new() { ActionType = Helpdesk.Automations.AutomationActionType.ChangeStatus, TargetValue = inProgressStatus.Id.ToString() },
+                    new() { ActionType = Helpdesk.Automations.AutomationActionType.AddTags, TargetValue = "Active-Discussion" }
+                });
+                await _automationRuleRepository.InsertAsync(rule2);
+            }
+
+            // Rule 3: Đóng vé nhàn rỗi sau 48h
+            if (pendingStatus != null && resolvedStatus != null)
+            {
+                var rule3 = new Helpdesk.Automations.AutomationRule(
+                    _guidGenerator.Create(),
+                    "Tự Động Đóng Sự Vụ Chờ Khách Hàng Sau 48 Giờ",
+                    Helpdesk.Automations.AutomationTriggerType.ScheduledTime,
+                    executionOrder: 3,
+                    description: "Quét ngầm định kỳ: Tự động hoàn tất các vé Pending quá 48h không có tương tác",
+                    isActive: true
+                );
+                rule3.SetConditions(new List<Helpdesk.Automations.RuleCondition>
+                {
+                    new() { Field = Helpdesk.Automations.ConditionField.Status, Operator = Helpdesk.Automations.ConditionOperator.Equals, Value = pendingStatus.Id.ToString() },
+                    new() { Field = Helpdesk.Automations.ConditionField.HoursSinceLastUpdate, Operator = Helpdesk.Automations.ConditionOperator.GreaterThan, Value = "48" }
+                });
+                rule3.SetActions(new List<Helpdesk.Automations.RuleAction>
+                {
+                    new() { ActionType = Helpdesk.Automations.AutomationActionType.ChangeStatus, TargetValue = resolvedStatus.Id.ToString() },
+                    new() { ActionType = Helpdesk.Automations.AutomationActionType.AddComment, TargetValue = "Sự vụ được tự động chuyển sang Resolved do khách hàng không phản hồi sau 48 giờ.", AdditionalValue = "false" },
+                    new() { ActionType = Helpdesk.Automations.AutomationActionType.AddTags, TargetValue = "Auto-Closed" }
+                });
+                await _automationRuleRepository.InsertAsync(rule3);
+            }
+        }
+
+        // Seed Macros
+        if (await _macroRepository.GetCountAsync() == 0)
+        {
+            var macro1 = new Helpdesk.Automations.Macro(
+                _guidGenerator.Create(),
+                "Hướng Dẫn Reset Mật Khẩu",
+                "Chèn hướng dẫn lấy lại mật khẩu, đổi trạng thái sang Pending và gán nhãn Password-Reset",
+                order: 1,
+                isActive: true
+            );
+            macro1.SetActions(new List<Helpdesk.Automations.RuleAction>
+            {
+                new() { ActionType = Helpdesk.Automations.AutomationActionType.AddComment, TargetValue = "Chào bạn,\n\nĐể thiết lập lại mật khẩu tài khoản của bạn, vui lòng thực hiện các bước sau:\n1. Truy cập trang đăng nhập và bấm 'Quên mật khẩu'.\n2. Nhập email doanh nghiệp để nhận mã xác nhận OTP.\n3. Tạo mật khẩu mới tối thiểu 8 ký tự.\n\nNếu cần hỗ trợ thêm, bạn hãy phản hồi lại vé này nhé!", AdditionalValue = "false" },
+                new() { ActionType = Helpdesk.Automations.AutomationActionType.ChangeStatus, TargetValue = pendingStatus?.Id.ToString() },
+                new() { ActionType = Helpdesk.Automations.AutomationActionType.AddTags, TargetValue = "Password-Reset" }
+            });
+            await _macroRepository.InsertAsync(macro1);
+
+            var macro2 = new Helpdesk.Automations.Macro(
+                _guidGenerator.Create(),
+                "Đã Hỗ Trợ Từ Xa Xong (UltraViewer / TeamViewer)",
+                "Chèn ghi chú nội bộ đã remote hỗ trợ và hoàn tất vé",
+                order: 2,
+                isActive: true
+            );
+            macro2.SetActions(new List<Helpdesk.Automations.RuleAction>
+            {
+                new() { ActionType = Helpdesk.Automations.AutomationActionType.AddComment, TargetValue = "Đã kết nối UltraViewer/TeamViewer vào máy người dùng để kiểm tra và xử lý dứt điểm sự cố.", AdditionalValue = "true" },
+                new() { ActionType = Helpdesk.Automations.AutomationActionType.ChangeStatus, TargetValue = resolvedStatus?.Id.ToString() },
+                new() { ActionType = Helpdesk.Automations.AutomationActionType.AddTags, TargetValue = "Remote-Assisted" }
+            });
+            await _macroRepository.InsertAsync(macro2);
+        }
+    }
 }
+

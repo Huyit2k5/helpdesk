@@ -1,0 +1,231 @@
+<div class="card shadow-sm border-0 rounded-4">
+  <!-- Header -->
+  <div class="card-header bg-white border-0 pt-4 pb-3 px-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
+    <div>
+      <h4 class="fw-bold mb-1 text-dark d-flex align-items-center gap-2">
+        <i class="fas fa-bolt text-warning"></i> Mẫu Thao Tác Nhanh (Macros 1-Click)
+      </h4>
+      <p class="text-muted small mb-0">
+        Định nghĩa các chuỗi hành động mẫu (chèn câu trả lời, đổi trạng thái, gắn nhãn) để kỹ thuật viên áp dụng vào vé chỉ với 1 click
+      </p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <button class="btn btn-warning text-dark rounded-pill px-4 shadow-sm fw-medium d-flex align-items-center gap-2" (click)="openCreateModal()">
+        <i class="fas fa-plus"></i> Thêm Macro Mới
+      </button>
+    </div>
+  </div>
+
+  <!-- Filter Toolbar -->
+  <div class="card-body px-4 pt-0 pb-3">
+    <div class="row g-2 align-items-center bg-light p-3 rounded-3 mb-3">
+      <div class="col-md-10">
+        <div class="input-group">
+          <span class="input-group-text bg-white border-end-0 text-muted"><i class="fas fa-search"></i></span>
+          <input
+            type="text"
+            class="form-control border-start-0 ps-0"
+            placeholder="Tìm kiếm theo tên Macro hoặc mô tả..."
+            [(ngModel)]="filterText"
+            (keyup.enter)="onFilter()"
+          />
+        </div>
+      </div>
+      <div class="col-md-2">
+        <button class="btn btn-outline-secondary w-100 rounded-3" (click)="onFilter()">
+          <i class="fas fa-filter me-1"></i> Lọc
+        </button>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light text-uppercase fs-7 text-muted">
+          <tr>
+            <th style="width: 70px;" class="text-center">Thứ tự</th>
+            <th>Tên Macro</th>
+            <th class="text-center">Số Hành Động</th>
+            <th class="text-center">Kích Hoạt</th>
+            <th style="width: 120px;" class="text-end pe-3">Thao Tác</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (macro of items; track macro.id) {
+            <tr>
+              <td class="text-center fw-bold text-muted">{{ macro.order }}</td>
+              <td>
+                <div class="fw-semibold text-dark d-flex align-items-center gap-2">
+                  <i class="fas fa-bolt text-warning"></i>
+                  {{ macro.name }}
+                </div>
+                @if (macro.description) {
+                  <small class="text-muted d-block text-truncate" style="max-width: 450px;">{{ macro.description }}</small>
+                }
+              </td>
+              <td class="text-center">
+                <span class="badge bg-warning-subtle text-dark border px-2 py-1 rounded-pill">
+                  {{ macro.actions.length }} hành động
+                </span>
+              </td>
+              <td class="text-center">
+                <div class="form-check form-switch d-inline-block">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    role="switch"
+                    [checked]="macro.isActive"
+                    (change)="toggleActive(macro, $event)"
+                  />
+                </div>
+              </td>
+              <td class="text-end pe-3">
+                <div class="btn-group btn-group-sm">
+                  <button class="btn btn-outline-primary" (click)="openEditModal(macro)" title="Chỉnh sửa">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="btn btn-outline-danger" (click)="delete(macro)" title="Xóa">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="5" class="text-center py-5 text-muted">
+                <i class="fas fa-bolt fs-1 d-block mb-3 text-secondary opacity-50"></i>
+                <p class="mb-0">Chưa có Macro nào được tạo.</p>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    @if (totalCount > 0) {
+      <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+        <small class="text-muted">Tổng cộng: <strong>{{ totalCount }}</strong> Macro</small>
+        <ngb-pagination
+          [page]="list.page + 1"
+          [pageSize]="list.maxResultCount"
+          [collectionSize]="totalCount"
+          (pageChange)="list.page = $event - 1; list.get()"
+          [maxSize]="5"
+        />
+      </div>
+    }
+  </div>
+</div>
+
+<!-- Modal Create / Edit Macro -->
+@if (isModalOpen) {
+  <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content rounded-4 border-0 shadow">
+        <div class="modal-header border-bottom px-4 py-3">
+          <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2">
+            <i class="fas fa-bolt text-warning"></i>
+            {{ isEditing ? 'Chỉnh Sửa Macro' : 'Tạo Macro Mới' }}
+          </h5>
+          <button type="button" class="btn-close" (click)="closeModal()"></button>
+        </div>
+
+        <form [formGroup]="form" (ngSubmit)="save()" class="d-flex flex-column flex-grow-1 overflow-hidden" style="min-height: 0;">
+          <div class="modal-body p-4 flex-grow-1" style="overflow-y: auto;">
+            <div class="row g-3 mb-4">
+              <div class="col-md-8">
+                <label class="form-label fw-semibold text-dark">Tên Macro <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" formControlName="name" placeholder="Ví dụ: Hướng dẫn reset mật khẩu" />
+              </div>
+              <div class="col-md-4">
+                <label class="form-label fw-semibold text-dark">Thứ tự hiển thị <span class="text-danger">*</span></label>
+                <input type="number" class="form-control" formControlName="order" min="0" />
+              </div>
+              <div class="col-md-12">
+                <label class="form-label fw-semibold text-dark">Mô tả tóm tắt</label>
+                <textarea class="form-control" formControlName="description" rows="2" placeholder="Ghi chú thao tác Macro này sẽ thực hiện..."></textarea>
+              </div>
+              <div class="col-md-12">
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="macroActive" formControlName="isActive" />
+                  <label class="form-check-label fw-medium" for="macroActive">Kích hoạt để kỹ thuật viên sử dụng</label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Actions Block -->
+            <div class="card border-warning-subtle bg-light rounded-3 p-3">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                  <i class="fas fa-tasks text-warning"></i> CHUỖI HÀNH ĐỘNG ÁP DỤNG (ACTIONS)
+                </h6>
+                <button type="button" class="btn btn-sm btn-outline-warning text-dark rounded-pill px-3" (click)="addAction()">
+                  <i class="fas fa-plus me-1"></i> Thêm hành động
+                </button>
+              </div>
+              <p class="text-muted small mb-3">Khi kỹ thuật viên chọn Macro này, tất cả hành động dưới đây sẽ thực thi cùng lúc.</p>
+
+              <div formArrayName="actions" class="d-flex flex-column gap-2">
+                @for (actGroup of actionsArray.controls; track $index) {
+                  <div [formGroupName]="$index" class="bg-white p-3 rounded-3 border shadow-sm d-flex flex-column gap-2">
+                    <div class="d-flex align-items-center justify-content-between gap-2">
+                      <select class="form-select form-select-sm" formControlName="actionType" style="max-width: 220px;">
+                        <option [ngValue]="AutomationActionType.AddComment">Thêm phản hồi mẫu</option>
+                        <option [ngValue]="AutomationActionType.ChangeStatus">Đổi trạng thái vé</option>
+                        <option [ngValue]="AutomationActionType.ChangePriority">Đổi mức ưu tiên</option>
+                        <option [ngValue]="AutomationActionType.AddTags">Gắn nhãn (Tags)</option>
+                      </select>
+
+                      <button type="button" class="btn btn-sm btn-outline-danger" (click)="removeAction($index)" title="Xóa hành động">
+                        <i class="fas fa-trash me-1"></i> Xóa
+                      </button>
+                    </div>
+
+                    @if (actGroup.get('actionType')?.value === AutomationActionType.AddComment) {
+                      <textarea
+                        class="form-control form-control-sm"
+                        formControlName="targetValue"
+                        rows="3"
+                        placeholder="Nội dung phản hồi mẫu gửi cho khách hàng hoặc ghi chú nội bộ..."
+                      ></textarea>
+                      <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" [id]="'isInternal' + $index" formControlName="additionalValue" />
+                        <label class="form-check-label small" [for]="'isInternal' + $index">Ghi chú nội bộ (Internal note)</label>
+                      </div>
+                    } @else if (actGroup.get('actionType')?.value === AutomationActionType.ChangeStatus) {
+                      <select class="form-select form-select-sm" formControlName="targetValue">
+                        <option value="">-- Chọn trạng thái đích --</option>
+                        @for (st of statuses; track st.id) {
+                          <option [value]="st.id">{{ st.name }}</option>
+                        }
+                      </select>
+                    } @else if (actGroup.get('actionType')?.value === AutomationActionType.ChangePriority) {
+                      <select class="form-select form-select-sm" formControlName="targetValue">
+                        <option value="">-- Chọn độ ưu tiên đích --</option>
+                        @for (pr of priorities; track pr.id) {
+                          <option [value]="pr.id">{{ pr.name }}</option>
+                        }
+                      </select>
+                    } @else {
+                      <input type="text" class="form-control form-control-sm" formControlName="targetValue" placeholder="Tên nhãn tag..." />
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer border-top px-4 py-3 bg-light d-flex justify-content-end gap-2">
+            <button type="button" class="btn btn-outline-secondary rounded-pill px-4" (click)="closeModal()">
+              Hủy Bỏ
+            </button>
+            <button type="submit" class="btn btn-warning text-dark rounded-pill px-4 shadow-sm fw-medium">
+              <i class="fas fa-save me-1"></i> Lưu Macro
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+}

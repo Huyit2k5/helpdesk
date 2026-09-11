@@ -105,4 +105,23 @@ public static class HelpdeskPermissions
         public const string Default = GroupName + ".DiscordSettings";
         public const string Manage = Default + ".Manage";
     }
+
+    public static class Automations
+    {
+        public const string Default = GroupName + ".Automations";
+        public const string Create = Default + ".Create";
+        public const string Edit = Default + ".Edit";
+        public const string Delete = Default + ".Delete";
+        public const string Manage = Default + ".Manage";
+    }
+
+    public static class Macros
+    {
+        public const string Default = GroupName + ".Macros";
+        public const string Create = Default + ".Create";
+        public const string Edit = Default + ".Edit";
+        public const string Delete = Default + ".Delete";
+        public const string Apply = Default + ".Apply";
+    }
 }
+

@@ -13,5 +13,6 @@ public enum TicketActivityType
     AttachmentAdded = 9,
     Resolved = 10,
     Closed = 11,
-    Reopened = 12
+    Reopened = 12,
+    AutomationExecuted = 13
 }

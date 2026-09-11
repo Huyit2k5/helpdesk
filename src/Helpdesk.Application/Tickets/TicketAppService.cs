@@ -12,6 +12,7 @@ using Helpdesk.Discord;
 using Helpdesk.Notifications;
 using Helpdesk.Permissions;
 using Helpdesk.Priorities;
+using Helpdesk.Automations;
 using Helpdesk.Tickets.Dtos;
 using Helpdesk.TicketSources;
 using Helpdesk.TicketStatuses;
@@ -53,6 +54,7 @@ public class TicketAppService : ApplicationService, ITicketAppService
     private readonly IDiscordNotificationService _discordNotificationService;
     private readonly IEmailNotificationService _emailNotificationService;
     private readonly IDiscordBotService _discordBotService;
+    private readonly IAutomationRuleEngine _automationRuleEngine;
 
     public TicketAppService(
         IRepository<Ticket, Guid> ticketRepository,
@@ -74,7 +76,8 @@ public class TicketAppService : ApplicationService, ITicketAppService
         IEmailSender emailSender,
         IDiscordNotificationService discordNotificationService,
         IEmailNotificationService emailNotificationService,
-        IDiscordBotService discordBotService)
+        IDiscordBotService discordBotService,
+        IAutomationRuleEngine automationRuleEngine)
     {
         _ticketRepository = ticketRepository;
         _commentRepository = commentRepository;
@@ -96,6 +99,7 @@ public class TicketAppService : ApplicationService, ITicketAppService
         _discordNotificationService = discordNotificationService;
         _emailNotificationService = emailNotificationService;
         _discordBotService = discordBotService;
+        _automationRuleEngine = automationRuleEngine;
     }
 
     public async Task<PagedResultDto<TicketListDto>> GetListAsync(GetTicketListInput input)
@@ -434,7 +438,18 @@ public class TicketAppService : ApplicationService, ITicketAppService
             }
         }
 
+        // Kích hoạt các quy tắc tự động hóa khi tạo vé mới (OnTicketCreated)
+        await _automationRuleEngine.ExecuteTriggersAsync(ticket, AutomationTriggerType.OnTicketCreated);
+
         return await GetAsync(ticket.Id);
+    }
+
+    [Authorize(HelpdeskPermissions.Tickets.Default)]
+    public async Task<TicketDetailDto> ApplyMacroAsync(Guid id, Guid macroId)
+    {
+        var ticket = await _ticketRepository.GetAsync(id);
+        await _automationRuleEngine.ApplyMacroAsync(ticket, macroId);
+        return await GetAsync(id);
     }
 
     [Authorize(HelpdeskPermissions.Tickets.Assign)]
@@ -587,6 +602,9 @@ public class TicketAppService : ApplicationService, ITicketAppService
             await _discordNotificationService.SendTicketResolvedAsync(ticket, resolverName);
         }
 
+        // Kích hoạt các quy tắc tự động hóa khi trạng thái thay đổi (OnTicketUpdated)
+        await _automationRuleEngine.ExecuteTriggersAsync(ticket, AutomationTriggerType.OnTicketUpdated);
+
         return await GetAsync(id);
     }
 
@@ -622,16 +640,21 @@ public class TicketAppService : ApplicationService, ITicketAppService
                 ticket.RequesterId.Value,
                 NotificationType.CommentAdded,
                 "Có phản hồi mới trên vé của bạn",
-                $"Vé {ticket.TicketNumber} \"{ticket.Title}\" vừa nhận được phản hồi mới từ đội hỗ trợ.",
+                $"Vé {ticket.TicketNumber} \"{ticket.Title}\" vừa nhận được phản hồi mới từ kỹ thuật viên.",
                 ticket.Id
             );
         }
 
-        // Đồng bộ bình luận công khai ra Discord Thread nếu sự vụ có luồng thảo luận Discord
+        // Đồng bộ trả lời ra Discord Thread nếu vé có liên kết Thread
         if (!input.IsInternal && !string.IsNullOrWhiteSpace(ticket.DiscordThreadId) && ulong.TryParse(ticket.DiscordThreadId, out var threadId))
         {
-            await _discordBotService.SendMessageToThreadAsync(threadId, CurrentUser.UserName ?? "Kỹ thuật viên", input.Content);
+            var author = CurrentUser.UserName ?? "Kỹ thuật viên";
+            await _discordBotService.SendMessageToThreadAsync(threadId, author, input.Content);
         }
+
+
+        // Kích hoạt các quy tắc tự động hóa khi có bình luận mới (OnCommentAdded)
+        await _automationRuleEngine.ExecuteTriggersAsync(ticket, AutomationTriggerType.OnCommentAdded, input.Content);
 
         return new TicketCommentDto
         {

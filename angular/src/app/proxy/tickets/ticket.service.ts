@@ -157,4 +157,12 @@ export class TicketService {
       body: input,
     },
     { apiName: this.apiName,...config });
-}
+
+  applyMacro = (id: string, macroId: string, config?: Partial<Rest.Config>) =>
+    this.restService.request<any, TicketDetailDto>({
+      method: 'POST',
+      headers: { Accept: 'application/json' },
+      url: `/api/app/ticket/${id}/apply-macro/${macroId}`,
+    },
+    { apiName: this.apiName, ...config });
+}

@@ -257,5 +257,40 @@ public static class HelpdeskDbContextModelCreatingExtensions
             b.HasIndex(x => x.IsRead);
             b.HasIndex(x => x.TicketId);
         });
+
+        builder.Entity<Helpdesk.Automations.AutomationRule>(b =>
+        {
+            b.ToTable(HelpdeskConsts.DbTablePrefix + "AutomationRules", HelpdeskConsts.DbSchema);
+            b.ConfigureByConvention();
+
+            b.Property(x => x.Name).IsRequired().HasMaxLength(128);
+            b.Property(x => x.Description).HasMaxLength(512);
+            b.Property(x => x.TriggerType).IsRequired();
+            b.Property(x => x.ExecutionOrder).IsRequired().HasDefaultValue(0);
+            b.Property(x => x.IsActive).IsRequired().HasDefaultValue(true);
+            b.Property(x => x.StopProcessing).IsRequired().HasDefaultValue(false);
+            b.Property(x => x.ConditionsJson).IsRequired();
+            b.Property(x => x.ActionsJson).IsRequired();
+
+            b.HasIndex(x => x.TriggerType);
+            b.HasIndex(x => x.IsActive);
+            b.HasIndex(x => x.ExecutionOrder);
+        });
+
+        builder.Entity<Helpdesk.Automations.Macro>(b =>
+        {
+            b.ToTable(HelpdeskConsts.DbTablePrefix + "Macros", HelpdeskConsts.DbSchema);
+            b.ConfigureByConvention();
+
+            b.Property(x => x.Name).IsRequired().HasMaxLength(128);
+            b.Property(x => x.Description).HasMaxLength(512);
+            b.Property(x => x.Order).IsRequired().HasDefaultValue(0);
+            b.Property(x => x.IsActive).IsRequired().HasDefaultValue(true);
+            b.Property(x => x.ActionsJson).IsRequired();
+
+            b.HasIndex(x => x.IsActive);
+            b.HasIndex(x => x.Order);
+        });
     }
 }
+

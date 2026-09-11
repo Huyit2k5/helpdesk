@@ -64,6 +64,10 @@ public class HelpdeskDbContext :
     // Notifications
     public DbSet<Helpdesk.Notifications.Notification> Notifications { get; set; }
 
+    // Automations & Macros
+    public DbSet<Helpdesk.Automations.AutomationRule> AutomationRules { get; set; }
+    public DbSet<Helpdesk.Automations.Macro> Macros { get; set; }
+
     #region Entities from the modules
 
     /* Notice: We only implemented IIdentityProDbContext and ISaasDbContext

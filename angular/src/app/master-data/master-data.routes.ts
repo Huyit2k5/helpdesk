@@ -63,6 +63,25 @@ export const MASTER_DATA_ROUTES: Routes = [
             c => c.AssignmentRulesComponent
           ),
       },
+      {
+        path: 'automation-rules',
+        canActivate: [permissionGuard],
+        data: { requiredPolicy: 'Helpdesk.Automations' },
+        loadComponent: () =>
+          import('./automation-rules/automation-rules.component').then(
+            c => c.AutomationRulesComponent
+          ),
+      },
+      {
+        path: 'macros',
+        canActivate: [permissionGuard],
+        data: { requiredPolicy: 'Helpdesk.Macros' },
+        loadComponent: () =>
+          import('./macros/macros.component').then(
+            c => c.MacrosComponent
+          ),
+      },
     ],
   },
 ];
+

@@ -3,6 +3,7 @@ using System;
 using Helpdesk.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Volo.Abp.EntityFrameworkCore;
@@ -12,9 +13,11 @@ using Volo.Abp.EntityFrameworkCore;
 namespace Helpdesk.Migrations
 {
     [DbContext(typeof(HelpdeskDbContext))]
-    partial class HelpdeskDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260910100903_Add_Automations_And_Macros_Module")]
+    partial class Add_Automations_And_Macros_Module
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

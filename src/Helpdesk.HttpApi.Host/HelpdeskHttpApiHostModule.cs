@@ -314,6 +314,7 @@ public class HelpdeskHttpApiHostModule : AbpModule
     {
         OnApplicationInitialization(context);
         await context.AddBackgroundWorkerAsync<Helpdesk.BackgroundWorkers.SlaCheckingWorker>();
+        await context.AddBackgroundWorkerAsync<Helpdesk.BackgroundWorkers.AutomationPeriodicWorker>();
 
         var discordBot = context.ServiceProvider.GetRequiredService<Helpdesk.Discord.IDiscordBotService>();
         await discordBot.StartAsync();

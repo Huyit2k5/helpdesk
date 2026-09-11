@@ -9,6 +9,8 @@ import { TicketStatusDto } from '../../proxy/ticket-statuses/models';
 import { IdentityUserService, IdentityUserDto } from '@abp/ng.identity/proxy';
 import { CannedResponseService } from '../../proxy/canned-responses/canned-response.service';
 import { CannedResponseDto } from '../../proxy/canned-responses/models';
+import { MacroService } from '../../proxy/automations/macro.service';
+import { MacroDto } from '../../proxy/automations/models';
 import { ToasterService, ConfirmationService, Confirmation } from '@abp/ng.theme.shared';
 import { catchError, forkJoin, of } from 'rxjs';
 
@@ -36,6 +38,7 @@ export class TicketDetailComponent implements OnInit {
   private statusSvc = inject(TicketStatusService);
   private userSvc = inject(IdentityUserService);
   private cannedSvc = inject(CannedResponseService);
+  private macroSvc = inject(MacroService);
   private toaster = inject(ToasterService);
   private confirmation = inject(ConfirmationService);
   private cdr = inject(ChangeDetectorRef);
@@ -59,6 +62,9 @@ export class TicketDetailComponent implements OnInit {
   statuses: TicketStatusDto[] = [];
   users: IdentityUserDto[] = [];
   cannedResponses: CannedResponseDto[] = [];
+  activeMacros: MacroDto[] = [];
+  isApplyingMacro = false;
+  isMacroDropdownOpen = false;
 
   // Modals / Dropdowns
   isStatusModalOpen = false;
@@ -113,6 +119,13 @@ export class TicketDetailComponent implements OnInit {
       catchError(() => of({ items: [], totalCount: 0 }))
     ).subscribe(res => {
       this.cannedResponses = res.items ?? [];
+      this.cdr.markForCheck();
+    });
+
+    this.macroSvc.getActiveMacros().pipe(
+      catchError(() => of([]))
+    ).subscribe(res => {
+      this.activeMacros = res ?? [];
       this.cdr.markForCheck();
     });
   }
@@ -266,7 +279,40 @@ export class TicketDetailComponent implements OnInit {
     });
   }
 
+  applyMacro(macro: MacroDto): void {
+    if (!this.ticket?.id || !macro.id || this.isApplyingMacro) return;
+    this.isMacroDropdownOpen = false;
+
+    this.confirmation.warn(
+      `Bạn có chắc chắn muốn thực thi các thao tác của Macro "${macro.name}" vào sự vụ này?`,
+      'Xác nhận áp dụng Macro'
+    ).subscribe((status: Confirmation.Status) => {
+      if (status === Confirmation.Status.confirm) {
+        this.isApplyingMacro = true;
+        this.cdr.markForCheck();
+
+        this.ticketSvc.applyMacro(this.ticket!.id!, macro.id!).subscribe({
+          next: updatedTicket => {
+            this.isApplyingMacro = false;
+            this.toaster.success(`Đã áp dụng Macro "${macro.name}" thành công!`, 'Thành công');
+            this.ticket = updatedTicket;
+            this.buildTimeline();
+            this.loadData();
+          },
+          error: () => {
+            this.isApplyingMacro = false;
+            this.toaster.error('Không thể áp dụng Macro vào sự vụ.', 'Lỗi');
+            this.cdr.markForCheck();
+          }
+        });
+      }
+    });
+  }
+
+
+
   downloadAttachment(attachment: TicketAttachmentDto): void {
+
     if (!attachment.id) return;
     this.ticketSvc.downloadAttachment(attachment.id).subscribe({
       next: (blob: Blob) => {
@@ -429,5 +475,9 @@ export class TicketDetailComponent implements OnInit {
         });
       }
     });
+  }
+
+  toggleMacroDropdown(): void {
+    this.isMacroDropdownOpen = !this.isMacroDropdownOpen;
   }
 }

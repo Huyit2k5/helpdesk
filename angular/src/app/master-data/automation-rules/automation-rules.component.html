@@ -1,0 +1,290 @@
+<div class="card shadow-sm border-0 rounded-4">
+  <!-- Header -->
+  <div class="card-header bg-white border-0 pt-4 pb-3 px-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
+    <div>
+      <h4 class="fw-bold mb-1 text-dark d-flex align-items-center gap-2">
+        <i class="fas fa-magic text-primary"></i> Quy Tắc Tự Động Hóa (Automation Rules)
+      </h4>
+      <p class="text-muted small mb-0">
+        Thiết lập các quy tắc "NẾU... THÌ..." tự động nâng mức ưu tiên, đổi trạng thái hoặc đóng vé nhàn rỗi
+      </p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <button class="btn btn-primary rounded-pill px-4 shadow-sm fw-medium d-flex align-items-center gap-2" (click)="openCreateModal()">
+        <i class="fas fa-plus"></i> Thêm Quy Tắc Mới
+      </button>
+    </div>
+  </div>
+
+  <!-- Filter Toolbar -->
+  <div class="card-body px-4 pt-0 pb-3">
+    <div class="row g-2 align-items-center bg-light p-3 rounded-3 mb-3">
+      <div class="col-md-6 col-lg-7">
+        <div class="input-group">
+          <span class="input-group-text bg-white border-end-0 text-muted"><i class="fas fa-search"></i></span>
+          <input
+            type="text"
+            class="form-control border-start-0 ps-0"
+            placeholder="Tìm kiếm theo tên quy tắc hoặc mô tả..."
+            [(ngModel)]="filterText"
+            (keyup.enter)="onFilter()"
+          />
+        </div>
+      </div>
+      <div class="col-md-4 col-lg-3">
+        <select class="form-select" [(ngModel)]="selectedTriggerFilter" (change)="onFilter()">
+          <option [ngValue]="undefined">-- Tất cả loại kích hoạt --</option>
+          <option [ngValue]="AutomationTriggerType.OnTicketCreated">⚡ Khi tạo vé mới</option>
+          <option [ngValue]="AutomationTriggerType.OnTicketUpdated">🔄 Khi đổi trạng thái</option>
+          <option [ngValue]="AutomationTriggerType.OnCommentAdded">💬 Khi có phản hồi</option>
+          <option [ngValue]="AutomationTriggerType.ScheduledTime">⏰ Quét theo lịch</option>
+        </select>
+      </div>
+      <div class="col-md-2 col-lg-2 d-flex gap-2">
+        <button class="btn btn-outline-secondary w-100 rounded-3" (click)="onFilter()">
+          <i class="fas fa-filter me-1"></i> Lọc
+        </button>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light text-uppercase fs-7 text-muted">
+          <tr>
+            <th style="width: 70px;" class="text-center">Thứ tự</th>
+            <th>Tên Quy Tắc</th>
+            <th>Loại Kích Hoạt</th>
+            <th class="text-center">Điều Kiện</th>
+            <th class="text-center">Hành Động</th>
+            <th class="text-center">Kích Hoạt</th>
+            <th style="width: 120px;" class="text-end pe-3">Thao Tác</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (rule of items; track rule.id) {
+            <tr>
+              <td class="text-center fw-bold text-muted">{{ rule.executionOrder }}</td>
+              <td>
+                <div class="fw-semibold text-dark">{{ rule.name }}</div>
+                @if (rule.description) {
+                  <small class="text-muted d-block text-truncate" style="max-width: 380px;">{{ rule.description }}</small>
+                }
+                @if (rule.stopProcessing) {
+                  <span class="badge bg-danger-subtle text-danger small mt-1">Dừng xử lý sau khi khớp</span>
+                }
+              </td>
+              <td>
+                <span [class]="getTriggerBadgeClass(rule.triggerType) + ' px-2 py-1 rounded-pill fw-medium'">
+                  {{ getTriggerLabel(rule.triggerType) }}
+                </span>
+              </td>
+              <td class="text-center">
+                <span class="badge bg-secondary-subtle text-dark border px-2 py-1 rounded-pill">
+                  {{ rule.conditions.length }} điều kiện
+                </span>
+              </td>
+              <td class="text-center">
+                <span class="badge bg-info-subtle text-info border px-2 py-1 rounded-pill">
+                  {{ rule.actions.length }} hành động
+                </span>
+              </td>
+              <td class="text-center">
+                <div class="form-check form-switch d-inline-block">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    role="switch"
+                    [checked]="rule.isActive"
+                    (change)="toggleActive(rule, $event)"
+                  />
+                </div>
+              </td>
+              <td class="text-end pe-3">
+                <div class="btn-group btn-group-sm">
+                  <button class="btn btn-outline-primary" (click)="openEditModal(rule)" title="Chỉnh sửa">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="btn btn-outline-danger" (click)="delete(rule)" title="Xóa">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="7" class="text-center py-5 text-muted">
+                <i class="fas fa-magic fs-1 d-block mb-3 text-secondary opacity-50"></i>
+                <p class="mb-0">Chưa có quy tắc tự động hóa nào phù hợp.</p>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    @if (totalCount > 0) {
+      <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+        <small class="text-muted">Tổng cộng: <strong>{{ totalCount }}</strong> quy tắc</small>
+        <ngb-pagination
+          [page]="list.page + 1"
+          [pageSize]="list.maxResultCount"
+          [collectionSize]="totalCount"
+          (pageChange)="list.page = $event - 1; list.get()"
+          [maxSize]="5"
+        />
+      </div>
+    }
+  </div>
+</div>
+
+<!-- Modal Create / Edit Rule -->
+@if (isModalOpen) {
+  <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content rounded-4 border-0 shadow">
+        <div class="modal-header border-bottom px-4 py-3">
+          <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2">
+            <i class="fas fa-magic text-primary"></i>
+            {{ isEditing ? 'Chỉnh Sửa Quy Tắc' : 'Tạo Quy Tắc Tự Động Mới' }}
+          </h5>
+          <button type="button" class="btn-close" (click)="closeModal()"></button>
+        </div>
+
+        <form [formGroup]="form" (ngSubmit)="save()" class="d-flex flex-column flex-grow-1 overflow-hidden" style="min-height: 0;">
+          <div class="modal-body p-4 flex-grow-1" style="overflow-y: auto;">
+            <!-- Basic Info -->
+            <div class="row g-3 mb-4">
+              <div class="col-md-8">
+                <label class="form-label fw-semibold text-dark">Tên quy tắc <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" formControlName="name" placeholder="Ví dụ: Nâng Critical khi sập server" />
+              </div>
+              <div class="col-md-4">
+                <label class="form-label fw-semibold text-dark">Thứ tự ưu tiên <span class="text-danger">*</span></label>
+                <input type="number" class="form-control" formControlName="executionOrder" min="0" />
+              </div>
+              <div class="col-md-12">
+                <label class="form-label fw-semibold text-dark">Mô tả quy tắc</label>
+                <textarea class="form-control" formControlName="description" rows="2" placeholder="Diễn giải mục đích của quy tắc..."></textarea>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold text-dark">Sự kiện kích hoạt (WHEN) <span class="text-danger">*</span></label>
+                <select class="form-select" formControlName="triggerType">
+                  <option [ngValue]="AutomationTriggerType.OnTicketCreated">⚡ Khi tạo vé mới (OnTicketCreated)</option>
+                  <option [ngValue]="AutomationTriggerType.OnTicketUpdated">🔄 Khi đổi trạng thái (OnTicketUpdated)</option>
+                  <option [ngValue]="AutomationTriggerType.OnCommentAdded">💬 Khi có phản hồi mới (OnCommentAdded)</option>
+                  <option [ngValue]="AutomationTriggerType.ScheduledTime">⏰ Quét định kỳ theo thời gian (ScheduledTime)</option>
+                </select>
+              </div>
+              <div class="col-md-6 d-flex align-items-center pt-4">
+                <div class="form-check form-switch me-4">
+                  <input class="form-check-input" type="checkbox" id="ruleActive" formControlName="isActive" />
+                  <label class="form-check-label fw-medium" for="ruleActive">Kích hoạt</label>
+                </div>
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="stopProcessing" formControlName="stopProcessing" />
+                  <label class="form-check-label fw-medium text-danger" for="stopProcessing">Dừng nếu khớp</label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Conditions Block -->
+            <div class="card border-primary-subtle bg-light rounded-3 p-3 mb-4">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="fw-bold text-primary mb-0 d-flex align-items-center gap-2">
+                  <i class="fas fa-filter"></i> ĐIỀU KIỆN LỌC (NẾU THỎA MÃN - ALL CONDITIONS MATCH)
+                </h6>
+                <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3" (click)="addCondition()">
+                  <i class="fas fa-plus me-1"></i> Thêm điều kiện
+                </button>
+              </div>
+              <p class="text-muted small mb-3">Tất cả điều kiện dưới đây phải đúng (AND) thì quy tắc mới được kích hoạt.</p>
+
+              <div formArrayName="conditions" class="d-flex flex-column gap-2">
+                @for (condGroup of conditionsArray.controls; track $index) {
+                  <div [formGroupName]="$index" class="bg-white p-2 rounded-3 border shadow-sm d-flex align-items-center gap-2">
+                    <!-- Field -->
+                    <select class="form-select form-select-sm" formControlName="field" style="max-width: 180px;">
+                      <option [ngValue]="ConditionField.Title">Tiêu đề (Title)</option>
+                      <option [ngValue]="ConditionField.Description">Mô tả (Description)</option>
+                      <option [ngValue]="ConditionField.Status">Trạng thái (Status)</option>
+                      <option [ngValue]="ConditionField.Priority">Độ ưu tiên (Priority)</option>
+                      <option [ngValue]="ConditionField.Category">Danh mục (Category)</option>
+                      <option [ngValue]="ConditionField.HoursSinceLastUpdate">Giờ không phản hồi</option>
+                      <option [ngValue]="ConditionField.IsUnassigned">Chưa phân công</option>
+                      <option [ngValue]="ConditionField.Tags">Nhãn (Tags)</option>
+                    </select>
+
+                    <!-- Operator -->
+                    <select class="form-select form-select-sm" formControlName="operator" style="max-width: 150px;">
+                      <option [ngValue]="ConditionOperator.Equals">Bằng (=)</option>
+                      <option [ngValue]="ConditionOperator.NotEquals">Khác (!=)</option>
+                      <option [ngValue]="ConditionOperator.Contains">Chứa từ khóa</option>
+                      <option [ngValue]="ConditionOperator.NotContains">Không chứa</option>
+                      <option [ngValue]="ConditionOperator.GreaterThan">Lớn hơn (&gt;=)</option>
+                      <option [ngValue]="ConditionOperator.LessThan">Nhỏ hơn (&lt;=)</option>
+                    </select>
+
+                    <!-- Value -->
+                    <input type="text" class="form-control form-control-sm flex-grow-1" formControlName="value" placeholder="Nhập giá trị so khớp..." />
+
+                    <!-- Remove -->
+                    <button type="button" class="btn btn-sm btn-outline-danger" (click)="removeCondition($index)" title="Xóa điều kiện">
+                      <i class="fas fa-times"></i>
+                    </button>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <!-- Actions Block -->
+            <div class="card border-success-subtle bg-light rounded-3 p-3">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="fw-bold text-success mb-0 d-flex align-items-center gap-2">
+                  <i class="fas fa-bolt"></i> HÀNH ĐỘNG THỰC THI (THÌ TỰ ĐỘNG LÀM - ACTIONS)
+                </h6>
+                <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3" (click)="addAction()">
+                  <i class="fas fa-plus me-1"></i> Thêm hành động
+                </button>
+              </div>
+              <p class="text-muted small mb-3">Các hành động sẽ được chạy tuần tự từ trên xuống dưới khi điều kiện khớp.</p>
+
+              <div formArrayName="actions" class="d-flex flex-column gap-2">
+                @for (actGroup of actionsArray.controls; track $index) {
+                  <div [formGroupName]="$index" class="bg-white p-2 rounded-3 border shadow-sm d-flex align-items-center gap-2">
+                    <!-- Action Type -->
+                    <select class="form-select form-select-sm" formControlName="actionType" style="max-width: 200px;">
+                      <option [ngValue]="AutomationActionType.ChangePriority">Đổi độ ưu tiên</option>
+                      <option [ngValue]="AutomationActionType.ChangeStatus">Đổi trạng thái</option>
+                      <option [ngValue]="AutomationActionType.AddTags">Gắn nhãn (Tags)</option>
+                      <option [ngValue]="AutomationActionType.AddComment">Thêm bình luận tự động</option>
+                      <option [ngValue]="AutomationActionType.SendDiscordAlert">Bắn cảnh báo Discord</option>
+                    </select>
+
+                    <!-- Target Value -->
+                    <input type="text" class="form-control form-control-sm flex-grow-1" formControlName="targetValue" placeholder="Giá trị áp dụng (Id trạng thái, tag, nội dung...)" />
+
+                    <!-- Remove -->
+                    <button type="button" class="btn btn-sm btn-outline-danger" (click)="removeAction($index)" title="Xóa hành động">
+                      <i class="fas fa-times"></i>
+                    </button>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer border-top px-4 py-3 bg-light d-flex justify-content-end gap-2">
+            <button type="button" class="btn btn-outline-secondary rounded-pill px-4" (click)="closeModal()">
+              Hủy Bỏ
+            </button>
+            <button type="submit" class="btn btn-primary rounded-pill px-4 shadow-sm fw-medium">
+              <i class="fas fa-save me-1"></i> Lưu Quy Tắc
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+}

@@ -90,5 +90,24 @@ function configureMasterDataRoutes() {
       layout: eLayoutType.application,
       requiredPolicy: 'Helpdesk.DiscordSettings',
     },
+    {
+      path: '/master-data/automation-rules',
+      name: 'Tự động hóa (Automation)',
+      parentName: '::Menu:MasterData',
+      iconClass: 'fas fa-magic',
+      order: 9,
+      layout: eLayoutType.application,
+      requiredPolicy: 'Helpdesk.Automations',
+    },
+    {
+      path: '/master-data/macros',
+      name: 'Mẫu thao tác (Macros)',
+      parentName: '::Menu:MasterData',
+      iconClass: 'fas fa-bolt',
+      order: 10,
+      layout: eLayoutType.application,
+      requiredPolicy: 'Helpdesk.Macros',
+    },
   ]);
+
 }

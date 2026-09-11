@@ -40,4 +40,7 @@ public interface ITicketAppService : IApplicationService
     Task<Volo.Abp.Content.IRemoteStreamContent> ExportExcelAsync(GetTicketListInput input);
 
     Task<TicketDetailDto> AutoAssignAsync(Guid id);
+
+    Task<TicketDetailDto> ApplyMacroAsync(Guid id, Guid macroId);
 }
+

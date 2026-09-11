@@ -86,7 +86,22 @@ public class HelpdeskPermissionDefinitionProvider : PermissionDefinitionProvider
         // Discord Settings
         var discordPermission = helpdeskGroup.AddPermission(HelpdeskPermissions.DiscordSettings.Default, L("Permission:DiscordSettings"));
         discordPermission.AddChild(HelpdeskPermissions.DiscordSettings.Manage, L("Permission:DiscordSettings.Manage"));
+
+        // Automations
+        var automationsPermission = helpdeskGroup.AddPermission(HelpdeskPermissions.Automations.Default, L("Permission:Automations"));
+        automationsPermission.AddChild(HelpdeskPermissions.Automations.Create, L("Permission:Automations.Create"));
+        automationsPermission.AddChild(HelpdeskPermissions.Automations.Edit, L("Permission:Automations.Edit"));
+        automationsPermission.AddChild(HelpdeskPermissions.Automations.Delete, L("Permission:Automations.Delete"));
+        automationsPermission.AddChild(HelpdeskPermissions.Automations.Manage, L("Permission:Automations.Manage"));
+
+        // Macros
+        var macrosPermission = helpdeskGroup.AddPermission(HelpdeskPermissions.Macros.Default, L("Permission:Macros"));
+        macrosPermission.AddChild(HelpdeskPermissions.Macros.Create, L("Permission:Macros.Create"));
+        macrosPermission.AddChild(HelpdeskPermissions.Macros.Edit, L("Permission:Macros.Edit"));
+        macrosPermission.AddChild(HelpdeskPermissions.Macros.Delete, L("Permission:Macros.Delete"));
+        macrosPermission.AddChild(HelpdeskPermissions.Macros.Apply, L("Permission:Macros.Apply"));
     }
+
 
     private static LocalizableString L(string name)
     {
