@@ -135,5 +135,15 @@ public static class HelpdeskPermissions
         public const string Default = GroupName + ".AiAssistant";
         public const string Use = Default + ".Use";
     }
+
+    public static class Assets
+    {
+        public const string Default = GroupName + ".Assets";
+        public const string Create = Default + ".Create";
+        public const string Edit = Default + ".Edit";
+        public const string Delete = Default + ".Delete";
+        public const string Assign = Default + ".Assign";
+        public const string ChangeStatus = Default + ".ChangeStatus";
+    }
 }
 

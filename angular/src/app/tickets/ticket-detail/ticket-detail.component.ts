@@ -13,6 +13,8 @@ import { MacroService } from '../../proxy/automations/macro.service';
 import { MacroDto } from '../../proxy/automations/models';
 import { AiAssistantService } from '../../proxy/ai/ai-assistant.service';
 import { AiReplyTone, CustomerSentiment, TicketAiSummaryDto, GenerateAiReplyResultDto, AnalyzeSentimentResultDto } from '../../proxy/ai/models';
+import { AssetService } from '../../proxy/assets/asset.service';
+import { AssetLookupDto } from '../../proxy/assets/models';
 import { ToasterService, ConfirmationService, Confirmation } from '@abp/ng.theme.shared';
 import { catchError, forkJoin, of } from 'rxjs';
 
@@ -42,6 +44,7 @@ export class TicketDetailComponent implements OnInit {
   private cannedSvc = inject(CannedResponseService);
   private macroSvc = inject(MacroService);
   private aiService = inject(AiAssistantService);
+  private assetSvc = inject(AssetService);
   private toaster = inject(ToasterService);
   private confirmation = inject(ConfirmationService);
   private cdr = inject(ChangeDetectorRef);
@@ -71,6 +74,12 @@ export class TicketDetailComponent implements OnInit {
   activeMacros: MacroDto[] = [];
   isApplyingMacro = false;
   isMacroDropdownOpen = false;
+
+  // Asset Linking
+  isLinkAssetModalOpen = false;
+  isLoadingAssets = false;
+  assetLookupList: AssetLookupDto[] = [];
+  selectedAssetIdForLink = '';
 
   // AI Assistant States
   isSummarizing = false;
@@ -478,6 +487,70 @@ export class TicketDetailComponent implements OnInit {
       },
       error: () => {
         this.cdr.markForCheck();
+      }
+    });
+  }
+
+  openLinkAssetModal(): void {
+    this.selectedAssetIdForLink = this.ticket?.assetId || '';
+    this.isLinkAssetModalOpen = true;
+    if (this.assetLookupList.length === 0) {
+      this.isLoadingAssets = true;
+      this.cdr.markForCheck();
+      this.assetSvc.getLookup().subscribe({
+        next: (list: AssetLookupDto[]) => {
+          this.assetLookupList = list;
+          this.isLoadingAssets = false;
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.isLoadingAssets = false;
+          this.cdr.markForCheck();
+        }
+      });
+    } else {
+      this.cdr.markForCheck();
+    }
+  }
+
+  closeLinkAssetModal(): void {
+    this.isLinkAssetModalOpen = false;
+    this.cdr.markForCheck();
+  }
+
+  saveLinkAsset(): void {
+    if (!this.ticket?.id) return;
+
+    this.ticketSvc.linkAsset(this.ticket.id, {
+      assetId: this.selectedAssetIdForLink || undefined,
+    }).subscribe({
+      next: (updated) => {
+        this.ticket = updated;
+        this.isLinkAssetModalOpen = false;
+        this.toaster.success('Đã cập nhật liên kết thiết bị thành công!', 'Thành công');
+        this.loadData();
+      },
+      error: (err) => {
+        this.toaster.error('Lỗi khi liên kết thiết bị: ' + (err.error?.message || err.message), 'Lỗi');
+      }
+    });
+  }
+
+  unlinkAsset(): void {
+    if (!this.ticket?.id) return;
+
+    this.confirmation.warn('Bạn có chắc muốn gỡ liên kết thiết bị này khỏi sự vụ?', 'Xác nhận gỡ liên kết').subscribe((status) => {
+      if (status === Confirmation.Status.confirm) {
+        this.ticketSvc.linkAsset(this.ticket!.id!, { assetId: undefined }).subscribe({
+          next: (updated) => {
+            this.ticket = updated;
+            this.toaster.success('Đã gỡ liên kết thiết bị thành công!', 'Thành công');
+            this.loadData();
+          },
+          error: (err) => {
+            this.toaster.error('Không thể gỡ liên kết: ' + (err.error?.message || err.message), 'Lỗi');
+          }
+        });
       }
     });
   }

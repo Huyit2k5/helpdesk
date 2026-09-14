@@ -32,6 +32,8 @@ public class HelpdeskDataSeedContributor : IDataSeedContributor, ITransientDepen
     private readonly Volo.Abp.Domain.Repositories.IRepository<Helpdesk.KnowledgeBase.KnowledgeArticle, Guid> _articleRepository;
     private readonly Volo.Abp.Domain.Repositories.IRepository<Helpdesk.Automations.AutomationRule, Guid> _automationRuleRepository;
     private readonly Volo.Abp.Domain.Repositories.IRepository<Helpdesk.Automations.Macro, Guid> _macroRepository;
+    private readonly Volo.Abp.Domain.Repositories.IRepository<Helpdesk.Assets.Asset, Guid> _assetRepository;
+    private readonly Volo.Abp.Domain.Repositories.IRepository<Helpdesk.Assets.AssetActivity, Guid> _assetActivityRepository;
     private readonly Volo.Abp.Identity.IdentityRoleManager _roleManager;
     private readonly Volo.Abp.Identity.IdentityUserManager _userManager;
     private readonly Volo.Abp.PermissionManagement.IPermissionDataSeeder _permissionDataSeeder;
@@ -51,6 +53,8 @@ public class HelpdeskDataSeedContributor : IDataSeedContributor, ITransientDepen
         Volo.Abp.Domain.Repositories.IRepository<Helpdesk.KnowledgeBase.KnowledgeArticle, Guid> articleRepository,
         Volo.Abp.Domain.Repositories.IRepository<Helpdesk.Automations.AutomationRule, Guid> automationRuleRepository,
         Volo.Abp.Domain.Repositories.IRepository<Helpdesk.Automations.Macro, Guid> macroRepository,
+        Volo.Abp.Domain.Repositories.IRepository<Helpdesk.Assets.Asset, Guid> assetRepository,
+        Volo.Abp.Domain.Repositories.IRepository<Helpdesk.Assets.AssetActivity, Guid> assetActivityRepository,
         Volo.Abp.Identity.IdentityRoleManager roleManager,
         Volo.Abp.Identity.IdentityUserManager userManager,
         Volo.Abp.PermissionManagement.IPermissionDataSeeder permissionDataSeeder,
@@ -70,6 +74,8 @@ public class HelpdeskDataSeedContributor : IDataSeedContributor, ITransientDepen
         _articleRepository = articleRepository;
         _automationRuleRepository = automationRuleRepository;
         _macroRepository = macroRepository;
+        _assetRepository = assetRepository;
+        _assetActivityRepository = assetActivityRepository;
         _roleManager = roleManager;
         _userManager = userManager;
         _permissionDataSeeder = permissionDataSeeder;
@@ -88,9 +94,9 @@ public class HelpdeskDataSeedContributor : IDataSeedContributor, ITransientDepen
         await SeedHolidaysAsync();
         await SeedSlaPoliciesAsync();
         await SeedTicketsAsync();
+        await SeedAssetsAsync();
         await SeedRolesAndUsersAsync();
         await SeedKnowledgeArticlesAsync();
-        await SeedAutomationsAndMacrosAsync();
     }
 
 
@@ -287,6 +293,217 @@ public class HelpdeskDataSeedContributor : IDataSeedContributor, ITransientDepen
         }
     }
 
+    private async Task SeedAssetsAsync()
+    {
+        if (await _assetRepository.GetCountAsync() > 0)
+        {
+            return;
+        }
+
+        var itDept = await _departmentRepository.FindAsync(d => d.Code == "IT");
+        var hrDept = await _departmentRepository.FindAsync(d => d.Code == "HR");
+        var accDept = await _departmentRepository.FindAsync(d => d.Code == "ACC");
+
+        // 1. MacBook Pro 16" M3 Max
+        var asset1 = new Helpdesk.Assets.Asset(
+            _guidGenerator.Create(),
+            "AST-20260901-0001",
+            "MacBook Pro 16\" M3 Max",
+            Helpdesk.Assets.AssetType.Laptop,
+            Helpdesk.Assets.AssetStatus.Assigned,
+            serialNumber: "C02G1234MD6R",
+            model: "MacBook Pro 16\" (M3 Max / 36GB / 1TB)",
+            manufacturer: "Apple Inc.",
+            location: "Tầng 3 - Phòng Kỹ Thuật (IT Dept)",
+            purchaseDate: new DateTime(2026, 1, 15, 0, 0, 0, DateTimeKind.Utc),
+            warrantyExpiryDate: new DateTime(2027, 1, 15, 0, 0, 0, DateTimeKind.Utc),
+            purchaseCost: 72000000m,
+            specifications: "CPU: Apple M3 Max 14-core\nRAM: 36GB Unified Memory\nSSD: 1TB NVMe\nMàn hình: 16.2\" Liquid Retina XDR 120Hz ProMotion\nOS: macOS Sonoma 14.5",
+            notes: "Máy cấp phát cho Trưởng nhóm kỹ thuật Lead Developer."
+        );
+        asset1.AssignTo(null, "Quản Trị Viên (admin)", "admin@company.com", itDept?.Name ?? "Phòng Công Nghệ Thông Tin", new DateTime(2026, 1, 16, 0, 0, 0, DateTimeKind.Utc));
+        await _assetRepository.InsertAsync(asset1);
+        await _assetActivityRepository.InsertAsync(new Helpdesk.Assets.AssetActivity(
+            _guidGenerator.Create(),
+            asset1.Id,
+            Helpdesk.Assets.AssetActivityType.Created,
+            "Khởi tạo tài sản",
+            "Nhập kho thiết bị MacBook Pro 16\" M3 Max mới 100%."
+        ));
+        await _assetActivityRepository.InsertAsync(new Helpdesk.Assets.AssetActivity(
+            _guidGenerator.Create(),
+            asset1.Id,
+            Helpdesk.Assets.AssetActivityType.Assigned,
+            "Cấp phát thiết bị",
+            "Bàn giao máy cho Quản Trị Viên (admin) sử dụng phát triển hệ thống."
+        ));
+
+        // 2. Dell Latitude 5540
+        var asset2 = new Helpdesk.Assets.Asset(
+            _guidGenerator.Create(),
+            "AST-20260901-0002",
+            "Dell Latitude 5540",
+            Helpdesk.Assets.AssetType.Laptop,
+            Helpdesk.Assets.AssetStatus.Assigned,
+            serialNumber: "8H7F9K2",
+            model: "Latitude 5540 (Core i7-1365U / 16GB / 512GB)",
+            manufacturer: "Dell Inc.",
+            location: "Tầng 2 - Phòng Kế Toán",
+            purchaseDate: new DateTime(2026, 2, 10, 0, 0, 0, DateTimeKind.Utc),
+            warrantyExpiryDate: new DateTime(2027, 2, 10, 0, 0, 0, DateTimeKind.Utc),
+            purchaseCost: 26500000m,
+            specifications: "CPU: Intel Core i7-1365U vPro (10 Cores, 12 Threads)\nRAM: 16GB DDR5 5200MHz\nSSD: 512GB PCIe NVMe Gen4\nMàn hình: 15.6\" FHD IPS Anti-Glare\nOS: Windows 11 Pro 64-bit",
+            notes: "Đã cài đặt sẵn phần mềm kế toán Misa SME và Office 365 bản quyền."
+        );
+        asset2.AssignTo(null, "Nguyễn Thị Hoa", "hoant@company.com", accDept?.Name ?? "Phòng Kế Toán", new DateTime(2026, 2, 11, 0, 0, 0, DateTimeKind.Utc));
+        await _assetRepository.InsertAsync(asset2);
+        await _assetActivityRepository.InsertAsync(new Helpdesk.Assets.AssetActivity(
+            _guidGenerator.Create(),
+            asset2.Id,
+            Helpdesk.Assets.AssetActivityType.Created,
+            "Khởi tạo tài sản",
+            "Nhập kho thiết bị Dell Latitude 5540."
+        ));
+        await _assetActivityRepository.InsertAsync(new Helpdesk.Assets.AssetActivity(
+            _guidGenerator.Create(),
+            asset2.Id,
+            Helpdesk.Assets.AssetActivityType.Assigned,
+            "Cấp phát thiết bị",
+            "Bàn giao cho Kế toán viên Nguyễn Thị Hoa phục vụ công việc quyết toán."
+        ));
+
+        // 3. Màn hình Dell UltraSharp 27" 4K (U2723QE)
+        var asset3 = new Helpdesk.Assets.Asset(
+            _guidGenerator.Create(),
+            "AST-20260901-0003",
+            "Màn hình Dell UltraSharp 27\" 4K (U2723QE)",
+            Helpdesk.Assets.AssetType.Monitor,
+            Helpdesk.Assets.AssetStatus.InStock,
+            serialNumber: "CN-0V2F11-74445",
+            model: "UltraSharp U2723QE 4K IPS Black USB-C Hub",
+            manufacturer: "Dell Inc.",
+            location: "Kho IT - Kệ A2",
+            purchaseDate: new DateTime(2026, 3, 1, 0, 0, 0, DateTimeKind.Utc),
+            warrantyExpiryDate: new DateTime(2029, 3, 1, 0, 0, 0, DateTimeKind.Utc),
+            purchaseCost: 14200000m,
+            specifications: "Kích thước: 27 inch IPS Black Technology\nĐộ phân giải: 4K UHD (3840 x 2160) @ 60Hz\nĐộ tương phản: 2000:1\nCổng kết nối: USB-C 90W PD, RJ45 Ethernet, DisplayPort 1.4, HDMI 2.0",
+            notes: "Màn hình dự phòng trong kho sẵn sàng cấp phát cho nhân sự thiết kế đồ họa."
+        );
+        await _assetRepository.InsertAsync(asset3);
+        await _assetActivityRepository.InsertAsync(new Helpdesk.Assets.AssetActivity(
+            _guidGenerator.Create(),
+            asset3.Id,
+            Helpdesk.Assets.AssetActivityType.Created,
+            "Khởi tạo tài sản",
+            "Nhập kho lưu trữ 01 màn hình Dell UltraSharp 4K mới nguyên hộp."
+        ));
+
+        // 4. Cisco Catalyst 1000 24-Port Switch
+        var asset4 = new Helpdesk.Assets.Asset(
+            _guidGenerator.Create(),
+            "AST-20260901-0004",
+            "Cisco Catalyst 1000 24-Port PoE+ Switch",
+            Helpdesk.Assets.AssetType.NetworkDevice,
+            Helpdesk.Assets.AssetStatus.Assigned,
+            serialNumber: "FOC2438V01A",
+            model: "C9200L-24P-4G-E",
+            manufacturer: "Cisco Systems",
+            location: "Phòng Server Trung Tâm - Tủ Rack 01",
+            purchaseDate: new DateTime(2025, 11, 20, 0, 0, 0, DateTimeKind.Utc),
+            warrantyExpiryDate: new DateTime(2028, 11, 20, 0, 0, 0, DateTimeKind.Utc),
+            purchaseCost: 38500000m,
+            specifications: "Cổng: 24x 10/100/1000 Ethernet PoE+ ports (370W PoE budget)\nUplink: 4x 1G SFP uplinks\nQuản trị: Web UI, Cisco IOS CLI, SNMPv3, SSH",
+            notes: "Thiết bị switch trục chính cung cấp mạng tầng 1 và tầng 2 kèm cấp nguồn cho camera & Access Point."
+        );
+        asset4.AssignTo(null, "Đội Quản Trị Mạng & Server", "network-admin@company.com", itDept?.Name ?? "Phòng Công Nghệ Thông Tin", new DateTime(2025, 11, 25, 0, 0, 0, DateTimeKind.Utc));
+        await _assetRepository.InsertAsync(asset4);
+        await _assetActivityRepository.InsertAsync(new Helpdesk.Assets.AssetActivity(
+            _guidGenerator.Create(),
+            asset4.Id,
+            Helpdesk.Assets.AssetActivityType.Created,
+            "Khởi tạo tài sản",
+            "Đưa thiết bị Switch Cisco vào hệ thống giám sát hạ tầng."
+        ));
+
+        // 5. HP LaserJet Pro MFP M428fdw
+        var asset5 = new Helpdesk.Assets.Asset(
+            _guidGenerator.Create(),
+            "AST-20260901-0005",
+            "Máy In Đa Năng HP LaserJet Pro MFP M428fdw",
+            Helpdesk.Assets.AssetType.PrinterPeripheral,
+            Helpdesk.Assets.AssetStatus.UnderRepair,
+            serialNumber: "VNB3K18492",
+            model: "LaserJet Pro MFP M428fdw",
+            manufacturer: "HP Inc.",
+            location: "Tầng 1 - Khu Lễ Tân & Hành Chính",
+            purchaseDate: new DateTime(2025, 8, 15, 0, 0, 0, DateTimeKind.Utc),
+            warrantyExpiryDate: new DateTime(2026, 8, 15, 0, 0, 0, DateTimeKind.Utc),
+            purchaseCost: 12800000m,
+            specifications: "Chức năng: In, Scan, Copy, Fax hai mặt tự động\nTốc độ: 38 trang/phút\nĐộ phân giải: 1200 x 1200 dpi\nKết nối: Wi-Fi Dual-Band, Gigabit Ethernet, USB 2.0",
+            notes: "Máy in lễ tân tầng 1, đang báo lỗi kẹt giấy liên tục và đang gửi trung tâm bảo hành HP ủy quyền."
+        );
+        asset5.AssignTo(null, "Bộ Phận Lễ Tân - Hành Chính", "letan@company.com", hrDept?.Name ?? "Phòng Hành Chính Nhân Sự", new DateTime(2025, 8, 20, 0, 0, 0, DateTimeKind.Utc));
+        asset5.ChangeStatus(Helpdesk.Assets.AssetStatus.UnderRepair);
+        await _assetRepository.InsertAsync(asset5);
+        await _assetActivityRepository.InsertAsync(new Helpdesk.Assets.AssetActivity(
+            _guidGenerator.Create(),
+            asset5.Id,
+            Helpdesk.Assets.AssetActivityType.Created,
+            "Khởi tạo tài sản",
+            "Nhập kho và cấu hình máy in đa năng HP LaserJet."
+        ));
+        await _assetActivityRepository.InsertAsync(new Helpdesk.Assets.AssetActivity(
+            _guidGenerator.Create(),
+            asset5.Id,
+            Helpdesk.Assets.AssetActivityType.SentToRepair,
+            "Gửi đi bảo dưỡng / Sửa chữa",
+            "Gửi máy in sang TTBH HP Việt Nam kiểm tra lỗi kẹt giấy và thay cụm sấy (Fuser Unit)."
+        ));
+
+        // 6. ThinkPad X1 Carbon Gen 11
+        var asset6 = new Helpdesk.Assets.Asset(
+            _guidGenerator.Create(),
+            "AST-20260901-0006",
+            "ThinkPad X1 Carbon Gen 11",
+            Helpdesk.Assets.AssetType.Laptop,
+            Helpdesk.Assets.AssetStatus.InStock,
+            serialNumber: "PF4G78M1",
+            model: "ThinkPad X1 Carbon Gen 11 (Core i7-1370P / 32GB / 1TB)",
+            manufacturer: "Lenovo",
+            location: "Kho IT - Tủ bảo mật S3",
+            purchaseDate: new DateTime(2026, 5, 10, 0, 0, 0, DateTimeKind.Utc),
+            warrantyExpiryDate: new DateTime(2029, 5, 10, 0, 0, 0, DateTimeKind.Utc),
+            purchaseCost: 48000000m,
+            specifications: "CPU: Intel Core i7-1370P vPro (14 Cores, 20 Threads)\nRAM: 32GB LPDDR5 6000MHz\nSSD: 1TB PCIe NVMe Gen4 Performance\nMàn hình: 14\" 2.8K OLED (2880x1800) HDR 500 True Black\nTrọng lượng: 1.12 kg\nOS: Windows 11 Pro 64-bit",
+            notes: "Thiết bị siêu mỏng nhẹ cao cấp dành cho Ban Giám Đốc hoặc đi công tác nước ngoài."
+        );
+        await _assetRepository.InsertAsync(asset6);
+        await _assetActivityRepository.InsertAsync(new Helpdesk.Assets.AssetActivity(
+            _guidGenerator.Create(),
+            asset6.Id,
+            Helpdesk.Assets.AssetActivityType.Created,
+            "Khởi tạo tài sản",
+            "Nhập kho thiết bị ThinkPad X1 Carbon Gen 11 tình trạng Mới 100%."
+        ));
+
+        // Liên kết máy in HP LaserJet Pro MFP M428fdw vào ticket sự cố máy in
+        var printerTicket = await _ticketRepository.FindAsync(t => t.TicketNumber.Contains("0002") || t.Title.Contains("máy in") || t.Title.Contains("Máy in"));
+        if (printerTicket != null)
+        {
+            printerTicket.AssetId = asset5.Id;
+            await _ticketRepository.UpdateAsync(printerTicket);
+
+            await _assetActivityRepository.InsertAsync(new Helpdesk.Assets.AssetActivity(
+                _guidGenerator.Create(),
+                asset5.Id,
+                Helpdesk.Assets.AssetActivityType.TicketLinked,
+                $"Liên kết sự cố: {printerTicket.TicketNumber}",
+                printerTicket.Title,
+                relatedTicketId: printerTicket.Id
+            ));
+        }
+    }
+
     private async Task SeedRolesAndUsersAsync()
     {
         // 1. Roles & Permissions mapping
@@ -294,6 +511,7 @@ public class HelpdeskDataSeedContributor : IDataSeedContributor, ITransientDepen
         {
             "Helpdesk.Dashboard",
             "Helpdesk.Tickets", "Helpdesk.Tickets.Create", "Helpdesk.Tickets.Edit", "Helpdesk.Tickets.Delete", "Helpdesk.Tickets.Assign", "Helpdesk.Tickets.ChangeStatus", "Helpdesk.Tickets.AddComment",
+            "Helpdesk.Assets", "Helpdesk.Assets.Create", "Helpdesk.Assets.Edit", "Helpdesk.Assets.Delete", "Helpdesk.Assets.Assign", "Helpdesk.Assets.ChangeStatus",
             "Helpdesk.Sla", "Helpdesk.Sla.Policies", "Helpdesk.Sla.BusinessHours", "Helpdesk.Sla.Reports",
             "Helpdesk.Categories", "Helpdesk.Categories.Create", "Helpdesk.Categories.Edit", "Helpdesk.Categories.Delete",
             "Helpdesk.Priorities", "Helpdesk.Priorities.Create", "Helpdesk.Priorities.Edit", "Helpdesk.Priorities.Delete",
@@ -310,6 +528,7 @@ public class HelpdeskDataSeedContributor : IDataSeedContributor, ITransientDepen
         {
             "Helpdesk.Dashboard",
             "Helpdesk.Tickets", "Helpdesk.Tickets.Create", "Helpdesk.Tickets.Edit", "Helpdesk.Tickets.Assign", "Helpdesk.Tickets.ChangeStatus", "Helpdesk.Tickets.AddComment",
+            "Helpdesk.Assets", "Helpdesk.Assets.Create", "Helpdesk.Assets.Edit", "Helpdesk.Assets.Assign", "Helpdesk.Assets.ChangeStatus",
             "Helpdesk.CannedResponses", "Helpdesk.CannedResponses.Create", "Helpdesk.CannedResponses.Edit",
             "Helpdesk.KnowledgeBase", "Helpdesk.KnowledgeBase.Create", "Helpdesk.KnowledgeBase.Edit",
             "Helpdesk.CustomerPortal",

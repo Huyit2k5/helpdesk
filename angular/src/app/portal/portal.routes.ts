@@ -19,4 +19,10 @@ export const PORTAL_ROUTES: Routes = [
       import('./ticket-view.component').then(c => c.TicketViewComponent),
     canActivate: [authGuard],
   },
+  {
+    path: 'my-assets',
+    loadComponent: () =>
+      import('./my-assets/my-assets.component').then(c => c.MyAssetsComponent),
+    canActivate: [authGuard],
+  },
 ];

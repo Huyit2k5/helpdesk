@@ -67,6 +67,7 @@ export class TicketsComponent implements OnInit {
   selectedCategoryId = '';
   selectedDepartmentId = '';
   selectedAssigneeId = '';
+  assignedToMeOnly = false;
   dateFrom = '';
   dateTo = '';
   isExporting = false;
@@ -86,6 +87,7 @@ export class TicketsComponent implements OnInit {
         categoryId: this.selectedCategoryId || undefined,
         departmentId: this.selectedDepartmentId || undefined,
         assigneeId: this.selectedAssigneeId || undefined,
+        assignedToMe: this.assignedToMeOnly || undefined,
         dateFrom: this.dateFrom ? new Date(this.dateFrom).toISOString() : undefined,
         dateTo: this.dateTo ? new Date(this.dateTo + 'T23:59:59').toISOString() : undefined,
       }).pipe(
@@ -158,9 +160,18 @@ export class TicketsComponent implements OnInit {
     this.selectedCategoryId = '';
     this.selectedDepartmentId = '';
     this.selectedAssigneeId = '';
+    this.assignedToMeOnly = false;
     this.dateFrom = '';
     this.dateTo = '';
     this.list.get();
+  }
+
+  toggleAssignedToMe(): void {
+    this.assignedToMeOnly = !this.assignedToMeOnly;
+    if (this.assignedToMeOnly) {
+      this.selectedAssigneeId = '';
+    }
+    this.search();
   }
 
   exportExcel(): void {
@@ -172,6 +183,7 @@ export class TicketsComponent implements OnInit {
       categoryId: this.selectedCategoryId || undefined,
       departmentId: this.selectedDepartmentId || undefined,
       assigneeId: this.selectedAssigneeId || undefined,
+      assignedToMe: this.assignedToMeOnly || undefined,
       dateFrom: this.dateFrom ? new Date(this.dateFrom).toISOString() : undefined,
       dateTo: this.dateTo ? new Date(this.dateTo + 'T23:59:59').toISOString() : undefined,
       maxResultCount: 1000,

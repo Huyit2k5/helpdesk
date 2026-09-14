@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp;
 using Volo.Abp.Data;
@@ -61,10 +62,5 @@ public class HelpdeskEntityFrameworkCoreTestModule : AbpModule
                 context.UseSqlite();
             });
         });
-    }
-
-    public override void OnApplicationShutdown(ApplicationShutdownContext context)
-    {
-        _database?.Dispose();
     }
 }

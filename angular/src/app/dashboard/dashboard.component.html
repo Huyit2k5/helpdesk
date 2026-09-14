@@ -190,6 +190,43 @@
       </div>
     </div>
 
+    <!-- My Tickets KPI Row -->
+    <div class="row g-3 mb-4">
+      <!-- My Open Tickets -->
+      <div class="col-xl-3 col-md-6">
+        <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #8b5cf6 !important;">
+          <div class="card-body py-3">
+            <div class="d-flex align-items-center">
+              <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; background: rgba(139,92,246,0.1);">
+                <i class="fas fa-user-check" style="color: #8b5cf6;"></i>
+              </div>
+              <div>
+                <p class="text-muted small mb-0">Ticket của tôi (đang mở)</p>
+                <h5 class="fw-bold mb-0">{{ stats.myOpenTicketCount }}</h5>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- My Overdue Tickets -->
+      <div class="col-xl-3 col-md-6">
+        <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #ef4444 !important;">
+          <div class="card-body py-3">
+            <div class="d-flex align-items-center">
+              <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; background: rgba(239,68,68,0.1);">
+                <i class="fas fa-hourglass-end" style="color: #ef4444;"></i>
+              </div>
+              <div>
+                <p class="text-muted small mb-0">Ticket của tôi (sắp/đã trễ SLA)</p>
+                <h5 class="fw-bold mb-0" [class.text-danger]="stats.myOverdueTicketCount > 0">{{ stats.myOverdueTicketCount }}</h5>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Charts Row -->
     <div class="row g-3 mb-4">
       <!-- Ticket Trend Chart -->

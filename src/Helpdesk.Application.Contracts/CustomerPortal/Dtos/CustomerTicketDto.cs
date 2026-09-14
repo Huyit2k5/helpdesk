@@ -17,4 +17,7 @@ public class CustomerTicketDto : EntityDto<Guid>
     public DateTime? LastModificationTime { get; set; }
     public int CommentCount { get; set; }
     public int? CsatRating { get; set; }
+    public Guid? AssetId { get; set; }
+    public string? AssetTag { get; set; }
+    public string? AssetName { get; set; }
 }

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Linq.Dynamic.Core;
 using System.Threading.Tasks;
+using Helpdesk.Assets;
 using Helpdesk.AssignmentRules;
 using Helpdesk.CannedResponses;
 using Helpdesk.Categories;
@@ -46,6 +47,8 @@ public class TicketAppService : ApplicationService, ITicketAppService
     private readonly IRepository<Department, Guid> _departmentRepository;
     private readonly IRepository<IdentityUser, Guid> _userRepository;
     private readonly IRepository<SlaPolicy, Guid> _slaPolicyRepository;
+    private readonly IRepository<Asset, Guid> _assetRepository;
+    private readonly AssetManager _assetManager;
     private readonly TicketManager _ticketManager;
     private readonly SlaManager _slaManager;
     private readonly AutoAssignmentManager _autoAssignmentManager;
@@ -69,6 +72,8 @@ public class TicketAppService : ApplicationService, ITicketAppService
         IRepository<Department, Guid> departmentRepository,
         IRepository<IdentityUser, Guid> userRepository,
         IRepository<SlaPolicy, Guid> slaPolicyRepository,
+        IRepository<Asset, Guid> assetRepository,
+        AssetManager assetManager,
         TicketManager ticketManager,
         SlaManager slaManager,
         AutoAssignmentManager autoAssignmentManager,
@@ -91,6 +96,8 @@ public class TicketAppService : ApplicationService, ITicketAppService
         _departmentRepository = departmentRepository;
         _userRepository = userRepository;
         _slaPolicyRepository = slaPolicyRepository;
+        _assetRepository = assetRepository;
+        _assetManager = assetManager;
         _ticketManager = ticketManager;
         _slaManager = slaManager;
         _autoAssignmentManager = autoAssignmentManager;
@@ -145,7 +152,11 @@ public class TicketAppService : ApplicationService, ITicketAppService
             ticketQuery = ticketQuery.Where(t => t.DepartmentId == input.DepartmentId.Value);
         }
 
-        if (input.AssigneeId.HasValue && input.AssigneeId.Value != Guid.Empty)
+        if (input.AssignedToMe && CurrentUser.Id.HasValue)
+        {
+            ticketQuery = ticketQuery.Where(t => t.AssigneeId == CurrentUser.Id.Value);
+        }
+        else if (input.AssigneeId.HasValue && input.AssigneeId.Value != Guid.Empty)
         {
             ticketQuery = ticketQuery.Where(t => t.AssigneeId == input.AssigneeId.Value);
         }
@@ -209,6 +220,11 @@ public class TicketAppService : ApplicationService, ITicketAppService
             .GroupBy(c => c.TicketId)
             .ToDictionary(g => g.Key, g => g.Count());
 
+        var assetIds = rawList.Where(t => t.AssetId.HasValue).Select(t => t.AssetId!.Value).Distinct().ToList();
+        var assetQuery = await _assetRepository.GetQueryableAsync();
+        var assetList = await AsyncExecuter.ToListAsync(assetQuery.Where(a => assetIds.Contains(a.Id)));
+        var assetDict = assetList.ToDictionary(a => a.Id, a => a);
+
         var dtos = rawList.Select(t =>
         {
             var pInfo = priorities.GetValueOrDefault(t.PriorityId);
@@ -251,7 +267,10 @@ public class TicketAppService : ApplicationService, ITicketAppService
                 IsResolutionBreached = t.IsResolutionBreached,
                 Tags = t.Tags,
                 AiSentiment = t.AiSentiment,
-                CommentCount = commentCounts.GetValueOrDefault(t.Id, 0)
+                CommentCount = commentCounts.GetValueOrDefault(t.Id, 0),
+                AssetId = t.AssetId,
+                AssetTag = t.AssetId.HasValue && assetDict.TryGetValue(t.AssetId.Value, out var ast) ? ast.AssetTag : null,
+                AssetName = t.AssetId.HasValue && assetDict.TryGetValue(t.AssetId.Value, out var ast2) ? ast2.Name : null
             };
         }).ToList();
 
@@ -269,6 +288,7 @@ public class TicketAppService : ApplicationService, ITicketAppService
         var department = ticket.DepartmentId.HasValue ? await _departmentRepository.FindAsync(ticket.DepartmentId.Value) : null;
         var assignee = ticket.AssigneeId.HasValue ? await _userRepository.FindAsync(ticket.AssigneeId.Value) : null;
         var slaPolicy = ticket.SlaPolicyId.HasValue ? await _slaPolicyRepository.FindAsync(ticket.SlaPolicyId.Value) : null;
+        var asset = ticket.AssetId.HasValue ? await _assetRepository.FindAsync(ticket.AssetId.Value) : null;
 
         var comments = await _commentRepository.GetListAsync(c => c.TicketId == id);
         var activities = await _activityRepository.GetListAsync(a => a.TicketId == id);
@@ -328,6 +348,10 @@ public class TicketAppService : ApplicationService, ITicketAppService
             AiSummary = ticket.AiSummary,
             AiSentiment = ticket.AiSentiment,
             AiSentimentReason = ticket.AiSentimentReason,
+            AssetId = ticket.AssetId,
+            AssetTag = asset?.AssetTag,
+            AssetName = asset?.Name,
+            AssetTypeName = asset != null ? GetAssetTypeName(asset.AssetType) : null,
             Comments = comments.OrderBy(c => c.CreationTime).Select(c => new TicketCommentDto
             {
                 Id = c.Id,
@@ -395,7 +419,8 @@ public class TicketAppService : ApplicationService, ITicketAppService
             input.RequesterId,
             input.RequesterPhone,
             input.DueDate,
-            input.Tags
+            input.Tags,
+            input.AssetId
         );
 
         await _slaManager.CalculateSlaDatesAsync(ticket);
@@ -406,6 +431,17 @@ public class TicketAppService : ApplicationService, ITicketAppService
         }
 
         await _ticketRepository.InsertAsync(ticket, autoSave: true);
+
+        if (input.AssetId.HasValue)
+        {
+            await _assetManager.LogTicketLinkedAsync(
+                input.AssetId.Value,
+                ticket.Id,
+                ticket.TicketNumber,
+                ticket.Title,
+                CurrentUser.Id,
+                CurrentUser.UserName ?? CurrentUser.Name);
+        }
 
         var category = await _categoryRepository.FindAsync(ticket.CategoryId);
         var priority = await _priorityRepository.FindAsync(ticket.PriorityId);
@@ -472,6 +508,7 @@ public class TicketAppService : ApplicationService, ITicketAppService
     public async Task<TicketDetailDto> UpdateAsync(Guid id, UpdateTicketDto input)
     {
         var ticket = await _ticketRepository.GetAsync(id);
+        var oldAssetId = ticket.AssetId;
 
         ticket.SetTitle(input.Title);
         ticket.Description = input.Description ?? string.Empty;
@@ -486,8 +523,43 @@ public class TicketAppService : ApplicationService, ITicketAppService
         ticket.RequesterPhone = input.RequesterPhone;
         ticket.DueDate = input.DueDate;
         ticket.Tags = input.Tags;
+        ticket.AssetId = input.AssetId;
 
         await _ticketRepository.UpdateAsync(ticket, autoSave: true);
+
+        if (input.AssetId.HasValue && input.AssetId != oldAssetId)
+        {
+            await _assetManager.LogTicketLinkedAsync(
+                input.AssetId.Value,
+                ticket.Id,
+                ticket.TicketNumber,
+                ticket.Title,
+                CurrentUser.Id,
+                CurrentUser.UserName ?? CurrentUser.Name);
+        }
+
+        return await GetAsync(id);
+    }
+
+    [Authorize(HelpdeskPermissions.Tickets.Edit)]
+    public async Task<TicketDetailDto> LinkAssetAsync(Guid id, LinkAssetInput input)
+    {
+        var ticket = await _ticketRepository.GetAsync(id);
+        var oldAssetId = ticket.AssetId;
+        ticket.AssetId = input.AssetId;
+
+        await _ticketRepository.UpdateAsync(ticket, autoSave: true);
+
+        if (input.AssetId.HasValue && input.AssetId != oldAssetId)
+        {
+            await _assetManager.LogTicketLinkedAsync(
+                input.AssetId.Value,
+                ticket.Id,
+                ticket.TicketNumber,
+                ticket.Title,
+                CurrentUser.Id,
+                CurrentUser.UserName ?? CurrentUser.Name);
+        }
 
         return await GetAsync(id);
     }
@@ -858,7 +930,11 @@ public class TicketAppService : ApplicationService, ITicketAppService
             ticketQuery = ticketQuery.Where(t => t.DepartmentId == input.DepartmentId.Value);
         }
 
-        if (input.AssigneeId.HasValue && input.AssigneeId.Value != Guid.Empty)
+        if (input.AssignedToMe && CurrentUser.Id.HasValue)
+        {
+            ticketQuery = ticketQuery.Where(t => t.AssigneeId == CurrentUser.Id.Value);
+        }
+        else if (input.AssigneeId.HasValue && input.AssigneeId.Value != Guid.Empty)
         {
             ticketQuery = ticketQuery.Where(t => t.AssigneeId == input.AssigneeId.Value);
         }
@@ -911,5 +987,21 @@ public class TicketAppService : ApplicationService, ITicketAppService
 
         var fileName = $"SuVu_Helpdesk_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
         return new RemoteStreamContent(memoryStream, fileName, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    }
+
+    private static string GetAssetTypeName(AssetType type)
+    {
+        return type switch
+        {
+            AssetType.Laptop => "Máy tính xách tay (Laptop)",
+            AssetType.Desktop => "Máy tính để bàn (PC)",
+            AssetType.Monitor => "Màn hình hiển thị",
+            AssetType.NetworkDevice => "Thiết bị mạng (Router/Switch/AP)",
+            AssetType.PrinterPeripheral => "Máy in & Thiết bị ngoại vi",
+            AssetType.ServerStorage => "Máy chủ & Lưu trữ (Server)",
+            AssetType.SoftwareLicense => "Bản quyền phần mềm",
+            AssetType.MobileDevice => "Thiết bị di động (Tablet/Phone)",
+            _ => "Thiết bị khác"
+        };
     }
 }

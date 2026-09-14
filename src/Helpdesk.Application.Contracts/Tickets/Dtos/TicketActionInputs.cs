@@ -17,3 +17,9 @@ public class ChangeTicketStatusInput
 
     public string? Comment { get; set; }
 }
+
+public class LinkAssetInput
+{
+    public Guid? AssetId { get; set; }
+}
+

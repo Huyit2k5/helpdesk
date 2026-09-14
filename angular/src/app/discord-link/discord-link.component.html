@@ -1,0 +1,82 @@
+<div class="discord-link-page container-fluid py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-7 col-xl-6">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+          <div class="d-flex align-items-center gap-3 mb-3">
+            <div
+              class="d-flex align-items-center justify-content-center rounded-circle bg-primary-subtle"
+              style="width: 56px; height: 56px;"
+            >
+              <i class="fa-brands fa-discord fs-2 text-primary"></i>
+            </div>
+            <div>
+              <h2 class="h4 fw-bold mb-1">Liên Kết Tài Khoản Discord</h2>
+              <p class="text-muted mb-0 small">
+                Kết nối tài khoản Discord của bạn với tài khoản Helpdesk để nhận, xử lý và hoàn
+                thành sự vụ trực tiếp trên Discord.
+              </p>
+            </div>
+          </div>
+
+          <hr />
+
+          <ol class="small text-muted ps-3 mb-4">
+            <li>Bấm nút bên dưới để lấy mã liên kết (có hiệu lực trong 10 phút, dùng một lần).</li>
+            <li>
+              Trên Discord, gõ lệnh
+              <code>/link-helpdesk code:&lt;mã&gt;</code>
+              (hoặc <code>!link &lt;mã&gt;</code>) trong kênh có bot Helpdesk.
+            </li>
+            <li>Bot sẽ xác nhận liên kết thành công ngay lập tức.</li>
+          </ol>
+
+          @if (!code) {
+            <button
+              type="button"
+              class="btn btn-primary fw-semibold px-4 shadow-sm d-flex align-items-center gap-2"
+              [disabled]="isGenerating"
+              (click)="generateCode()"
+            >
+              <span *ngIf="isGenerating" class="spinner-border spinner-border-sm" role="status"></span>
+              <i *ngIf="!isGenerating" class="fa-solid fa-key"></i>
+              <span>Lấy Mã Liên Kết Discord</span>
+            </button>
+          }
+
+          @if (code) {
+            <div class="p-3 rounded border bg-light-subtle text-center">
+              <div class="small text-muted mb-1">Mã liên kết của bạn</div>
+              <div class="d-flex align-items-center justify-content-center gap-2">
+                <span class="fs-2 fw-bold font-monospace" style="letter-spacing: 4px;">{{ code }}</span>
+                <button
+                  type="button"
+                  class="btn btn-sm btn-outline-secondary"
+                  title="Sao chép mã"
+                  (click)="copyCode()"
+                >
+                  <i class="fa-regular fa-copy"></i>
+                </button>
+              </div>
+              <div class="small mt-2" [class.text-danger]="remainingSeconds <= 30" [class.text-muted]="remainingSeconds > 30">
+                @if (remainingSeconds > 0) {
+                  Mã hết hạn sau {{ remainingSeconds }} giây
+                } @else {
+                  Mã đã hết hạn, vui lòng lấy mã mới
+                }
+              </div>
+              <button
+                type="button"
+                class="btn btn-sm btn-link mt-2"
+                [disabled]="isGenerating"
+                (click)="generateCode()"
+              >
+                Lấy mã mới
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -17,6 +17,8 @@ public class GetTicketListInput : PagedAndSortedResultRequestDto
 
     public Guid? AssigneeId { get; set; }
 
+    public bool AssignedToMe { get; set; }
+
     public Guid? SourceId { get; set; }
 
     public DateTime? DateFrom { get; set; }

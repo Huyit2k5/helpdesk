@@ -14,6 +14,9 @@ export interface CustomerTicketDto extends EntityDto<string> {
   lastModificationTime?: string;
   commentCount: number;
   csatRating?: number;
+  assetId?: string;
+  assetTag?: string;
+  assetName?: string;
 }
 
 export interface GetCustomerTicketListInput extends PagedAndSortedResultRequestDto {
@@ -27,6 +30,7 @@ export interface CreateCustomerTicketDto {
   description: string;
   categoryId: string;
   priorityId?: string;
+  assetId?: string;
   attachments?: CreateAttachmentInput[];
 }
 
@@ -67,6 +71,11 @@ export interface CustomerTicketDetailDto extends EntityDto<string> {
   csatRating?: number;
   csatComment?: string;
   csatSubmittedAt?: string;
+  assetId?: string;
+  assetTag?: string;
+  assetName?: string;
+  assetTypeName?: string;
+  serialNumber?: string;
   attachments: TicketAttachmentDto[];
   comments: CustomerCommentDto[];
 }

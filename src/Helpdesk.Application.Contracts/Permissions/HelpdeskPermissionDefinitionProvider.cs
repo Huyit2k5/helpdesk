@@ -106,6 +106,14 @@ public class HelpdeskPermissionDefinitionProvider : PermissionDefinitionProvider
 
         var aiAssistantPermission = helpdeskGroup.AddPermission(HelpdeskPermissions.AiAssistant.Default, L("Permission:AiAssistant"));
         aiAssistantPermission.AddChild(HelpdeskPermissions.AiAssistant.Use, L("Permission:AiAssistant.Use"));
+
+        // Assets
+        var assetsPermission = helpdeskGroup.AddPermission(HelpdeskPermissions.Assets.Default, L("Permission:Assets"));
+        assetsPermission.AddChild(HelpdeskPermissions.Assets.Create, L("Permission:Assets.Create"));
+        assetsPermission.AddChild(HelpdeskPermissions.Assets.Edit, L("Permission:Assets.Edit"));
+        assetsPermission.AddChild(HelpdeskPermissions.Assets.Delete, L("Permission:Assets.Delete"));
+        assetsPermission.AddChild(HelpdeskPermissions.Assets.Assign, L("Permission:Assets.Assign"));
+        assetsPermission.AddChild(HelpdeskPermissions.Assets.ChangeStatus, L("Permission:Assets.ChangeStatus"));
     }
 
 

@@ -1,4 +1,5 @@
 import type { AddCustomerCommentDto, CreateCustomerTicketDto, CustomerCommentDto, CustomerTicketDetailDto, CustomerTicketDto, GetCustomerTicketListInput, SubmitTicketFeedbackDto } from './models';
+import type { AssetDto } from '../assets/models';
 import { RestService, Rest } from '@abp/ng.core';
 import type { PagedResultDto } from '@abp/ng.core';
 import { Injectable, inject } from '@angular/core';
@@ -66,6 +67,22 @@ export class CustomerPortalService {
       method: 'POST',
       url: '/api/app/customer-portal/submit-ticket-feedback',
       params: { ticketId },
+      body: input,
+    },
+    { apiName: this.apiName, ...config });
+
+  getMyAssets = (config?: Partial<Rest.Config>) =>
+    this.restService.request<any, AssetDto[]>({
+      method: 'GET',
+      url: '/api/app/customer-portal/my-assets',
+    },
+    { apiName: this.apiName, ...config });
+
+  confirmAssetHandover = (assetId: string, input: any, config?: Partial<Rest.Config>) =>
+    this.restService.request<any, void>({
+      method: 'POST',
+      url: `/api/app/customer-portal/confirm-asset-handover`,
+      params: { assetId },
       body: input,
     },
     { apiName: this.apiName, ...config });

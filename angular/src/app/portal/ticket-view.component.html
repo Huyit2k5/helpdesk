@@ -308,6 +308,23 @@
             <div class="fw-semibold text-dark">{{ ticket.priorityName }}</div>
           </div>
 
+          <!-- Associated Asset (ITAM) -->
+          <div *ngIf="ticket.assetId" class="info-row mb-3 p-3 bg-light rounded-3 border">
+            <div class="d-flex align-items-center justify-content-between mb-1">
+              <span class="text-muted small fw-bold">
+                <i class="fas fa-laptop text-primary me-1"></i> Thiết Bị Liên Quan
+              </span>
+              <span class="badge bg-primary-subtle text-primary font-monospace">{{ ticket.assetTag }}</span>
+            </div>
+            <div class="fw-bold text-dark">{{ ticket.assetName }}</div>
+            <div class="text-muted small mt-1" *ngIf="ticket.assetTypeName">
+              Phân loại: <span class="fw-semibold">{{ ticket.assetTypeName }}</span>
+            </div>
+            <div class="text-muted small font-monospace" *ngIf="ticket.serialNumber">
+              S/N: {{ ticket.serialNumber }}
+            </div>
+          </div>
+
           <div class="info-row mb-3" *ngIf="ticket.dueDate">
             <div class="text-muted small">Thời hạn dự kiến hoàn thành</div>
             <div class="fw-semibold text-dark">{{ ticket.dueDate | date:'dd/MM/yyyy HH:mm' }}</div>

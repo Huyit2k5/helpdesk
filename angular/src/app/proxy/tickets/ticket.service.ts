@@ -1,4 +1,4 @@
-import type { AssignTicketInput, ChangeTicketStatusInput, CreateTicketCommentDto, CreateTicketDto, GetTicketListInput, TicketActivityDto, TicketAttachmentDto, TicketCommentDto, TicketDetailDto, TicketListDto, UpdateTicketDto } from './dtos/models';
+import type { AssignTicketInput, ChangeTicketStatusInput, CreateTicketCommentDto, CreateTicketDto, GetTicketListInput, LinkAssetInput, TicketActivityDto, TicketAttachmentDto, TicketCommentDto, TicketDetailDto, TicketListDto, UpdateTicketDto } from './dtos/models';
 import { RestService, Rest } from '@abp/ng.core';
 import type { PagedResultDto } from '@abp/ng.core';
 import { Injectable, inject } from '@angular/core';
@@ -100,7 +100,7 @@ export class TicketService {
       method: 'GET',
       headers: { Accept: 'application/json' },
       url: '/api/app/ticket',
-      params: { filter: input.filter, statusId: input.statusId, priorityId: input.priorityId, categoryId: input.categoryId, departmentId: input.departmentId, assigneeId: input.assigneeId, sourceId: input.sourceId, dateFrom: input.dateFrom, dateTo: input.dateTo, sorting: input.sorting, skipCount: input.skipCount, maxResultCount: input.maxResultCount },
+      params: { filter: input.filter, statusId: input.statusId, priorityId: input.priorityId, categoryId: input.categoryId, departmentId: input.departmentId, assigneeId: input.assigneeId, assignedToMe: input.assignedToMe, sourceId: input.sourceId, dateFrom: input.dateFrom, dateTo: input.dateTo, sorting: input.sorting, skipCount: input.skipCount, maxResultCount: input.maxResultCount },
     },
     { apiName: this.apiName,...config });
   
@@ -163,6 +163,15 @@ export class TicketService {
       method: 'POST',
       headers: { Accept: 'application/json' },
       url: `/api/app/ticket/${id}/apply-macro/${macroId}`,
+    },
+    { apiName: this.apiName, ...config });
+
+  linkAsset = (id: string, input: LinkAssetInput, config?: Partial<Rest.Config>) =>
+    this.restService.request<any, TicketDetailDto>({
+      method: 'POST',
+      headers: { Accept: 'application/json' },
+      url: `/api/app/ticket/${id}/link-asset`,
+      body: input,
     },
     { apiName: this.apiName, ...config });
 }

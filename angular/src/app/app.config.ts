@@ -22,6 +22,7 @@ import { SLA_ROUTE_PROVIDER } from './sla/sla-route.provider';
 import { DASHBOARD_ROUTE_PROVIDER } from './dashboard/dashboard-route.provider';
 import { PORTAL_ROUTE_PROVIDER } from './portal/portal-route.provider';
 import { KNOWLEDGE_BASE_ROUTE_PROVIDER } from './knowledge-base/knowledge-base-route.provider';
+import { ASSETS_ROUTE_PROVIDER } from './assets/assets-route.provider';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -33,6 +34,7 @@ export const appConfig: ApplicationConfig = {
     DASHBOARD_ROUTE_PROVIDER,
     PORTAL_ROUTE_PROVIDER,
     KNOWLEDGE_BASE_ROUTE_PROVIDER,
+    ASSETS_ROUTE_PROVIDER,
     provideAnimations(),
     provideAbpCore(
       withOptions({

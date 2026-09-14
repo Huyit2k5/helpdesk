@@ -60,6 +60,11 @@ public class TicketDetailDto : FullAuditedEntityDto<Guid>
     public Helpdesk.Ai.CustomerSentiment? AiSentiment { get; set; }
     public string? AiSentimentReason { get; set; }
 
+    public Guid? AssetId { get; set; }
+    public string? AssetTag { get; set; }
+    public string? AssetName { get; set; }
+    public string? AssetTypeName { get; set; }
+
     public List<TicketCommentDto> Comments { get; set; } = new();
 
     public List<TicketActivityDto> Activities { get; set; } = new();

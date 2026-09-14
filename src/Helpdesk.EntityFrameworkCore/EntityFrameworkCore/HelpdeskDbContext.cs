@@ -68,6 +68,10 @@ public class HelpdeskDbContext :
     public DbSet<Helpdesk.Automations.AutomationRule> AutomationRules { get; set; }
     public DbSet<Helpdesk.Automations.Macro> Macros { get; set; }
 
+    // IT Asset Management & CMDB
+    public DbSet<Helpdesk.Assets.Asset> Assets { get; set; }
+    public DbSet<Helpdesk.Assets.AssetActivity> AssetActivities { get; set; }
+
     #region Entities from the modules
 
     /* Notice: We only implemented IIdentityProDbContext and ISaasDbContext

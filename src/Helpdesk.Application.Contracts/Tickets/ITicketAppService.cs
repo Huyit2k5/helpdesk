@@ -42,5 +42,7 @@ public interface ITicketAppService : IApplicationService
     Task<TicketDetailDto> AutoAssignAsync(Guid id);
 
     Task<TicketDetailDto> ApplyMacroAsync(Guid id, Guid macroId);
+
+    Task<TicketDetailDto> LinkAssetAsync(Guid id, LinkAssetInput input);
 }
 

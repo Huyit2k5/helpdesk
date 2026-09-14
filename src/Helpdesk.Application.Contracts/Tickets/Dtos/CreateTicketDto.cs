@@ -45,4 +45,6 @@ public class CreateTicketDto
 
     [StringLength(TicketConsts.MaxTagsLength)]
     public string? Tags { get; set; }
+
+    public Guid? AssetId { get; set; }
 }

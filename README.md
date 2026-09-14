@@ -27,7 +27,8 @@ Dự án xây dựng hệ thống Helpdesk & Quản lý Dịch vụ Công nghệ
    - [Phân Hệ 14: Tự Động Hóa Quy Trình (Workflow Automation & Rules Engine)](#514-phân-hệ-14-tự-động-hóa-quy-trình-workflow-automation--rules-engine)
    - [Phân Hệ 15: Mẫu Thao Tác Nhanh 1-Click (Macros Engine)](#515-phân-hệ-15-mẫu-thao-tác-nhanh-1-click-macros-engine)
    - [Phân Hệ 16: Trợ Lý Trí Tuệ Nhân Tạo & Gợi Ý Thông Minh (AI Helpdesk Copilot & Smart Assistant)](#516-phân-hệ-16-trợ-lý-trí-tuệ-nhân-tạo--gợi-ý-thông-minh-ai-helpdesk-copilot--smart-assistant)
-   - [Dữ Liệu Khởi Tạo Chuẩn (Data Seeding)](#517-dữ-liệu-khởi-tạo-chuẩn-data-seeding)
+   - [Phân Hệ 17: Quản Lý Tài Sản CNTT & Thiết Bị (IT Asset Management - ITAM & CMDB)](#517-phân-hệ-17-quản-lý-tài-sản-cntt--thiết-bị-itam--cmdb)
+   - [Dữ Liệu Khởi Tạo Chuẩn (Data Seeding)](#518-dữ-liệu-khởi-tạo-chuẩn-data-seeding)
 6. [Tài Khoản Mặc Định & Phân Quyền Vai Trò](#-tài-khoản-mặc-định--phân-quyền-vai-trò)
 7. [Hướng Dẫn Cài Đặt, Migrate CSDL & Khởi Chạy](#-hướng-dẫn-cài-đặt-migrate-csdl--khởi-chạy)
 8. [Tổng Hợp Các Lỗi Phát Sinh & Cách Khắc Phục (Troubleshooting Guide)](#-tổng-hợp-các-lỗi-phát-sinh--cách-khắc-phục-troubleshooting-guide)
@@ -88,6 +89,7 @@ Hệ thống được thiết kế theo kiến trúc chuẩn **Domain-Driven Des
 | **14**| **Tự Động Hóa Quy Trình (Workflow Automation Engine)** | Tự động kích hoạt hành động theo 4 sự kiện (Created, Updated, Comment, Scheduled Time-based 48h), đánh giá đa điều kiện | **Hoàn thành 100%** |
 | **15**| **Mẫu Thao Tác Nhanh 1-Click (Macros Engine)** | Kịch bản chuỗi hành động mẫu, áp dụng 1-click ngay trên giao diện vé (chèn phản hồi, đổi trạng thái, gán nhãn tức thời) | **Hoàn thành 100%** |
 | **16**| **Trợ Lý Trí Tuệ Nhân Tạo (AI Helpdesk Copilot)** | Đa động cơ (Gemini, OpenAI, Ollama, Smart NLP), 1-Click tóm tắt sự vụ 3 phần, Smart Reply theo 4 phong cách + RAG Knowledge Base, phân tích tâm lý khách hàng | **Hoàn thành 100%** |
+| **17**| **Quản Lý Tài Sản CNTT (ITAM & CMDB)** | Quản lý thiết bị CNTT (Laptop, PC, Màn hình, Mạng, Server...), vòng đời cấp phát/thu hồi, cảnh báo bảo hành 30 ngày, gắn kết Cổng khách hàng (/portal/my-assets) & In tem nhãn QR Code | **Hoàn thành 100%** |
 
 ---
 
@@ -212,7 +214,7 @@ Kỹ thuật viên thao tác trực tiếp trên trang chi tiết sự vụ: Th�
 ## 🗄️ MÔ HÌNH CƠ SỞ DỮ LIỆU & MỐI QUAN HỆ (DATABASE SCHEMA & ERD)
 
 ### 1. Sơ Đồ Thực Thể Quan Hệ (Entity Relationship Diagram - ERD)
-*Sơ đồ chỉ tập trung hiển thị toàn bộ **21 bảng nghiệp vụ tùy biến** được xây dựng riêng cho dự án Helpdesk (loại trừ các bảng hệ thống mặc định của ABP Framework như `AbpUsers`, `AbpRoles`, `AbpSettings`...):*
+*Sơ đồ chỉ tập trung hiển thị toàn bộ **23 bảng nghiệp vụ tùy biến** được xây dựng riêng cho dự án Helpdesk (loại trừ các bảng hệ thống mặc định của ABP Framework như `AbpUsers`, `AbpRoles`, `AbpSettings`...):*
 
 ```mermaid
 erDiagram
@@ -228,6 +230,7 @@ erDiagram
         uuid SourceId FK
         uuid AssigneeId FK
         uuid RequesterId FK
+        uuid AssetId FK
         string RequesterName
         string RequesterEmail
         string RequesterPhone
@@ -428,6 +431,36 @@ erDiagram
         string ActionsJson
     }
 
+    AppAssets {
+        uuid Id PK
+        string AssetTag UK
+        string Name
+        int AssetType
+        int Status
+        string SerialNumber
+        string Model
+        string Manufacturer
+        string Location
+        date PurchaseDate
+        date WarrantyExpiryDate
+        decimal PurchaseCost
+        uuid AssignedToUserId FK
+        string AssignedToUserName
+        string AssignedToUserEmail
+        string Department
+        date AssignedDate
+        string Specifications
+        string Notes
+    }
+
+    AppAssetActivities {
+        uuid Id PK
+        uuid AssetId FK
+        uuid UserId FK
+        int ActivityType
+        string Description
+    }
+
     %% Các mối quan hệ thực thể cốt lõi
     AppCategories ||--o{ AppTickets : "categorizes"
     AppCategories ||--o{ AppCategories : "parent_child"
@@ -455,6 +488,9 @@ erDiagram
 
     AppSlaPolicies ||--|{ AppSlaPolicyRules : "defines_rules"
     AppAssignmentRules ||--|{ AppAssignmentRuleAgents : "assigns_agents"
+
+    AppAssets ||--o{ AppAssetActivities : "logs"
+    AppAssets ||--o{ AppTickets : "related_to"
 ```
 
 ---
@@ -464,7 +500,7 @@ erDiagram
 #### 2.1. Nhóm Nghiệp Vụ Sự Vụ Cốt Lõi (Ticket Core)
 | Tên Bảng | Mô Tả Chức Năng | Các Trường Chính & Khóa Ngoại |
 |:---|:---|:---|
-| **`AppTickets`** | Lưu trữ toàn bộ thông tin yêu cầu hỗ trợ (Aggregate Root). | `Id` (PK), `TicketNumber` (Unique), `Title`, `Description`, `CategoryId` (FK), `PriorityId` (FK), `DepartmentId` (FK), `StatusId` (FK), `SourceId` (FK), `AssigneeId` (FK $\rightarrow$ AbpUsers), `RequesterId` (FK $\rightarrow$ AbpUsers), `RequesterName`, `RequesterEmail`, `RequesterPhone`, `DueDate`, `FirstResponseDueDate`, `FirstResponseAt`, `ResolvedAt`, `ClosedAt`, `Tags`, `CsatRating`, `CsatComment`, `CsatSubmittedAt`. |
+| **`AppTickets`** | Lưu trữ toàn bộ thông tin yêu cầu hỗ trợ (Aggregate Root). | `Id` (PK), `TicketNumber` (Unique), `Title`, `Description`, `CategoryId` (FK), `PriorityId` (FK), `DepartmentId` (FK), `StatusId` (FK), `SourceId` (FK), `AssigneeId` (FK $\rightarrow$ AbpUsers), `RequesterId` (FK $\rightarrow$ AbpUsers), `AssetId` (FK $\rightarrow$ AppAssets), `RequesterName`, `RequesterEmail`, `RequesterPhone`, `DueDate`, `FirstResponseDueDate`, `FirstResponseAt`, `ResolvedAt`, `ClosedAt`, `Tags`, `CsatRating`, `CsatComment`, `CsatSubmittedAt`. |
 | **`AppTicketComments`** | Nội dung phản hồi và ghi chú nội bộ của sự vụ. | `Id` (PK), `TicketId` (FK $\rightarrow$ AppTickets), `UserId` (FK $\rightarrow$ AbpUsers), `Content`, `IsInternal` (phân biệt Public Reply vs Internal Note). |
 | **`AppTicketAttachments`**| Thông tin siêu dữ liệu của tệp đính kèm và hình ảnh lỗi. | `Id` (PK), `TicketId` (FK $\rightarrow$ AppTickets), `CommentId` (FK $\rightarrow$ AppTicketComments), `FileName`, `FileSize`, `ContentType`, `BlobName` (khóa trỏ vào bảng lưu Blob). |
 | **`AppTicketActivities`** | Lịch sử vết hoạt động (Audit Trail Timeline) của sự vụ. | `Id` (PK), `TicketId` (FK $\rightarrow$ AppTickets), `UserId` (FK $\rightarrow$ AbpUsers), `ActivityType` (Tạo, Đổi trạng thái, Phân công, Giải quyết, CSAT, Tự động hóa...), `Description`. |
@@ -501,6 +537,12 @@ erDiagram
 |:---|:---|:---|
 | **`AppAutomationRules`** | Quy tắc tự động hóa "NẾU... THÌ..." xử lý sự vụ theo sự kiện hoặc quét định kỳ. | `Id` (PK), `Name`, `Description`, `TriggerType` (Tạo vé, Cập nhật, Phản hồi, Quét ngầm), `ExecutionOrder`, `IsActive`, `StopProcessing`, `ConditionsJson` (Danh sách điều kiện lọc), `ActionsJson` (Chuỗi hành động thực thi). |
 | **`AppMacros`** | Mẫu kịch bản thao tác 1-Click dành cho kỹ thuật viên trên trang chi tiết sự vụ. | `Id` (PK), `Name`, `Description`, `Order`, `IsActive`, `ActionsJson` (Chuỗi hành động mẫu: chèn câu trả lời, đổi trạng thái, gắn thẻ...). |
+
+#### 2.6. Nhóm Quản Lý Tài Sản CNTT (IT Asset Management - ITAM & CMDB)
+| Tên Bảng | Mô Tả Chức Năng | Các Trường Chính & Khóa Ngoại |
+|:---|:---|:---|
+| **`AppAssets`** | Lưu trữ hồ sơ thiết bị, máy tính, tài sản CNTT trong doanh nghiệp. | `Id` (PK), `AssetTag` (Unique, vd: `AST-2026-0001`), `Name`, `AssetType`, `Status`, `SerialNumber`, `Model`, `Manufacturer`, `Location`, `PurchaseDate`, `WarrantyExpiryDate`, `PurchaseCost`, `AssignedToUserId` (FK $\rightarrow$ AbpUsers), `AssignedToUserName`, `AssignedToUserEmail`, `Department`, `AssignedDate`, `Specifications`, `Notes`. |
+| **`AppAssetActivities`** | Lịch sử vết hoạt động của thiết bị (Cấp phát, Thu hồi, Sửa chữa, Liên kết sự cố...). | `Id` (PK), `AssetId` (FK $\rightarrow$ AppAssets), `UserId` (FK $\rightarrow$ AbpUsers), `ActivityType` (Created, Assigned, Returned, StatusChanged, SentToRepair, Repaired, TicketLinked, NoteAdded), `Description`. |
 
 ---
 
@@ -776,7 +818,34 @@ Công cụ hỗ trợ đắc lực giúp kỹ thuật viên giải quyết các 
 
 ---
 
-### 5.17. Dữ Liệu Khởi Tạo Chuẩn (Data Seeding)
+### 5.17. Phân Hệ 17: Quản Lý Tài Sản CNTT & Thiết Bị (IT Asset Management - ITAM & CMDB)
+Hệ thống quản lý toàn diện vòng đời tài sản công nghệ thông tin trong doanh nghiệp, kết nối mật thiết với quy trình hỗ trợ kỹ thuật và cổng khách hàng tự phục vụ:
+- **1. Hồ Sơ Tài Sản Chuẩn Hóa (`Asset`)**:
+  - Tự động sinh mã định danh tài sản chuẩn `AST-yyyy-####` (VD: `AST-2026-0001`).
+  - Đa dạng loại thiết bị (`AssetType`): Laptop, Máy tính để bàn (Desktop), Màn hình hiển thị (Monitor), Thiết bị mạng (Router/Switch/AP), Máy in & Ngoại vi, Máy chủ & Lưu trữ (Server), Bản quyền phần mềm, Thiết bị di động.
+  - Theo dõi đầy đủ: Số Serial (S/N), Model, Hãng sản xuất, Vị trí sử dụng, Phòng ban, Ngày mua, Ngày bàn giao, Hạn bảo hành, Giá trị mua và Thông số kỹ thuật chi tiết.
+- **2. Quản Lý Vòng Đời & Lịch Sử Hoạt Động (`AssetActivity`)**:
+  - Trạng thái thiết bị (`AssetStatus`): Trong kho (`InStock`), Đang cấp phát (`Assigned`), Đang sửa chữa/Bảo hành (`UnderRepair`), Đã giữ chỗ (`Reserved`), Đã thanh lý (`Retired`), Báo mất/Thất lạc (`LostStolen`).
+  - Thao tác nhanh: Cấp phát cho nhân viên (chọn User/Email), Thu hồi về kho kèm ghi chú, Chuyển trạng thái bảo dưỡng.
+  - Tự động ghi vết lịch sử hoạt động vào dòng thời gian của thiết bị.
+- **3. Cảnh Báo Hạn Bảo Hành & Chỉ Số KPI Tài Sản**:
+  - Tự động phát hiện và cảnh báo các thiết bị sắp hết hạn bảo hành chính hãng trong vòng 30 ngày.
+  - Thẻ KPI: Tổng tài sản, Thiết bị trong kho, Đang cấp phát sử dụng, Đang sửa chữa bảo hành.
+- **4. Gắn Kết 2 Chiều Giữa Sự Cố & Thiết Bị (`Ticket.AssetId` $\leftrightarrow$ `Asset`)**:
+  - Kỹ thuật viên có thể liên kết thiết bị trực tiếp từ trang chi tiết sự vụ (`/tickets/:id`).
+  - Trang chi tiết thiết bị (`/assets/:id`) hiển thị toàn bộ danh sách các sự cố hỗ trợ từng phát sinh trên thiết bị đó.
+- **5. Cổng Khách Hàng - Thiết Bị Của Tôi (`/portal/my-assets`)**:
+  - Nhân viên/Khách hàng theo dõi danh sách máy móc được công ty bàn giao cho mình sử dụng.
+  - Nút **"🚨 Báo Hỏng / Cần Hỗ Trợ"** 1-Click: Tự động mở modal tạo yêu cầu hỗ trợ mới với mã thiết bị được điền sẵn, giúp kỹ thuật viên nắm bắt cấu hình tức thì mà không cần hỏi lại.
+  - Dropdown chọn thiết bị gặp sự cố tích hợp ngay trong biểu mẫu tạo vé của Portal.
+- **6. In Tem Nhãn Tài Sản & Mã QR Code (Print Asset Tag)**:
+  - Tự động sinh mã QR Code (chuẩn SVG thuần không phụ thuộc thư viện ngoài) mã hóa đường dẫn tra cứu thiết bị.
+  - Hộp thoại xem trước tem nhãn chuẩn Decal 70mm $\times$ 40mm gồm: Logo hệ thống, Mã tài sản in đậm, Tên thiết bị, Số Serial, Hotline IT Support.
+  - Định dạng `@media print` tối ưu cho máy in tem nhiệt hoặc giấy Decal A4.
+
+---
+
+### 5.18. Dữ Liệu Khởi Tạo Chuẩn (Data Seeding)
 Hệ thống tích hợp sẵn `HelpdeskDataSeedContributor` tự động nạp dữ liệu mẫu hoàn chỉnh:
 - **10 sự vụ mẫu** đa dạng trạng thái, mức ưu tiên, kênh tiếp nhận, hạn SLA chuẩn thực tế.
 - **6 danh mục sự cố**, 4 mức độ ưu tiên chuẩn, 7 trạng thái vòng đời vé, 5 kênh tiếp nhận, 2 phòng ban kỹ thuật.

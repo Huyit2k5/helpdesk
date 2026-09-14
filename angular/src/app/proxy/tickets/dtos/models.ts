@@ -31,6 +31,7 @@ export interface CreateTicketDto {
   requesterPhone?: string | null;
   dueDate?: string | null;
   tags?: string | null;
+  assetId?: string | null;
 }
 
 export interface GetTicketListInput extends PagedAndSortedResultRequestDto {
@@ -40,6 +41,7 @@ export interface GetTicketListInput extends PagedAndSortedResultRequestDto {
   categoryId?: string | null;
   departmentId?: string | null;
   assigneeId?: string | null;
+  assignedToMe?: boolean;
   sourceId?: string | null;
   dateFrom?: string | null;
   dateTo?: string | null;
@@ -115,6 +117,10 @@ export interface TicketDetailDto extends FullAuditedEntityDto<string> {
   aiSummary?: string | null;
   aiSentiment?: number | null;
   aiSentimentReason?: string | null;
+  assetId?: string | null;
+  assetTag?: string | null;
+  assetName?: string | null;
+  assetTypeName?: string | null;
   comments?: TicketCommentDto[];
   activities?: TicketActivityDto[];
   attachments?: TicketAttachmentDto[];
@@ -152,6 +158,9 @@ export interface TicketListDto extends FullAuditedEntityDto<string> {
   isResolutionBreached?: boolean;
   tags?: string | null;
   commentCount?: number;
+  assetId?: string | null;
+  assetTag?: string | null;
+  assetName?: string | null;
 }
 
 export interface UpdateTicketDto {
@@ -168,4 +177,9 @@ export interface UpdateTicketDto {
   requesterPhone?: string | null;
   dueDate?: string | null;
   tags?: string | null;
+  assetId?: string | null;
+}
+
+export interface LinkAssetInput {
+  assetId?: string | null;
 }

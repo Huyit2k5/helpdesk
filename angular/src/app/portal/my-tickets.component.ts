@@ -6,6 +6,7 @@ import { CustomerPortalService, CustomerTicketDto, CreateCustomerTicketDto } fro
 import { KnowledgeArticleService, KnowledgeArticleSuggestionDto } from '../proxy/knowledge-base';
 import { CategoryService, CategoryLookupDto } from '../proxy/categories';
 import { PriorityService, PriorityDto } from '../proxy/priorities';
+import { AssetDto } from '../proxy/assets/models';
 import { Subject, forkJoin } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
@@ -28,6 +29,7 @@ export class MyTicketsComponent implements OnInit {
   tickets: CustomerTicketDto[] = [];
   categories: CategoryLookupDto[] = [];
   priorities: PriorityDto[] = [];
+  myAssets: AssetDto[] = [];
   totalCount = 0;
   isLoading = false;
 
@@ -49,6 +51,7 @@ export class MyTicketsComponent implements OnInit {
     this.buildForm();
     this.loadCategories();
     this.loadPriorities();
+    this.loadMyAssets();
     this.loadTickets();
 
     // Deflection suggestion debouncer
@@ -62,7 +65,10 @@ export class MyTicketsComponent implements OnInit {
     // Check if opened with ?create=true
     this.route.queryParams.subscribe(params => {
       if (params['create'] === 'true') {
-        this.openCreateModal();
+        const assetId = params['assetId'];
+        const assetTag = params['assetTag'];
+        const assetName = params['assetName'];
+        this.openCreateModal(assetId, assetTag, assetName);
       }
     });
   }
@@ -72,6 +78,7 @@ export class MyTicketsComponent implements OnInit {
       title: ['', [Validators.required, Validators.maxLength(256)]],
       categoryId: ['', [Validators.required]],
       priorityId: [''],
+      assetId: [''],
       description: ['', [Validators.required]]
     });
   }
@@ -90,6 +97,21 @@ export class MyTicketsComponent implements OnInit {
     });
   }
 
+  loadMyAssets(): void {
+    this.portalService.getMyAssets().subscribe({
+      next: (res) => {
+        this.myAssets = res || [];
+        this.cdr.detectChanges();
+      },
+      error: () => {}
+    });
+  }
+
+  setTab(tab: 'all' | 'open' | 'closed'): void {
+    this.activeTab = tab;
+    this.loadTickets();
+  }
+
   loadTickets(): void {
     this.isLoading = true;
     let isClosedParam: boolean | undefined = undefined;
@@ -99,8 +121,8 @@ export class MyTicketsComponent implements OnInit {
     this.portalService.getMyTickets({
       filter: this.searchTerm || undefined,
       isClosed: isClosedParam,
-      maxResultCount: 50,
-      skipCount: 0
+      skipCount: 0,
+      maxResultCount: 100
     }).subscribe({
       next: (res) => {
         this.tickets = res.items || [];
@@ -115,30 +137,34 @@ export class MyTicketsComponent implements OnInit {
     });
   }
 
-  setTab(tab: 'all' | 'open' | 'closed'): void {
+  onTabChange(tab: 'all' | 'open' | 'closed'): void {
     this.activeTab = tab;
     this.loadTickets();
   }
 
-  onTitleChange(val: string): void {
-    this.titleSubject.next(val);
+  onSearch(): void {
+    this.loadTickets();
   }
 
-  searchSuggestions(title: string): void {
-    if (!title || title.trim().length < 3) {
+  onTitleChange(title: string): void {
+    this.titleSubject.next(title);
+  }
+
+  searchSuggestions(query: string): void {
+    if (!query || query.trim().length < 3) {
       this.suggestions = [];
+      this.cdr.detectChanges();
       return;
     }
 
     this.isSearchingSuggestions = true;
-    this.kbService.getSuggestions(title.trim(), 3).subscribe({
+    this.kbService.getSuggestions(query.trim(), 4).subscribe({
       next: (res) => {
         this.suggestions = res || [];
         this.isSearchingSuggestions = false;
         this.cdr.detectChanges();
       },
       error: () => {
-        this.suggestions = [];
         this.isSearchingSuggestions = false;
         this.cdr.detectChanges();
       }
@@ -147,16 +173,18 @@ export class MyTicketsComponent implements OnInit {
 
   selectedFiles: File[] = [];
 
-  openCreateModal(): void {
+  openCreateModal(assetId?: string, assetTag?: string, assetName?: string): void {
     this.createForm.reset({
-      title: '',
+      title: assetTag ? `[Sự cố thiết bị ${assetTag}] ` : '',
       categoryId: this.categories.length > 0 ? this.categories[0].id : '',
       priorityId: '',
-      description: ''
+      assetId: assetId || '',
+      description: assetName ? `Thiết bị liên quan: [${assetTag}] ${assetName}\n\nMô tả chi tiết sự cố gặp phải:\n- Hiện tượng:\n- Thời điểm xảy ra:` : ''
     });
     this.suggestions = [];
     this.selectedFiles = [];
     this.isCreateModalOpen = true;
+    this.cdr.detectChanges();
   }
 
   closeCreateModal(): void {

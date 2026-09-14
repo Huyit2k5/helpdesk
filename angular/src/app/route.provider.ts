@@ -15,5 +15,12 @@ function configureRoutes() {
         order: 2,
         layout: eLayoutType.application,
       },
+      {
+        path: '/discord-link',
+        name: 'Liên kết Discord',
+        iconClass: 'fa-brands fa-discord',
+        order: 9,
+        layout: eLayoutType.application,
+      },
   ]);
 }

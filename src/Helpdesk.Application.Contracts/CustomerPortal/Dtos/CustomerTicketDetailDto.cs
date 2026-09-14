@@ -23,6 +23,11 @@ public class CustomerTicketDetailDto : EntityDto<Guid>
     public DateTime? LastModificationTime { get; set; }
     public DateTime? DueDate { get; set; }
     public DateTime? ResolvedAt { get; set; }
+    public Guid? AssetId { get; set; }
+    public string? AssetTag { get; set; }
+    public string? AssetName { get; set; }
+    public string? AssetTypeName { get; set; }
+    public string? SerialNumber { get; set; }
     public int? CsatRating { get; set; }
     public string? CsatComment { get; set; }
     public DateTime? CsatSubmittedAt { get; set; }

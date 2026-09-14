@@ -23,6 +23,8 @@ interface DashboardStats {
   resolutionComplianceRate: number;
   slaBreachedCount: number;
   overdueTicketCount: number;
+  myOpenTicketCount: number;
+  myOverdueTicketCount: number;
   avgCsatRating?: number;
   totalRatedTickets?: number;
   csatSatisfactionRate?: number;

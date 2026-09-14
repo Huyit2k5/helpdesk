@@ -1,0 +1,246 @@
+<!-- Asset Receipt Modal -->
+<div class="receipt-modal-backdrop" *ngIf="isOpen">
+  <div class="receipt-modal-dialog">
+    <div class="receipt-modal-content">
+
+      <!-- Modal Action Bar (Hidden when printing) -->
+      <div class="receipt-modal-header no-print">
+        <div class="d-flex align-items-center gap-2">
+          <div class="receipt-icon-badge">
+            <i class="fas" [ngClass]="receiptType === 'return' ? 'fa-undo text-warning' : 'fa-file-signature text-primary'"></i>
+          </div>
+          <div>
+            <h5 class="modal-title fw-bold mb-0">
+              {{ receiptType === 'return' ? 'Biên Bản Thu Hồi Thiết Bị' : 'Biên Bản Bàn Giao Thiết Bị' }}
+            </h5>
+            <small class="text-muted">Mã chứng từ: <strong>{{ receipt?.receiptNumber || 'Đang tạo...' }}</strong></small>
+          </div>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <button type="button" class="btn btn-primary rounded-pill px-3 py-2 d-flex align-items-center gap-2 shadow-sm" (click)="printReceipt()" [disabled]="isLoading || !receipt">
+            <i class="fas fa-print"></i>
+            <span>In Biên Bản / Lưu PDF</span>
+          </button>
+          <button type="button" class="btn-close-custom" (click)="onClose()" title="Đóng">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Modal Body (Printable Area) -->
+      <div class="receipt-modal-body printable-area">
+        <!-- Loading State -->
+        <div *ngIf="isLoading" class="text-center py-5 no-print">
+          <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status"></div>
+          <div class="text-muted fw-semibold">Đang chuẩn bị mẫu biên bản...</div>
+        </div>
+
+        <!-- Error State -->
+        <div *ngIf="errorMessage && !isLoading" class="alert alert-danger mx-4 my-4 no-print">
+          <i class="fas fa-exclamation-triangle me-2"></i> {{ errorMessage }}
+        </div>
+
+        <!-- Document Sheet -->
+        <div *ngIf="receipt && !isLoading" class="receipt-sheet">
+
+          <!-- Header Quốc Hiệu / Doanh Nghiệp -->
+          <div class="sheet-header mb-4">
+            <div class="row align-items-center">
+              <div class="col-7 text-start">
+                <div class="company-name text-uppercase fw-bold text-dark" style="font-size: 13px; letter-spacing: 0.05em;">
+                  CÔNG TY CỔ PHẦN CÔNG NGHỆ & DỊCH VỤ HELPDESK
+                </div>
+                <div class="department-name fw-semibold text-muted" style="font-size: 12px;">
+                  PHÒNG CÔNG NGHỆ THÔNG TIN (IT DEPARTMENT)
+                </div>
+                <div class="receipt-ref-code mt-1 text-muted" style="font-size: 11px;">
+                  Số: <strong>{{ receipt.receiptNumber }}</strong>
+                </div>
+              </div>
+              <div class="col-5 text-center">
+                <div class="national-title fw-bold text-dark" style="font-size: 12px; letter-spacing: 0.03em;">
+                  CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
+                </div>
+                <div class="national-motto fst-italic text-dark" style="font-size: 11px;">
+                  Độc lập - Tự do - Hạnh phúc
+                </div>
+                <div class="divider-line mx-auto my-1" style="width: 80px; height: 1px; background: #94a3b8;"></div>
+                <div class="document-date text-muted fst-italic" style="font-size: 11px;">
+                  Hà Nội, ngày {{ receipt.generatedDate | date:'dd' }} tháng {{ receipt.generatedDate | date:'MM' }} năm {{ receipt.generatedDate | date:'yyyy' }}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Document Title -->
+          <div class="text-center my-4">
+            <h3 class="document-main-title fw-bold text-uppercase text-dark mb-1">
+              {{ receipt.title }}
+            </h3>
+            <p class="text-muted fst-italic small mb-0">
+              (V/v: {{ receiptType === 'return' ? 'Thu hồi thiết bị CNTT về kho bảo quản' : 'Bàn giao thiết bị và cam kết trách nhiệm sử dụng tài sản CNTT' }})
+            </p>
+          </div>
+
+          <!-- Introduction -->
+          <div class="mb-3 text-secondary" style="font-size: 13px; line-height: 1.6;">
+            Hôm nay, ngày {{ receipt.generatedDate | date:'dd/MM/yyyy' }}, tại Văn phòng Công ty, chúng tôi gồm có:
+          </div>
+
+          <!-- Parties Info -->
+          <div class="parties-section mb-4">
+            <!-- Bên Giao -->
+            <div class="party-box p-3 rounded-3 mb-3 border">
+              <div class="fw-bold text-dark text-uppercase mb-2" style="font-size: 13px;">
+                <i class="fas fa-arrow-circle-right text-primary me-2"></i>
+                BÊN GIAO (ĐẠI DIỆN BỘ PHẬN CNTT):
+              </div>
+              <div class="row g-2" style="font-size: 13px;">
+                <div class="col-md-6">
+                  &bull; Họ và tên: <strong>{{ receipt.giverName }}</strong>
+                </div>
+                <div class="col-md-6">
+                  &bull; Chức vụ / Bộ phận: <strong>{{ receipt.giverRole }}</strong>
+                </div>
+                <div class="col-md-6" *ngIf="receipt.giverEmail">
+                  &bull; Email liên hệ: <strong>{{ receipt.giverEmail }}</strong>
+                </div>
+              </div>
+            </div>
+
+            <!-- Bên Nhận -->
+            <div class="party-box p-3 rounded-3 border">
+              <div class="fw-bold text-dark text-uppercase mb-2" style="font-size: 13px;">
+                <i class="fas fa-user-check text-success me-2"></i>
+                BÊN NHẬN (NHÂN SỰ SỬ DỤNG THIẾT BỊ):
+              </div>
+              <div class="row g-2" style="font-size: 13px;">
+                <div class="col-md-6">
+                  &bull; Họ và tên nhân sự: <strong>{{ receipt.receiverName }}</strong>
+                </div>
+                <div class="col-md-6">
+                  &bull; Phòng ban / Bộ phận: <strong>{{ receipt.receiverDepartment }}</strong>
+                </div>
+                <div class="col-md-6" *ngIf="receipt.receiverEmail">
+                  &bull; Email công ty: <strong>{{ receipt.receiverEmail }}</strong>
+                </div>
+                <div class="col-md-6" *ngIf="receipt.assignedDate">
+                  &bull; Ngày bàn giao: <strong>{{ receipt.assignedDate | date:'dd/MM/yyyy' }}</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Danh Mục Thiết Bị Bàn Giao -->
+          <div class="equipment-section mb-4">
+            <div class="fw-bold text-dark text-uppercase mb-2" style="font-size: 13px;">
+              DANH MỤC THIẾT BỊ VÀ TÌNH TRẠNG KỸ THUẬT:
+            </div>
+            <table class="table table-bordered receipt-table mb-2">
+              <thead class="table-light">
+                <tr class="text-center text-uppercase" style="font-size: 11px;">
+                  <th style="width: 45px;">STT</th>
+                  <th>Tên Thiết Bị & Model</th>
+                  <th>Mã Tài Sản</th>
+                  <th>Số Serial (S/N)</th>
+                  <th>Phân Loại</th>
+                  <th>Tình Trạng Thiết Bị</th>
+                </tr>
+              </thead>
+              <tbody style="font-size: 12px;">
+                <tr>
+                  <td class="text-center fw-bold">1</td>
+                  <td>
+                    <div class="fw-bold text-dark">{{ receipt.assetName }}</div>
+                    <div class="text-muted small" *ngIf="receipt.model">Model: {{ receipt.model }} ({{ receipt.manufacturer }})</div>
+                  </td>
+                  <td class="text-center font-monospace fw-bold text-primary">{{ receipt.assetTag }}</td>
+                  <td class="text-center font-monospace">{{ receipt.serialNumber || 'N/A' }}</td>
+                  <td class="text-center">{{ receipt.assetTypeName }}</td>
+                  <td class="text-center text-success fw-semibold">{{ receipt.condition }}</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <!-- Cấu hình và phụ kiện -->
+            <div class="p-3 bg-light rounded-3 border" style="font-size: 12px;">
+              <div class="mb-2" *ngIf="receipt.specifications">
+                <strong>Thông số cấu hình:</strong> {{ receipt.specifications }}
+              </div>
+              <div class="mb-2">
+                <strong>Phụ kiện bàn giao kèm:</strong> {{ receipt.accessories }}
+              </div>
+              <div *ngIf="receipt.warrantyExpiryDate">
+                <strong>Thời hạn bảo hành chính hãng:</strong> Đến ngày {{ receipt.warrantyExpiryDate | date:'dd/MM/yyyy' }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Cam kết trách nhiệm -->
+          <div class="terms-section mb-4" style="font-size: 12px; line-height: 1.6;">
+            <div class="fw-bold text-dark text-uppercase mb-1">
+              CAM KẾT TRÁCH NHIỆM SỬ DỤNG VÀ BẢO QUẢN TÀI SẢN:
+            </div>
+            <ol class="ps-3 mb-0 text-secondary">
+              <li>Bên Nhận có trách nhiệm bảo quản tài sản cẩn thận, sử dụng đúng mục đích phục vụ công việc của Công ty.</li>
+              <li>Không tự ý tháo dỡ linh kiện, bóc gỡ tem bảo hành, tem QR Code dán trên máy hoặc cài đặt phần mềm không có bản quyền.</li>
+              <li>Khi thiết bị gặp sự cố kỹ thuật hoặc hỏng hóc, Bên Nhận có nghĩa vụ thông báo ngay cho Bộ phận IT qua Cổng Helpdesk.</li>
+              <li>Khi có quyết định điều chuyển công tác hoặc chấm dứt hợp đồng lao động, Bên Nhận có trách nhiệm hoàn trả đầy đủ thiết bị và phụ kiện cho Bộ phận IT.</li>
+            </ol>
+          </div>
+
+          <!-- Digital Confirmation Badge (if signed) -->
+          <div *ngIf="receipt.isConfirmed" class="digital-sign-banner p-3 mb-4 rounded-3 border border-success bg-success-subtle d-flex align-items-center gap-3">
+            <i class="fas fa-check-circle fa-2x text-success"></i>
+            <div>
+              <div class="fw-bold text-success">XÁC NHẬN KÝ NHẬN ĐIỆN TỬ HỢP LỆ</div>
+              <div class="small text-muted">
+                Nhân sự <strong>{{ receipt.receiverName }}</strong> đã kiểm tra và bấm xác nhận ký nhận bàn giao trực tuyến trên Cổng Helpdesk vào ngày <strong>{{ receipt.confirmedDate | date:'dd/MM/yyyy HH:mm' }}</strong>.
+              </div>
+            </div>
+          </div>
+
+          <!-- Signatures Section -->
+          <div class="signatures-section mt-5 pt-3">
+            <div class="row text-center">
+              <div class="col-4">
+                <div class="fw-bold text-uppercase text-dark" style="font-size: 12px;">ĐẠI DIỆN BÊN GIAO</div>
+                <div class="text-muted fst-italic" style="font-size: 11px;">(Ký và ghi rõ họ tên)</div>
+                <div class="sign-space" style="height: 70px;"></div>
+                <div class="fw-bold text-dark" style="font-size: 13px;">{{ receipt.giverName }}</div>
+              </div>
+              <div class="col-4">
+                <div class="fw-bold text-uppercase text-dark" style="font-size: 12px;">NGƯỜI NHẬN THIẾT BỊ</div>
+                <div class="text-muted fst-italic" style="font-size: 11px;">(Ký và ghi rõ họ tên)</div>
+                <div class="sign-space" style="height: 70px;">
+                  <span *ngIf="receipt.isConfirmed" class="badge bg-success text-white px-2 py-1 rounded-pill" style="font-size: 11px; margin-top: 25px;">
+                    <i class="fas fa-check me-1"></i> Đã Ký Nhận Online
+                  </span>
+                </div>
+                <div class="fw-bold text-dark" style="font-size: 13px;">{{ receipt.receiverName }}</div>
+              </div>
+              <div class="col-4">
+                <div class="fw-bold text-uppercase text-dark" style="font-size: 12px;">TRƯỞNG BỘ PHẬN DUYỆT</div>
+                <div class="text-muted fst-italic" style="font-size: 11px;">(Ký và ghi rõ họ tên)</div>
+                <div class="sign-space" style="height: 70px;"></div>
+                <div class="fw-bold text-dark" style="font-size: 13px;">Trưởng Phòng CNTT</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Modal Footer (Hidden when printing) -->
+      <div class="receipt-modal-footer no-print">
+        <button type="button" class="btn btn-outline-secondary rounded-pill px-4" (click)="onClose()">
+          Đóng
+        </button>
+        <button type="button" class="btn btn-primary rounded-pill px-4 shadow-sm" (click)="printReceipt()" [disabled]="isLoading || !receipt">
+          <i class="fas fa-print me-1"></i> In Ngay
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>

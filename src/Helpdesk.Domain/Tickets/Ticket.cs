@@ -107,6 +107,11 @@ public class Ticket : FullAuditedAggregateRoot<Guid>, IMultiTenant
     /// </summary>
     public string? AiSentimentReason { get; set; }
 
+    /// <summary>
+    /// Thiết bị / tài sản CNTT liên quan đến sự cố (nếu có).
+    /// </summary>
+    public Guid? AssetId { get; set; }
+
     protected Ticket()
     {
         // For EF Core
@@ -128,7 +133,8 @@ public class Ticket : FullAuditedAggregateRoot<Guid>, IMultiTenant
         Guid? requesterId = null,
         string? requesterPhone = null,
         DateTime? dueDate = null,
-        string? tags = null)
+        string? tags = null,
+        Guid? assetId = null)
         : base(id)
     {
         SetTicketNumber(ticketNumber);
@@ -146,6 +152,7 @@ public class Ticket : FullAuditedAggregateRoot<Guid>, IMultiTenant
         RequesterPhone = requesterPhone;
         DueDate = dueDate;
         Tags = tags;
+        AssetId = assetId;
     }
 
     public Ticket SetTicketNumber(string ticketNumber)

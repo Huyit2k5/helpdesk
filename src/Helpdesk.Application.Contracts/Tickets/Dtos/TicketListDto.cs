@@ -47,4 +47,8 @@ public class TicketListDto : FullAuditedEntityDto<Guid>
     public string? Tags { get; set; }
     public Helpdesk.Ai.CustomerSentiment? AiSentiment { get; set; }
     public int CommentCount { get; set; }
+
+    public Guid? AssetId { get; set; }
+    public string? AssetTag { get; set; }
+    public string? AssetName { get; set; }
 }

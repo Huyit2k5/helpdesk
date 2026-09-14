@@ -80,6 +80,17 @@ public class DashboardAppService : ApplicationService, IDashboardAppService
             t.DueDate.Value < now &&
             statusGroupMap.GetValueOrDefault(t.StatusId) != StatusGroup.Closed);
 
+        // === Cá nhân (ticket của người dùng đang đăng nhập) ===
+        int myOpenTicketCount = CurrentUser.Id.HasValue
+            ? allTickets.Count(t => t.AssigneeId == CurrentUser.Id.Value &&
+                statusGroupMap.GetValueOrDefault(t.StatusId) != StatusGroup.Closed)
+            : 0;
+        int myOverdueTicketCount = CurrentUser.Id.HasValue
+            ? allTickets.Count(t => t.AssigneeId == CurrentUser.Id.Value &&
+                t.DueDate.HasValue && t.DueDate.Value < now &&
+                statusGroupMap.GetValueOrDefault(t.StatusId) != StatusGroup.Closed)
+            : 0;
+
         // === SLA Compliance ===
         var slaTickets = allTickets.Where(t => t.SlaPolicyId.HasValue).ToList();
         int totalSla = slaTickets.Count;
@@ -126,6 +137,8 @@ public class DashboardAppService : ApplicationService, IDashboardAppService
             TotalRatedTickets = totalRated,
             CsatSatisfactionRate = satisfactionRate,
             OverdueTicketCount = overdueTicketCount,
+            MyOpenTicketCount = myOpenTicketCount,
+            MyOverdueTicketCount = myOverdueTicketCount,
             TicketTrend = trend,
             CategoryDistribution = categoryDistribution,
             AgentPerformance = agentPerformance,

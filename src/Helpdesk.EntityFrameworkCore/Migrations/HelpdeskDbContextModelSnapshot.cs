@@ -24,6 +24,200 @@ namespace Helpdesk.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Helpdesk.Assets.Asset", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AssetTag")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<int>("AssetType")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("AssignedDate")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("AssignedToUserEmail")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<Guid?>("AssignedToUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AssignedToUserName")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("ConcurrencyStamp");
+
+                    b.Property<DateTime>("CreationTime")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("CreationTime");
+
+                    b.Property<Guid?>("CreatorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("CreatorId");
+
+                    b.Property<Guid?>("DeleterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("DeleterId");
+
+                    b.Property<DateTime?>("DeletionTime")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("DeletionTime");
+
+                    b.Property<string>("Department")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<string>("ExtraProperties")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("ExtraProperties");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<DateTime?>("LastModificationTime")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("LastModificationTime");
+
+                    b.Property<Guid?>("LastModifierId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("LastModifierId");
+
+                    b.Property<string>("Location")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<string>("Manufacturer")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<string>("Model")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<decimal?>("PurchaseCost")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<DateTime?>("PurchaseDate")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("SerialNumber")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("Specifications")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("TenantId");
+
+                    b.Property<DateTime?>("WarrantyExpiryDate")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssetTag")
+                        .IsUnique();
+
+                    b.HasIndex("AssetType");
+
+                    b.HasIndex("AssignedToUserId");
+
+                    b.HasIndex("Department");
+
+                    b.HasIndex("SerialNumber");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("WarrantyExpiryDate");
+
+                    b.ToTable("AppAssets", (string)null);
+                });
+
+            modelBuilder.Entity("Helpdesk.Assets.AssetActivity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("ActivityType")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("AssetId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreationTime")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("CreationTime");
+
+                    b.Property<Guid?>("CreatorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("CreatorId");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<Guid?>("PerformedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("PerformedByUserName")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<Guid?>("RelatedTicketId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("TenantId");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActivityType");
+
+                    b.HasIndex("AssetId");
+
+                    b.HasIndex("CreationTime");
+
+                    b.HasIndex("RelatedTicketId");
+
+                    b.ToTable("AppAssetActivities", (string)null);
+                });
+
             modelBuilder.Entity("Helpdesk.AssignmentRules.AssignmentRule", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1313,6 +1507,9 @@ namespace Helpdesk.Migrations
                         .HasMaxLength(2000)
                         .HasColumnType("character varying(2000)");
 
+                    b.Property<Guid?>("AssetId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid?>("AssigneeId")
                         .HasColumnType("uuid");
 
@@ -1451,6 +1648,8 @@ namespace Helpdesk.Migrations
                         .HasColumnType("character varying(256)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("AssetId");
 
                     b.HasIndex("AssigneeId");
 
@@ -3583,6 +3782,15 @@ namespace Helpdesk.Migrations
                     b.ToTable("AbpTenantConnectionStrings", (string)null);
                 });
 
+            modelBuilder.Entity("Helpdesk.Assets.AssetActivity", b =>
+                {
+                    b.HasOne("Helpdesk.Assets.Asset", null)
+                        .WithMany("Activities")
+                        .HasForeignKey("AssetId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Helpdesk.AssignmentRules.AssignmentRuleAgent", b =>
                 {
                     b.HasOne("Helpdesk.AssignmentRules.AssignmentRule", null)
@@ -3607,6 +3815,14 @@ namespace Helpdesk.Migrations
                         .HasForeignKey("SlaPolicyId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Helpdesk.Tickets.Ticket", b =>
+                {
+                    b.HasOne("Helpdesk.Assets.Asset", null)
+                        .WithMany()
+                        .HasForeignKey("AssetId")
+                        .OnDelete(DeleteBehavior.SetNull);
                 });
 
             modelBuilder.Entity("Volo.Abp.AuditLogging.AuditLogAction", b =>
@@ -3814,6 +4030,11 @@ namespace Helpdesk.Migrations
                         .HasForeignKey("TenantId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Helpdesk.Assets.Asset", b =>
+                {
+                    b.Navigation("Activities");
                 });
 
             modelBuilder.Entity("Helpdesk.AssignmentRules.AssignmentRule", b =>

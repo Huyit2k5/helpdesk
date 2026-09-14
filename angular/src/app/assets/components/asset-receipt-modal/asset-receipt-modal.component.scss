@@ -1,0 +1,211 @@
+.receipt-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 1060;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.receipt-modal-dialog {
+  width: 100%;
+  max-width: 860px;
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.receipt-modal-content {
+  background: #ffffff;
+  border-radius: 20px;
+  border: 1px solid rgba(226, 232, 240, 0.85);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+  overflow: hidden;
+  animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.receipt-modal-header {
+  padding: 1.25rem 1.5rem;
+  background: #ffffff;
+  border-bottom: 1px solid #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+
+  .receipt-icon-badge {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: #eff6ff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+  }
+
+  .btn-close-custom {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: none;
+    background: #f1f5f9;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: #e2e8f0;
+      color: #0f172a;
+      transform: rotate(90deg);
+    }
+  }
+}
+
+.receipt-modal-body {
+  padding: 2rem 2.5rem;
+  overflow-y: auto;
+  flex: 1;
+  background: #f8fafc;
+}
+
+.receipt-sheet {
+  background: #ffffff;
+  padding: 2.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+  color: #1e293b;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.document-main-title {
+  letter-spacing: 0.03em;
+}
+
+.party-box {
+  background: #fafbfc;
+  border-color: #e2e8f0 !important;
+}
+
+.receipt-table {
+  border-color: #cbd5e1;
+
+  th {
+    background-color: #f1f5f9;
+    color: #334155;
+    font-weight: 700;
+  }
+}
+
+.receipt-modal-footer {
+  padding: 1rem 1.5rem;
+  background: #ffffff;
+  border-top: 1px solid #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(16px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+// 🖨️ Print Styles
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 15mm;
+  }
+
+  // Hide non-printable elements
+  .no-print,
+  .receipt-modal-header,
+  .receipt-modal-footer,
+  header,
+  nav,
+  aside,
+  .lpx-sidebar-container,
+  .lpx-header-container,
+  .lpx-brand-logo {
+    display: none !important;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .receipt-modal-backdrop {
+    position: static !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    padding: 0 !important;
+    display: block !important;
+  }
+
+  .receipt-modal-dialog {
+    max-width: 100% !important;
+    max-height: none !important;
+    display: block !important;
+  }
+
+  .receipt-modal-content {
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  .receipt-modal-body {
+    background: #ffffff !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  .receipt-sheet {
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+  }
+
+  .receipt-table {
+    border-collapse: collapse !important;
+    width: 100% !important;
+
+    th, td {
+      border: 1px solid #333333 !important;
+    }
+  }
+
+  .party-box {
+    border: 1px solid #666666 !important;
+    background: transparent !important;
+  }
+}

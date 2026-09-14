@@ -26,6 +26,10 @@ public class DashboardStatsDto
     // Overdue
     public int OverdueTicketCount { get; set; }
 
+    // Cá nhân (ticket đang mở / sắp trễ SLA của người dùng đang đăng nhập)
+    public int MyOpenTicketCount { get; set; }
+    public int MyOverdueTicketCount { get; set; }
+
     // Trend Data
     public List<TicketTrendItemDto> TicketTrend { get; set; } = new();
 

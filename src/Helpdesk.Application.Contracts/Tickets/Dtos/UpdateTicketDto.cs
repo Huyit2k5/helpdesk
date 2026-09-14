@@ -43,4 +43,6 @@ public class UpdateTicketDto
 
     [StringLength(TicketConsts.MaxTagsLength)]
     public string? Tags { get; set; }
+
+    public Guid? AssetId { get; set; }
 }

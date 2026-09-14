@@ -19,5 +19,7 @@ public class CreateCustomerTicketDto
 
     public Guid? PriorityId { get; set; }
 
+    public Guid? AssetId { get; set; }
+
     public List<CreateAttachmentInput>? Attachments { get; set; }
 }

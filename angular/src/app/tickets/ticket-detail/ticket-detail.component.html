@@ -640,6 +640,64 @@
           </div>
         }
 
+        <!-- Linked Asset (ITAM) Card -->
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-white border-0 py-3 px-4 d-flex justify-content-between align-items-center">
+            <h6 class="fw-bold text-uppercase small mb-0 text-muted">
+              <i class="fas fa-laptop text-primary me-2"></i> Thiết Bị & Tài Sản CNTT
+            </h6>
+            <button
+              class="btn btn-xs btn-outline-primary"
+              (click)="openLinkAssetModal()"
+              title="Liên kết hoặc đổi tài sản liên quan"
+            >
+              <i class="fas fa-link me-1"></i> {{ ticket.assetId ? 'Đổi thiết bị' : 'Gán thiết bị' }}
+            </button>
+          </div>
+          <div class="card-body p-4 pt-0">
+            @if (ticket.assetId) {
+              <div class="p-3 bg-light rounded-3 border">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                  <div>
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle font-monospace px-2 py-1 mb-1">
+                      {{ ticket.assetTag }}
+                    </span>
+                    <h6 class="fw-bold mb-0 text-dark">
+                      <a [routerLink]="['/assets', ticket.assetId]" class="text-decoration-none text-dark fw-bold">
+                        {{ ticket.assetName }}
+                      </a>
+                    </h6>
+                  </div>
+                  <button
+                    type="button"
+                    class="btn btn-sm text-danger p-0 ms-2"
+                    (click)="unlinkAsset()"
+                    title="Gỡ liên kết thiết bị khỏi sự vụ"
+                  >
+                    <i class="fas fa-unlink"></i>
+                  </button>
+                </div>
+                <div class="small text-muted mb-2">
+                  <i class="fas fa-tags me-1"></i> Phân loại: <span class="fw-semibold text-secondary">{{ ticket.assetTypeName || 'Thiết bị CNTT' }}</span>
+                </div>
+                <div class="d-grid mt-2">
+                  <a [routerLink]="['/assets', ticket.assetId]" class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-external-link-alt me-1"></i> Xem hồ sơ thiết bị
+                  </a>
+                </div>
+              </div>
+            } @else {
+              <div class="text-center py-3 text-muted">
+                <i class="fas fa-laptop fa-2x mb-2 d-block opacity-25"></i>
+                <p class="small mb-2">Chưa liên kết tài sản CNTT nào với sự vụ này</p>
+                <button class="btn btn-sm btn-outline-primary" (click)="openLinkAssetModal()">
+                  <i class="fas fa-plus me-1"></i> Gán thiết bị xử lý
+                </button>
+              </div>
+            }
+          </div>
+        </div>
+
         <!-- Assignment Card -->
         <div class="card border-0 shadow-sm mb-4">
           <div class="card-header bg-white border-0 py-3 px-4">
@@ -954,6 +1012,51 @@
               <span>Chèn Vào Khung Soạn Thảo</span>
             </button>
           }
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Link Asset Modal -->
+@if (isLinkAssetModalOpen) {
+  <div class="modal fade show d-block" tabindex="-1" style="background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 1055;">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow-lg" style="border-radius: 12px; overflow: hidden;">
+        <div class="modal-header bg-light border-0 py-3 px-4">
+          <h5 class="modal-title fw-bold">
+            <i class="fas fa-laptop me-2 text-primary"></i> Liên Kết Tài Sản & Thiết Bị CNTT
+          </h5>
+          <button type="button" class="btn-close" (click)="closeLinkAssetModal()"></button>
+        </div>
+        <div class="modal-body p-4">
+          <p class="small text-muted mb-3">
+            Chọn tài sản / thiết bị phần cứng liên quan đến sự vụ này từ kho quản lý thiết bị (ITAM):
+          </p>
+          @if (isLoadingAssets) {
+            <div class="text-center py-4">
+              <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+              <span class="ms-2 text-muted small">Đang tải danh mục thiết bị...</span>
+            </div>
+          } @else {
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Thiết bị CNTT <span class="text-danger">*</span></label>
+              <select class="form-select" [(ngModel)]="selectedAssetIdForLink">
+                <option value="">-- Không chọn / Gỡ thiết bị --</option>
+                @for (ast of assetLookupList; track ast.id) {
+                  <option [value]="ast.id">
+                    [{{ ast.assetTag }}] {{ ast.name }} - {{ ast.assetTypeName }} ({{ ast.statusName }})
+                  </option>
+                }
+              </select>
+            </div>
+          }
+        </div>
+        <div class="modal-footer bg-light border-0 py-3 px-4">
+          <button type="button" class="btn btn-secondary" (click)="closeLinkAssetModal()">Hủy</button>
+          <button type="button" class="btn btn-primary" (click)="saveLinkAsset()" [disabled]="isLoadingAssets">
+            <i class="fas fa-check me-1"></i> Lưu liên kết
+          </button>
         </div>
       </div>
     </div>

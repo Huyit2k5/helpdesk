@@ -96,6 +96,9 @@
               <span class="badge rounded-pill px-2 py-1" [style.background-color]="t.priorityColor + '20'" [style.color]="t.priorityColor">
                 {{ t.priorityName }}
               </span>
+              <span *ngIf="t.assetTag" class="badge bg-secondary-subtle text-secondary border rounded-pill px-2 py-1" [title]="t.assetName || ''">
+                <i class="fas fa-laptop me-1"></i> {{ t.assetTag }}
+              </span>
               <span *ngIf="t.csatRating" class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill px-2 py-1">
                 <i class="fas fa-star text-warning me-1"></i> {{ t.csatRating }}/5 sao
               </span>
@@ -201,6 +204,22 @@
                   <option value="">-- Mặc định (Bình thường) --</option>
                   <option *ngFor="let pri of priorities" [value]="pri.id">{{ pri.name }}</option>
                 </select>
+              </div>
+            </div>
+
+            <!-- Associated Asset (ITAM) -->
+            <div class="mb-3" *ngIf="myAssets.length > 0">
+              <label class="form-label fw-bold">
+                <i class="fas fa-laptop text-primary me-1"></i> Thiết bị gặp sự cố (nếu có)
+              </label>
+              <select class="form-select" formControlName="assetId">
+                <option value="">-- Không liên quan đến thiết bị cụ thể / Sự cố phần mềm chung --</option>
+                <option *ngFor="let ast of myAssets" [value]="ast.id">
+                  [{{ ast.assetTag }}] {{ ast.name }} - {{ ast.assetTypeName }} (S/N: {{ ast.serialNumber || 'N/A' }})
+                </option>
+              </select>
+              <div class="text-muted small mt-1">
+                Chọn thiết bị bạn đang được công ty bàn giao để chuyên viên IT tra cứu cấu hình và tiếp nhận nhanh chóng.
               </div>
             </div>
 

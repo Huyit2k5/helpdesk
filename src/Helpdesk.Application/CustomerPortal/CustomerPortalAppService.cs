@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Helpdesk.Assets;
+using Helpdesk.Assets.Dtos;
 using Helpdesk.AssignmentRules;
 using Helpdesk.Categories;
 using Helpdesk.CustomerPortal.Dtos;
@@ -38,6 +40,8 @@ public class CustomerPortalAppService : ApplicationService, ICustomerPortalAppSe
     private readonly IRepository<TicketStatus, Guid> _statusRepository;
     private readonly IRepository<TicketSource, Guid> _sourceRepository;
     private readonly IRepository<IdentityUser, Guid> _userRepository;
+    private readonly IRepository<Asset, Guid> _assetRepository;
+    private readonly AssetManager _assetManager;
     private readonly Volo.Abp.BlobStoring.IBlobContainer _blobContainer;
     private readonly TicketManager _ticketManager;
     private readonly SlaManager _slaManager;
@@ -55,6 +59,8 @@ public class CustomerPortalAppService : ApplicationService, ICustomerPortalAppSe
         IRepository<TicketStatus, Guid> statusRepository,
         IRepository<TicketSource, Guid> sourceRepository,
         IRepository<IdentityUser, Guid> userRepository,
+        IRepository<Asset, Guid> assetRepository,
+        AssetManager assetManager,
         Volo.Abp.BlobStoring.IBlobContainer blobContainer,
         TicketManager ticketManager,
         SlaManager slaManager,
@@ -71,6 +77,8 @@ public class CustomerPortalAppService : ApplicationService, ICustomerPortalAppSe
         _statusRepository = statusRepository;
         _sourceRepository = sourceRepository;
         _userRepository = userRepository;
+        _assetRepository = assetRepository;
+        _assetManager = assetManager;
         _blobContainer = blobContainer;
         _ticketManager = ticketManager;
         _slaManager = slaManager;
@@ -141,21 +149,41 @@ public class CustomerPortalAppService : ApplicationService, ICustomerPortalAppSe
             .GroupBy(c => c.TicketId)
             .ToDictionary(g => g.Key, g => g.Count());
 
-        var dtos = pagedItems.Select(item => new CustomerTicketDto
+        var assetIds = pagedItems
+            .Where(x => x.Ticket.AssetId.HasValue)
+            .Select(x => x.Ticket.AssetId!.Value)
+            .Distinct()
+            .ToList();
+        var assetDict = new Dictionary<Guid, Asset>();
+        if (assetIds.Any())
         {
-            Id = item.Ticket.Id,
-            TicketNumber = item.Ticket.TicketNumber,
-            Title = item.Ticket.Title,
-            CategoryName = item.CategoryName,
-            PriorityName = item.PriorityName,
-            PriorityColor = item.PriorityColor ?? "#3b82f6",
-            StatusName = item.StatusName,
-            StatusColor = item.StatusColor ?? "#10b981",
-            IsFinal = item.IsFinal,
-            CreationTime = item.Ticket.CreationTime,
-            LastModificationTime = item.Ticket.LastModificationTime,
-            CommentCount = commentCounts.GetValueOrDefault(item.Ticket.Id, 0),
-            CsatRating = item.Ticket.CsatRating
+            var assetQuery = await _assetRepository.GetQueryableAsync();
+            var assets = await AsyncExecuter.ToListAsync(assetQuery.Where(a => assetIds.Contains(a.Id)));
+            assetDict = assets.ToDictionary(a => a.Id);
+        }
+
+        var dtos = pagedItems.Select(item =>
+        {
+            var asset = item.Ticket.AssetId.HasValue ? assetDict.GetValueOrDefault(item.Ticket.AssetId.Value) : null;
+            return new CustomerTicketDto
+            {
+                Id = item.Ticket.Id,
+                TicketNumber = item.Ticket.TicketNumber,
+                Title = item.Ticket.Title,
+                CategoryName = item.CategoryName,
+                PriorityName = item.PriorityName,
+                PriorityColor = item.PriorityColor ?? "#3b82f6",
+                StatusName = item.StatusName,
+                StatusColor = item.StatusColor ?? "#10b981",
+                IsFinal = item.IsFinal,
+                CreationTime = item.Ticket.CreationTime,
+                LastModificationTime = item.Ticket.LastModificationTime,
+                CommentCount = commentCounts.GetValueOrDefault(item.Ticket.Id, 0),
+                CsatRating = item.Ticket.CsatRating,
+                AssetId = item.Ticket.AssetId,
+                AssetTag = asset?.AssetTag,
+                AssetName = asset?.Name
+            };
         }).ToList();
 
         return new PagedResultDto<CustomerTicketDto>(totalCount, dtos);
@@ -177,6 +205,12 @@ public class CustomerPortalAppService : ApplicationService, ICustomerPortalAppSe
         var status = ticket.StatusId != Guid.Empty
             ? await _statusRepository.FindAsync(ticket.StatusId)
             : null;
+
+        Asset? asset = null;
+        if (ticket.AssetId.HasValue)
+        {
+            asset = await _assetRepository.FindAsync(ticket.AssetId.Value);
+        }
 
         var attachmentQuery = await _attachmentRepository.GetQueryableAsync();
         var attachments = await AsyncExecuter.ToListAsync(
@@ -247,6 +281,11 @@ public class CustomerPortalAppService : ApplicationService, ICustomerPortalAppSe
             CsatRating = ticket.CsatRating,
             CsatComment = ticket.CsatComment,
             CsatSubmittedAt = ticket.CsatSubmittedAt,
+            AssetId = ticket.AssetId,
+            AssetTag = asset?.AssetTag,
+            AssetName = asset?.Name,
+            AssetTypeName = asset != null ? GetAssetTypeName(asset.AssetType) : null,
+            SerialNumber = asset?.SerialNumber,
             Attachments = ticketAttachments,
             Comments = commentDtos
         };
@@ -309,12 +348,30 @@ public class CustomerPortalAppService : ApplicationService, ICustomerPortalAppSe
             departmentId: null,
             assigneeId: null,
             requesterId: currentUserId,
-            requesterPhone: CurrentUser.PhoneNumber
+            requesterPhone: CurrentUser.PhoneNumber,
+            assetId: input.AssetId
         );
 
         await _slaManager.CalculateSlaDatesAsync(ticket);
         await _autoAssignmentManager.TryAssignTicketAsync(ticket);
         await _ticketRepository.InsertAsync(ticket, autoSave: true);
+
+        if (input.AssetId.HasValue)
+        {
+            var linkedAsset = await _assetRepository.FindAsync(input.AssetId.Value);
+            if (linkedAsset != null)
+            {
+                await _activityRepository.InsertAsync(new TicketActivity(
+                    GuidGenerator.Create(),
+                    ticket.Id,
+                    TicketActivityType.Created,
+                    fieldName: "AssetId",
+                    oldVal: null,
+                    newVal: linkedAsset.AssetTag,
+                    description: $"Khách hàng liên kết thiết bị [{linkedAsset.AssetTag}] {linkedAsset.Name} vào yêu cầu hỗ trợ"
+                ));
+            }
+        }
 
         // Handle initial attachments
         if (input.Attachments != null && input.Attachments.Any())
@@ -530,6 +587,107 @@ public class CustomerPortalAppService : ApplicationService, ICustomerPortalAppSe
             ContentType = a.ContentType,
             CreationTime = a.CreationTime,
             CreatorId = a.CreatorId
+        };
+    }
+
+    public async Task<List<AssetDto>> GetMyAssetsAsync()
+    {
+        var currentUserId = CurrentUser.GetId();
+        var currentUserEmail = CurrentUser.Email;
+
+        var queryable = await _assetRepository.GetQueryableAsync();
+
+        queryable = queryable.Where(a =>
+            (a.AssignedToUserId == currentUserId) ||
+            (!string.IsNullOrEmpty(currentUserEmail) && a.AssignedToUserEmail == currentUserEmail));
+
+        var items = await AsyncExecuter.ToListAsync(queryable.OrderBy(a => a.Name));
+        return items.Select(MapToAssetDto).ToList();
+    }
+
+    private static AssetDto MapToAssetDto(Asset a)
+    {
+        return new AssetDto
+        {
+            Id = a.Id,
+            AssetTag = a.AssetTag,
+            Name = a.Name,
+            AssetType = a.AssetType,
+            AssetTypeName = GetAssetTypeName(a.AssetType),
+            Status = a.Status,
+            StatusName = GetStatusName(a.Status),
+            SerialNumber = a.SerialNumber,
+            Model = a.Model,
+            Manufacturer = a.Manufacturer,
+            Location = a.Location,
+            PurchaseDate = a.PurchaseDate,
+            WarrantyExpiryDate = a.WarrantyExpiryDate,
+            PurchaseCost = a.PurchaseCost,
+            AssignedToUserId = a.AssignedToUserId,
+            AssignedToUserName = a.AssignedToUserName,
+            AssignedToUserEmail = a.AssignedToUserEmail,
+            Department = a.Department,
+            AssignedDate = a.AssignedDate,
+            Specifications = a.Specifications,
+            Notes = a.Notes,
+            IsHandoverConfirmed = a.IsHandoverConfirmed,
+            HandoverConfirmedDate = a.HandoverConfirmedDate,
+            HandoverNotes = a.HandoverNotes,
+            CreationTime = a.CreationTime,
+            CreatorId = a.CreatorId,
+            LastModificationTime = a.LastModificationTime,
+            LastModifierId = a.LastModifierId
+        };
+    }
+
+    public async Task ConfirmAssetHandoverAsync(Guid assetId, ConfirmAssetHandoverDto input)
+    {
+        var asset = await _assetRepository.GetAsync(assetId);
+        var currentUserId = CurrentUser.GetId();
+        var currentUserEmail = CurrentUser.Email;
+
+        if (asset.AssignedToUserId != currentUserId && (string.IsNullOrEmpty(currentUserEmail) || asset.AssignedToUserEmail != currentUserEmail))
+        {
+            throw new UserFriendlyException("Bạn không có quyền ký nhận cho thiết bị không thuộc tài khoản của bạn.");
+        }
+
+        await _assetManager.ConfirmHandoverAsync(
+            asset,
+            input?.Notes,
+            CurrentUser.Id,
+            CurrentUser.UserName ?? CurrentUser.Name
+        );
+
+        await _assetRepository.UpdateAsync(asset);
+    }
+
+    private static string GetAssetTypeName(AssetType type)
+    {
+        return type switch
+        {
+            AssetType.Laptop => "Máy tính xách tay (Laptop)",
+            AssetType.Desktop => "Máy tính để bàn (PC)",
+            AssetType.Monitor => "Màn hình hiển thị",
+            AssetType.NetworkDevice => "Thiết bị mạng (Router/Switch/AP)",
+            AssetType.PrinterPeripheral => "Máy in & Ngoại vi",
+            AssetType.ServerStorage => "Máy chủ & Lưu trữ",
+            AssetType.SoftwareLicense => "Bản quyền phần mềm",
+            AssetType.MobileDevice => "Thiết bị di động (Tablet/Phone)",
+            _ => "Thiết bị khác"
+        };
+    }
+
+    private static string GetStatusName(AssetStatus status)
+    {
+        return status switch
+        {
+            AssetStatus.InStock => "Trong kho lưu trữ",
+            AssetStatus.Assigned => "Đang cấp phát",
+            AssetStatus.UnderRepair => "Đang sửa chữa / Bảo hành",
+            AssetStatus.Reserved => "Đã giữ chỗ / Đặt trước",
+            AssetStatus.Retired => "Đã thanh lý",
+            AssetStatus.LostStolen => "Thất lạc / Báo mất",
+            _ => "Không xác định"
         };
     }
 }

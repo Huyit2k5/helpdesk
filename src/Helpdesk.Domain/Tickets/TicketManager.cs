@@ -76,7 +76,8 @@ public class TicketManager : DomainService
         Guid? requesterId = null,
         string? requesterPhone = null,
         DateTime? dueDate = null,
-        string? tags = null)
+        string? tags = null,
+        Guid? assetId = null)
     {
         var ticketNumber = await GenerateTicketNumberAsync();
         var ticketId = GuidGenerator.Create();
@@ -97,7 +98,8 @@ public class TicketManager : DomainService
             requesterId,
             requesterPhone,
             dueDate,
-            tags
+            tags,
+            assetId
         );
 
         var activity = new TicketActivity(

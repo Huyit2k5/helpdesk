@@ -113,6 +113,12 @@ public static class HelpdeskDbContextModelCreatingExtensions
             b.HasIndex(x => x.CreationTime);
             b.HasIndex(x => x.CsatRating);
             b.HasIndex(x => x.DiscordThreadId);
+            b.HasIndex(x => x.AssetId);
+
+            b.HasOne<Helpdesk.Assets.Asset>()
+                .WithMany()
+                .HasForeignKey(x => x.AssetId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         builder.Entity<Helpdesk.Tickets.TicketComment>(b =>
@@ -292,6 +298,58 @@ public static class HelpdeskDbContextModelCreatingExtensions
 
             b.HasIndex(x => x.IsActive);
             b.HasIndex(x => x.Order);
+        });
+
+        builder.Entity<Helpdesk.Assets.Asset>(b =>
+        {
+            b.ToTable(HelpdeskConsts.DbTablePrefix + "Assets", HelpdeskConsts.DbSchema);
+            b.ConfigureByConvention();
+
+            b.Property(x => x.AssetTag).IsRequired().HasMaxLength(Helpdesk.Assets.AssetConsts.MaxAssetTagLength);
+            b.Property(x => x.Name).IsRequired().HasMaxLength(Helpdesk.Assets.AssetConsts.MaxNameLength);
+            b.Property(x => x.SerialNumber).HasMaxLength(Helpdesk.Assets.AssetConsts.MaxSerialNumberLength);
+            b.Property(x => x.Model).HasMaxLength(Helpdesk.Assets.AssetConsts.MaxModelLength);
+            b.Property(x => x.Manufacturer).HasMaxLength(Helpdesk.Assets.AssetConsts.MaxManufacturerLength);
+            b.Property(x => x.Location).HasMaxLength(Helpdesk.Assets.AssetConsts.MaxLocationLength);
+            b.Property(x => x.AssignedToUserName).HasMaxLength(Helpdesk.Assets.AssetConsts.MaxAssigneeNameLength);
+            b.Property(x => x.AssignedToUserEmail).HasMaxLength(Helpdesk.Assets.AssetConsts.MaxAssigneeEmailLength);
+            b.Property(x => x.Department).HasMaxLength(Helpdesk.Assets.AssetConsts.MaxDepartmentLength);
+            b.Property(x => x.Specifications).HasMaxLength(Helpdesk.Assets.AssetConsts.MaxSpecsLength);
+            b.Property(x => x.Notes).HasMaxLength(Helpdesk.Assets.AssetConsts.MaxNotesLength);
+            b.Property(x => x.IsHandoverConfirmed).IsRequired().HasDefaultValue(false);
+            b.Property(x => x.HandoverConfirmedDate);
+            b.Property(x => x.HandoverNotes).HasMaxLength(Helpdesk.Assets.AssetConsts.MaxNotesLength);
+
+            b.Property(x => x.PurchaseCost).HasPrecision(18, 2);
+
+            b.HasMany(x => x.Activities)
+                .WithOne()
+                .HasForeignKey(x => x.AssetId)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Cascade);
+
+            b.HasIndex(x => x.AssetTag).IsUnique();
+            b.HasIndex(x => x.SerialNumber);
+            b.HasIndex(x => x.AssetType);
+            b.HasIndex(x => x.Status);
+            b.HasIndex(x => x.AssignedToUserId);
+            b.HasIndex(x => x.Department);
+            b.HasIndex(x => x.WarrantyExpiryDate);
+        });
+
+        builder.Entity<Helpdesk.Assets.AssetActivity>(b =>
+        {
+            b.ToTable(HelpdeskConsts.DbTablePrefix + "AssetActivities", HelpdeskConsts.DbSchema);
+            b.ConfigureByConvention();
+
+            b.Property(x => x.Title).IsRequired().HasMaxLength(256);
+            b.Property(x => x.Description).HasMaxLength(1000);
+            b.Property(x => x.PerformedByUserName).HasMaxLength(128);
+
+            b.HasIndex(x => x.AssetId);
+            b.HasIndex(x => x.ActivityType);
+            b.HasIndex(x => x.RelatedTicketId);
+            b.HasIndex(x => x.CreationTime);
         });
     }
 }

@@ -8,6 +8,18 @@
       <p class="text-muted mb-0">Theo dõi, phân công và xử lý các yêu cầu hỗ trợ khách hàng</p>
     </div>
     <div class="col-auto d-flex align-items-center gap-2">
+      <!-- My Tickets Quick Filter -->
+      <button
+        type="button"
+        class="btn shadow-sm"
+        [class.btn-primary]="assignedToMeOnly"
+        [class.btn-outline-primary]="!assignedToMeOnly"
+        (click)="toggleAssignedToMe()"
+        title="Chỉ hiển thị sự vụ được giao cho tôi"
+      >
+        <i class="fas fa-user-check me-1"></i> Ticket của tôi
+      </button>
+
       <!-- View Toggle -->
       <div class="btn-group shadow-sm" role="group">
         <button
@@ -95,8 +107,14 @@
 
         <!-- Filter Assignee -->
         <div class="col-md-2">
-          <select class="form-select" [(ngModel)]="selectedAssigneeId" (change)="search()">
-            <option value="">-- Người xử lý --</option>
+          <select
+            class="form-select"
+            [(ngModel)]="selectedAssigneeId"
+            (change)="search()"
+            [disabled]="assignedToMeOnly"
+            title="Người xử lý"
+          >
+            <option value="">{{ assignedToMeOnly ? '-- Ticket của tôi --' : '-- Người xử lý --' }}</option>
             @for (u of users; track u.id) {
               <option [value]="u.id">{{ u.userName }}</option>
             }

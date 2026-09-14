@@ -70,4 +70,15 @@ export const APP_ROUTES: Routes = [
       requiredPolicy: 'Helpdesk.AiSettings',
     },
   },
+  {
+    path: 'assets',
+    loadChildren: () =>
+      import('./assets/assets.routes').then(m => m.ASSETS_ROUTES),
+  },
+  {
+    path: 'discord-link',
+    loadComponent: () =>
+      import('./discord-link/discord-link.component').then(c => c.DiscordLinkComponent),
+    canActivate: [authGuard],
+  },
 ];

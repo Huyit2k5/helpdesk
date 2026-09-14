@@ -1,0 +1,552 @@
+.asset-management-container {
+  padding: 1.5rem 0;
+
+  .page-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e293b;
+  }
+
+  // 5 KPI Cards Styling
+  .kpi-card {
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 1.25rem 1rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    border: 1px solid #f1f5f9;
+    cursor: pointer;
+    user-select: none;
+
+    &:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 20px -3px rgba(0, 0, 0, 0.09);
+    }
+
+    &.active {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.12);
+
+      &.kpi-total {
+        border-color: #3b82f6;
+        box-shadow: 0 8px 20px rgba(59, 130, 246, 0.2);
+        background: #f8fafc;
+      }
+      &.kpi-stock {
+        border-color: #10b981;
+        box-shadow: 0 8px 20px rgba(16, 185, 129, 0.2);
+        background: #f0fdf4;
+      }
+      &.kpi-assigned {
+        border-color: #6366f1;
+        box-shadow: 0 8px 20px rgba(99, 102, 241, 0.2);
+        background: #f5f3ff;
+      }
+      &.kpi-repair {
+        border-color: #f59e0b;
+        box-shadow: 0 8px 20px rgba(245, 158, 11, 0.2);
+        background: #fffbeb;
+      }
+      &.kpi-warranty {
+        border-color: #ef4444;
+        box-shadow: 0 8px 20px rgba(239, 68, 68, 0.2);
+        background: #fef2f2;
+      }
+    }
+
+    .active-pill-badge {
+      position: absolute;
+      top: 6px;
+      right: 8px;
+      font-size: 9px;
+      padding: 1px 6px;
+      border-radius: 12px;
+      background: #0f172a;
+      color: #ffffff;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+      z-index: 2;
+    }
+
+    .kpi-icon-wrap {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.35rem;
+      flex-shrink: 0;
+    }
+
+    .kpi-content {
+      min-width: 0;
+      flex: 1;
+
+      .kpi-label {
+        font-size: 0.76rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        color: #64748b;
+        display: block;
+        padding-right: 28px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .kpi-value {
+        font-size: 1.65rem;
+        font-weight: 700;
+        margin: 0.2rem 0;
+        color: #0f172a;
+        line-height: 1.1;
+      }
+
+      .kpi-subtext {
+        font-size: 0.75rem;
+        color: #94a3b8;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
+      }
+    }
+
+    // Variations
+    &.kpi-total {
+      border-top: 4px solid #3b82f6;
+      .kpi-icon-wrap {
+        background: #eff6ff;
+        color: #3b82f6;
+      }
+    }
+
+    &.kpi-stock {
+      border-top: 4px solid #10b981;
+      .kpi-icon-wrap {
+        background: #ecfdf5;
+        color: #10b981;
+      }
+    }
+
+    &.kpi-assigned {
+      border-top: 4px solid #6366f1;
+      .kpi-icon-wrap {
+        background: #eef2ff;
+        color: #6366f1;
+      }
+    }
+
+    &.kpi-repair {
+      border-top: 4px solid #f59e0b;
+      .kpi-icon-wrap {
+        background: #fffbeb;
+        color: #f59e0b;
+      }
+    }
+
+    &.kpi-warranty {
+      border-top: 4px solid #ef4444;
+      .kpi-icon-wrap {
+        background: #fef2f2;
+        color: #ef4444;
+      }
+    }
+  }
+
+  // Stock Inventory Card
+  .stock-inventory-card {
+    border-radius: 16px;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    border: 1px solid #e2e8f0;
+
+    .stock-header-icon {
+      width: 36px;
+      height: 36px;
+      background: #ecfdf5;
+      color: #10b981;
+      font-size: 1.1rem;
+    }
+
+    .stock-cat-pill {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      gap: 0.5rem;
+
+      .stock-cat-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: #f8fafc;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.95rem;
+        color: #2563eb;
+        flex-shrink: 0;
+      }
+
+      &:hover {
+        background: #f0fdf4;
+        border-color: #86efac;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 10px rgba(16, 185, 129, 0.08);
+      }
+
+      &.active {
+        background: #ecfdf5;
+        border-color: #10b981;
+        box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
+      }
+    }
+  }
+
+  // Quick Navigation Tabs Bar
+  .nav-pills-container {
+    display: inline-flex;
+    gap: 4px;
+
+    .nav-pill-btn {
+      border: none;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #64748b;
+      background: transparent;
+      transition: all 0.15s ease;
+
+      &:hover {
+        color: #0f172a;
+        background: #f1f5f9;
+      }
+
+      &.active-all {
+        background: #1e293b;
+        color: #ffffff;
+      }
+
+      &.active-stock {
+        background: #10b981;
+        color: #ffffff;
+        .badge {
+          background: rgba(255, 255, 255, 0.25) !important;
+          color: #ffffff !important;
+        }
+      }
+
+      &.active-assigned {
+        background: #3b82f6;
+        color: #ffffff;
+        .badge {
+          background: rgba(255, 255, 255, 0.25) !important;
+          color: #ffffff !important;
+        }
+      }
+
+      &.active-repair {
+        background: #f59e0b;
+        color: #ffffff;
+        .badge {
+          background: rgba(255, 255, 255, 0.25) !important;
+          color: #ffffff !important;
+        }
+      }
+
+      &.active-warranty {
+        background: #ef4444;
+        color: #ffffff;
+        .badge {
+          background: rgba(255, 255, 255, 0.25) !important;
+          color: #ffffff !important;
+        }
+      }
+    }
+  }
+
+  // Filter Card
+  .filter-card {
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+  }
+
+  // Asset Table
+  .asset-table-card {
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+
+    .table {
+      th {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #475569;
+        font-weight: 600;
+        padding: 0.85rem 1rem;
+      }
+
+      td {
+        padding: 0.95rem 1rem;
+        vertical-align: middle;
+      }
+    }
+
+    .asset-tag-badge {
+      background: #f1f5f9;
+      padding: 0.35rem 0.65rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      color: #0284c7;
+      border: 1px solid #e0f2fe;
+      display: inline-block;
+      transition: all 0.15s ease;
+
+      &:hover {
+        background: #e0f2fe;
+        color: #0369a1;
+      }
+    }
+
+    .asset-title-link {
+      font-size: 0.95rem;
+      &:hover {
+        color: #2563eb !important;
+      }
+    }
+
+    .type-pill {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      padding: 0.25rem 0.6rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      color: #334155;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.3rem 0.65rem;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 600;
+
+      .status-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+      }
+
+      &.badge-stock {
+        background: #ecfdf5;
+        color: #065f46;
+        .status-dot { background: #10b981; }
+      }
+
+      &.badge-assigned {
+        background: #eff6ff;
+        color: #1e40af;
+        .status-dot { background: #3b82f6; }
+      }
+
+      &.badge-repair {
+        background: #fffbeb;
+        color: #92400e;
+        .status-dot { background: #f59e0b; }
+      }
+
+      &.badge-reserved {
+        background: #faf5ff;
+        color: #6b21a8;
+        .status-dot { background: #a855f7; }
+      }
+
+      &.badge-retired {
+        background: #f1f5f9;
+        color: #475569;
+        .status-dot { background: #94a3b8; }
+      }
+
+      &.badge-lost {
+        background: #fef2f2;
+        color: #991b1b;
+        .status-dot { background: #ef4444; }
+      }
+    }
+  }
+
+  // Global Glassmorphism Modal System
+  .custom-modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1060;
+    animation: modalFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+
+    .custom-modal-dialog {
+      width: 100%;
+      max-width: 580px;
+      margin: 1.5rem;
+      max-height: calc(100vh - 3rem);
+      display: flex;
+      animation: modalPopIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+
+      &.modal-lg {
+        max-width: 780px;
+      }
+    }
+
+    .custom-modal-content {
+      background: #ffffff;
+      border-radius: 20px;
+      border: 1px solid rgba(226, 232, 240, 0.9);
+      width: 100%;
+      box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25), 0 0 0 1px rgba(15, 23, 42, 0.05);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      max-height: 90vh;
+
+      form {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-height: 0;
+        overflow: hidden;
+      }
+
+      .modal-header {
+        flex-shrink: 0;
+        padding: 1.25rem 1.75rem;
+        background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+        border-bottom: 1px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+
+        .modal-header-icon {
+          width: 40px;
+          height: 40px;
+          border-radius: 12px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 1.15rem;
+          margin-right: 0.75rem;
+          flex-shrink: 0;
+
+          &.bg-primary-soft { background: #eff6ff; color: #2563eb; }
+          &.bg-success-soft { background: #ecfdf5; color: #059669; }
+          &.bg-warning-soft { background: #fffbeb; color: #d97706; }
+          &.bg-info-soft    { background: #f0fdf4; color: #0284c7; }
+        }
+
+        .btn-close-custom {
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          background: #f1f5f9;
+          border: none;
+          color: #64748b;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s ease;
+          cursor: pointer;
+          font-size: 0.85rem;
+
+          &:hover {
+            background: #e2e8f0;
+            color: #0f172a;
+            transform: rotate(90deg);
+          }
+        }
+      }
+
+      .modal-body {
+        padding: 1.5rem 1.75rem;
+        overflow-y: auto;
+        flex: 1;
+        min-height: 0;
+
+        .form-label {
+          font-size: 0.85rem;
+          color: #334155;
+          margin-bottom: 0.35rem;
+        }
+
+        .form-control, .form-select {
+          border-radius: 10px;
+          border-color: #cbd5e1;
+          padding: 0.55rem 0.85rem;
+          font-size: 0.9rem;
+          transition: all 0.15s ease;
+
+          &:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+          }
+        }
+      }
+
+      .modal-footer {
+        flex-shrink: 0;
+        padding: 1rem 1.75rem;
+        background: #f8fafc;
+        border-top: 1px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 0.75rem;
+
+        .btn {
+          border-radius: 50px;
+          padding: 0.5rem 1.25rem;
+          font-size: 0.875rem;
+          font-weight: 600;
+          transition: all 0.15s ease;
+
+          &:hover {
+            transform: translateY(-1px);
+          }
+        }
+      }
+    }
+  }
+}
+
+// Animations
+@keyframes modalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modalPopIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}

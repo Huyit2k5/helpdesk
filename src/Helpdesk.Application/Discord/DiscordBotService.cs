@@ -318,11 +318,13 @@ public class DiscordBotService : IDiscordBotService, ISingletonDependency, IDisp
         {
             try
             {
-                // 1. Đăng ký Slash Command: /link-helpdesk <username>
+                // 1. Đăng ký Slash Command: /link-helpdesk <code>
+                // Dùng mã liên kết một lần (lấy từ trang web, mục "Liên kết Discord") thay vì
+                // username thô để tránh giả mạo danh tính người khác (ai cũng đoán được username).
                 var linkCommand = new SlashCommandBuilder()
                     .WithName("link-helpdesk")
-                    .WithDescription("Liên kết tài khoản Discord của bạn với tài khoản kỹ thuật viên Helpdesk")
-                    .AddOption("username", ApplicationCommandOptionType.String, "Tên đăng nhập trong Helpdesk (Ví dụ: staff1, admin)", isRequired: true);
+                    .WithDescription("Liên kết tài khoản Discord với tài khoản Helpdesk bằng mã liên kết lấy từ trang web")
+                    .AddOption("code", ApplicationCommandOptionType.String, "Mã liên kết lấy từ trang web Helpdesk (menu \"Liên kết Discord\")", isRequired: true);
 
                 // 2. Đăng ký Slash Command: /my-tickets
                 var myTicketsCommand = new SlashCommandBuilder()
@@ -427,15 +429,16 @@ public class DiscordBotService : IDiscordBotService, ISingletonDependency, IDisp
             var allUsers = await userRepo.GetListAsync();
             var discordUserIdStr = component.User.Id.ToString();
 
-            // Tìm nhân viên theo DiscordUserId hoặc Username
-            var user = allUsers.FirstOrDefault(u => u.GetProperty<string>("DiscordUserId") == discordUserIdStr)
-                       ?? allUsers.FirstOrDefault(u => string.Equals(u.UserName, component.User.Username, StringComparison.OrdinalIgnoreCase));
+            // CHỈ khớp theo DiscordUserId đã liên kết xác thực (qua /link-helpdesk + mã liên kết từ web).
+            // Không dùng fallback khớp theo username thô nữa - trước đây ai có Discord username trùng
+            // ngẫu nhiên với 1 username Helpdesk sẽ bị nhận nhầm là chính chủ tài khoản đó.
+            var user = allUsers.FirstOrDefault(u => u.GetProperty<string>("DiscordUserId") == discordUserIdStr);
 
             if (user == null)
             {
                 await component.FollowupAsync(
                     $"⚠️ Tài khoản Discord của bạn (**@{component.User.Username}**) chưa được liên kết với nhân viên nào trong Helpdesk.\n" +
-                    $"👉 Vui lòng gõ lệnh: `/link-helpdesk <tên_đăng_nhập>` (Ví dụ: `/link-helpdesk staff1`) để liên kết và nhận vé!",
+                    $"👉 Vui lòng vào trang web Helpdesk, mục **\"Liên kết Discord\"**, lấy mã rồi gõ lệnh `/link-helpdesk <mã_liên_kết>` để liên kết và nhận vé!",
                     ephemeral: true);
                 return;
             }
@@ -640,10 +643,10 @@ public class DiscordBotService : IDiscordBotService, ISingletonDependency, IDisp
 
             var allUsers = await userRepo.GetListAsync();
             var discordUserIdStr = modal.User.Id.ToString();
-            var user = allUsers.FirstOrDefault(u => u.GetProperty<string>("DiscordUserId") == discordUserIdStr)
-                       ?? allUsers.FirstOrDefault(u => string.Equals(u.UserName, modal.User.Username, StringComparison.OrdinalIgnoreCase));
-
-            var userName = user?.UserName ?? modal.User.Username;
+            // CHỈ khớp theo DiscordUserId đã liên kết xác thực (qua /link-helpdesk + mã liên kết).
+            // Không còn fallback khớp theo username thô - tránh việc ai đó có Discord username trùng
+            // ngẫu nhiên với 1 username Helpdesk bị coi là chính chủ tài khoản đó (giả mạo danh tính).
+            var user = allUsers.FirstOrDefault(u => u.GetProperty<string>("DiscordUserId") == discordUserIdStr);
 
             var ticket = await ticketRepo.FindAsync(ticketId);
             if (ticket == null)
@@ -651,6 +654,41 @@ public class DiscordBotService : IDiscordBotService, ISingletonDependency, IDisp
                 await modal.FollowupAsync("❌ Không tìm thấy sự vụ này trên hệ thống.", ephemeral: true);
                 return;
             }
+
+            // Chỉ kỹ thuật viên ĐANG được phân công cho vé này mới được phép hoàn thành nó qua Discord.
+            // Nút "Hoàn thành vé" nằm trên tin nhắn công khai trong channel/thread nên ai xem được cũng
+            // bấm được - nếu không kiểm tra quyền sở hữu, bất kỳ ai cũng có thể đóng vé của người khác.
+            if (user == null)
+            {
+                await modal.FollowupAsync(
+                    "⚠️ Tài khoản Discord của bạn chưa được liên kết với nhân viên Helpdesk nào.\n" +
+                    "👉 Dùng lệnh `/link-helpdesk <mã_liên_kết>` để liên kết trước khi hoàn thành vé.",
+                    ephemeral: true);
+                return;
+            }
+
+            if (!ticket.AssigneeId.HasValue || ticket.AssigneeId.Value != user.Id)
+            {
+                var assigneeName = ticket.AssigneeId.HasValue
+                    ? allUsers.FirstOrDefault(u => u.Id == ticket.AssigneeId.Value)?.UserName
+                    : null;
+                await modal.FollowupAsync(
+                    assigneeName != null
+                        ? $"⛔ Chỉ kỹ thuật viên đang phụ trách (**{assigneeName}**) mới có thể hoàn thành vé **[{ticket.TicketNumber}]** này."
+                        : $"⛔ Vé **[{ticket.TicketNumber}]** chưa được phân công cho ai, không thể hoàn thành qua Discord.",
+                    ephemeral: true);
+                return;
+            }
+
+            // Chống double-resolve khi 2 lần bấm gần nhau / vé đã được xử lý xong từ trước.
+            var currentStatus = await statusRepo.FindAsync(ticket.StatusId);
+            if (currentStatus != null && (currentStatus.IsFinal || currentStatus.StatusGroup == StatusGroup.Closed))
+            {
+                await modal.FollowupAsync($"ℹ️ Vé **[{ticket.TicketNumber}]** đã được giải quyết từ trước đó rồi.", ephemeral: true);
+                return;
+            }
+
+            var userName = user.UserName;
 
             var allStatuses = await statusRepo.GetListAsync();
             var resolvedStatus = allStatuses.FirstOrDefault(s => s.Code == "RESOLVED" || s.Name.Contains("Resolved", StringComparison.OrdinalIgnoreCase) || s.Name.Contains("Đã giải quyết", StringComparison.OrdinalIgnoreCase))
@@ -850,18 +888,20 @@ public class DiscordBotService : IDiscordBotService, ISingletonDependency, IDisp
             return;
         }
 
-        // 2. Lệnh liên kết tài khoản: !link <tên_đăng_nhập>
+        // 2. Lệnh liên kết tài khoản: !link <mã_liên_kết>
+        // Mã liên kết được người dùng tự sinh ra từ trang web (đã đăng nhập), có hạn 10 phút,
+        // dùng một lần - tránh việc ai cũng có thể tự nhận là người khác chỉ bằng cách đoán username.
         if (content.StartsWith("!link", StringComparison.OrdinalIgnoreCase))
         {
             var parts = content.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             if (parts.Length < 2)
             {
-                await message.Channel.SendMessageAsync("👉 Cú pháp đúng: `!link <tên_đăng_nhập_helpdesk>` (Ví dụ: `!link staff1`)", messageReference: new MessageReference(message.Id));
+                await message.Channel.SendMessageAsync("👉 Cú pháp đúng: `!link <mã_liên_kết>`. Lấy mã tại trang web Helpdesk, mục \"Liên kết Discord\".", messageReference: new MessageReference(message.Id));
                 return;
             }
 
-            var username = parts[1];
-            var result = await LinkUserCoreAsync(message.Author.Id, message.Author.Username, username);
+            var code = parts[1];
+            var result = await LinkUserWithCodeAsync(message.Author.Id, message.Author.Username, code);
             await message.Channel.SendMessageAsync(result, messageReference: new MessageReference(message.Id));
             return;
         }
@@ -869,18 +909,24 @@ public class DiscordBotService : IDiscordBotService, ISingletonDependency, IDisp
 
     private async Task HandleLinkHelpdeskCommandAsync(SocketSlashCommand command)
     {
-        var usernameOpt = command.Data.Options.FirstOrDefault(o => o.Name == "username")?.Value?.ToString();
-        if (string.IsNullOrWhiteSpace(usernameOpt))
+        var codeOpt = command.Data.Options.FirstOrDefault(o => o.Name == "code")?.Value?.ToString();
+        if (string.IsNullOrWhiteSpace(codeOpt))
         {
-            await command.RespondAsync("❌ Vui lòng cung cấp tên đăng nhập Helpdesk.", ephemeral: true);
+            await command.RespondAsync("❌ Vui lòng cung cấp mã liên kết (lấy từ trang web Helpdesk).", ephemeral: true);
             return;
         }
 
-        var result = await LinkUserCoreAsync(command.User.Id, command.User.Username, usernameOpt);
+        var result = await LinkUserWithCodeAsync(command.User.Id, command.User.Username, codeOpt);
         await command.RespondAsync(result, ephemeral: true);
     }
 
-    private async Task<string> LinkUserCoreAsync(ulong discordUserId, string discordUsername, string helpdeskUsername)
+    /// <summary>
+    /// Liên kết tài khoản Discord với 1 IdentityUser bằng mã liên kết một lần mà chính chủ tài khoản
+    /// đó đã tự sinh ra từ phiên web đã đăng nhập (xem <c>DiscordAccountLinkAppService.GenerateLinkCodeAsync</c>).
+    /// Không còn tin theo username thô do bất kỳ ai gõ vào Discord - tránh giả mạo danh tính (xem
+    /// review bảo mật: LinkUserCoreAsync cũ cho phép link vào bất kỳ tài khoản nào chỉ bằng cách đoán username).
+    /// </summary>
+    private async Task<string> LinkUserWithCodeAsync(ulong discordUserId, string discordUsername, string code)
     {
         using var scope = _serviceScopeFactory.CreateScope();
         var userRepo = scope.ServiceProvider.GetRequiredService<IRepository<IdentityUser, Guid>>();
@@ -888,16 +934,32 @@ public class DiscordBotService : IDiscordBotService, ISingletonDependency, IDisp
 
         using var uow = uowManager.Begin();
 
+        var normalizedCode = code.Trim().ToUpperInvariant();
         var allUsers = await userRepo.GetListAsync();
-        var user = allUsers.FirstOrDefault(u => string.Equals(u.UserName, helpdeskUsername.Trim(), StringComparison.OrdinalIgnoreCase));
+        var user = allUsers.FirstOrDefault(u =>
+        {
+            var storedCode = u.GetProperty<string>("DiscordLinkCode");
+            if (string.IsNullOrEmpty(storedCode) || storedCode != normalizedCode)
+            {
+                return false;
+            }
+
+            var expiresAtRaw = u.GetProperty<string>("DiscordLinkCodeExpiresAtUtc");
+            return DateTime.TryParse(expiresAtRaw, null, System.Globalization.DateTimeStyles.RoundtripKind, out var expiresAt)
+                   && expiresAt > DateTime.UtcNow;
+        });
 
         if (user == null)
         {
-            return $"❌ Không tìm thấy nhân viên nào có tên đăng nhập **{helpdeskUsername}** trong hệ thống Helpdesk. Vui lòng kiểm tra lại!";
+            return "❌ Mã liên kết không đúng hoặc đã hết hạn.\n" +
+                   "👉 Vui lòng vào trang web Helpdesk, mục **\"Liên kết Discord\"**, để lấy mã mới (mã có hạn 10 phút).";
         }
 
         user.SetProperty("DiscordUserId", discordUserId.ToString());
         user.SetProperty("DiscordUsername", discordUsername);
+        // Mã dùng một lần - xoá ngay sau khi liên kết thành công để không thể bị tái sử dụng.
+        user.SetProperty("DiscordLinkCode", (string?)null);
+        user.SetProperty("DiscordLinkCodeExpiresAtUtc", (string?)null);
         await userRepo.UpdateAsync(user, autoSave: true);
 
         await uow.CompleteAsync();
