@@ -33,6 +33,8 @@ export enum AssetActivityType {
   HandoverConfirmed = 9,
   MaintenanceStarted = 10,
   MaintenanceCompleted = 11,
+  AuditScanned = 12,
+  AuditReconciled = 13,
 }
 
 export enum MaintenanceType {
@@ -293,3 +295,116 @@ export interface MaintenanceScheduleAlertDto {
   daysRemainingOrOverdue: number;
   maintenanceIntervalMonths?: number | null;
 }
+
+export enum AssetAuditStatus {
+  Draft = 1,
+  InProgress = 2,
+  Completed = 3,
+  Cancelled = 4,
+}
+
+export enum AuditItemResult {
+  Pending = 1,
+  Matched = 2,
+  Displaced = 3,
+  Unexpected = 4,
+}
+
+export interface AssetAuditSessionDto extends FullAuditedEntityDto<string> {
+  title: string;
+  auditCode: string;
+  scopeDepartment?: string | null;
+  scopeLocation?: string | null;
+  status: AssetAuditStatus;
+  statusName: string;
+  startDate?: string | null;
+  completedDate?: string | null;
+  totalExpectedCount: number;
+  scannedCount: number;
+  matchedCount: number;
+  displacedCount: number;
+  missingCount: number;
+  progressPercentage: number;
+  notes?: string | null;
+  items: AssetAuditItemDto[];
+}
+
+export interface CreateAssetAuditSessionDto {
+  title: string;
+  scopeDepartment?: string | null;
+  scopeLocation?: string | null;
+  notes?: string | null;
+}
+
+export interface GetAssetAuditListInput extends PagedAndSortedResultRequestDto {
+  filter?: string | null;
+  status?: AssetAuditStatus | null;
+  department?: string | null;
+  location?: string | null;
+}
+
+export interface AssetAuditItemDto extends CreationAuditedEntityDto<string> {
+  auditSessionId: string;
+  assetId: string;
+  assetTag: string;
+  assetName: string;
+  serialNumber?: string | null;
+  model?: string | null;
+  assetTypeName?: string | null;
+  expectedLocation?: string | null;
+  scannedLocation?: string | null;
+  expectedAssignedToUserId?: string | null;
+  expectedAssignedToUserName?: string | null;
+  scannedAssignedToUserId?: string | null;
+  scannedAssignedToUserName?: string | null;
+  resultStatus: AuditItemResult;
+  resultStatusName: string;
+  isReconciled: boolean;
+  reconciledTime?: string | null;
+  scannedTime?: string | null;
+  scannedByUserId?: string | null;
+  scannedByUserName?: string | null;
+  notes?: string | null;
+}
+
+export interface ScanAuditItemInput {
+  code: string;
+  currentLocation?: string | null;
+  currentAssignedUserId?: string | null;
+  currentAssignedUserName?: string | null;
+  notes?: string | null;
+}
+
+export interface ScanResultDto {
+  success: boolean;
+  message: string;
+  item?: AssetAuditItemDto | null;
+  resultStatus?: AuditItemResult | null;
+  isDisplaced: boolean;
+  displacedReason?: string | null;
+  updatedCounts?: AuditSessionCountsDto | null;
+}
+
+export interface AuditSessionCountsDto {
+  totalExpectedCount: number;
+  scannedCount: number;
+  matchedCount: number;
+  displacedCount: number;
+  missingCount: number;
+  progressPercentage: number;
+}
+
+export interface ReconcileAuditItemsInput {
+  itemIds?: string[] | null;
+}
+
+export interface AuditReportDto {
+  session: AssetAuditSessionDto;
+  generatedDate: string;
+  auditorName: string;
+  matchedItems: AssetAuditItemDto[];
+  displacedItems: AssetAuditItemDto[];
+  missingItems: AssetAuditItemDto[];
+  unexpectedItems: AssetAuditItemDto[];
+}
+

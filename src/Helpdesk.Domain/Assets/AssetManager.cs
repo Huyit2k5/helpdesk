@@ -341,4 +341,60 @@ public class AssetManager : DomainService
 
         await _activityRepository.InsertAsync(activity);
     }
+
+    /// <summary>
+    /// Ghi log kiểm kê quét mã thiết bị trong đợt kiểm kê
+    /// </summary>
+    public async Task LogAuditScannedAsync(
+        Asset asset,
+        AssetAuditSession session,
+        AuditItemResult result,
+        string? scannedLocation,
+        string? scannedUserName,
+        Guid? performerId,
+        string? performerName)
+    {
+        var resultText = result == AuditItemResult.Matched ? "Khớp hoàn toàn" : "Lệch vị trí / Người dùng";
+        var desc = $"Đợt kiểm kê: {session.Title} ({session.AuditCode}). Kết quả: {resultText}. Vị trí quét: {scannedLocation ?? "N/A"}. Người sử dụng: {scannedUserName ?? "Chưa rõ"}";
+
+        var activity = new AssetActivity(
+            GuidGenerator.Create(),
+            asset.Id,
+            AssetActivityType.AuditScanned,
+            title: $"Kiểm kê thiết bị ({session.AuditCode})",
+            description: desc,
+            performedByUserId: performerId,
+            performedByUserName: performerName
+        );
+
+        await _activityRepository.InsertAsync(activity);
+    }
+
+    /// <summary>
+    /// Ghi log cập nhật đối soát vị trí / người dùng sau kiểm kê
+    /// </summary>
+    public async Task LogAuditReconciledAsync(
+        Asset asset,
+        AssetAuditSession session,
+        string? oldLocation,
+        string? newLocation,
+        string? oldUser,
+        string? newUser,
+        Guid? performerId,
+        string? performerName)
+    {
+        var desc = $"Đối soát sau kiểm kê ({session.AuditCode}): Cập nhật vị trí từ '{oldLocation ?? "Trống"}' thành '{newLocation ?? "Trống"}', người dùng từ '{oldUser ?? "Trống"}' thành '{newUser ?? "Trống"}'";
+
+        var activity = new AssetActivity(
+            GuidGenerator.Create(),
+            asset.Id,
+            AssetActivityType.AuditReconciled,
+            title: "Cập nhật dữ liệu sau kiểm kê",
+            description: desc,
+            performedByUserId: performerId,
+            performedByUserName: performerName
+        );
+
+        await _activityRepository.InsertAsync(activity);
+    }
 }

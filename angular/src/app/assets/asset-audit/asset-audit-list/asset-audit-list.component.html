@@ -1,0 +1,316 @@
+<div class="audit-list-container">
+  <!-- Breadcrumb & Header -->
+  <div class="page-header d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1">
+          <li class="breadcrumb-item"><a routerLink="/assets" class="text-decoration-none"><i class="fas fa-laptop-code me-1"></i>Tài sản ITAM</a></li>
+          <li class="breadcrumb-item active" aria-current="page">Kiểm kê định kỳ</li>
+        </ol>
+      </nav>
+      <h1 class="page-title">
+        <i class="fas fa-clipboard-check text-primary me-2"></i>
+        Phân Hệ Kiểm Kê Định Kỳ & Quét Mã QR Hàng Loạt
+      </h1>
+      <p class="text-muted mb-0">Khởi tạo các đợt đối soát tài sản theo phòng ban hoặc kho bãi, quét tốc độ cao và tự động chuẩn hóa vị trí thực tế.</p>
+    </div>
+    <div class="header-actions d-flex gap-2">
+      <a routerLink="/assets" class="btn btn-outline-secondary shadow-sm">
+        <i class="fas fa-arrow-left me-1"></i> Quay Lại Danh Mục
+      </a>
+      <button class="btn btn-primary shadow-sm" (click)="openCreateModal()">
+        <i class="fas fa-plus-circle me-1"></i> Tạo Đợt Kiểm Kê Mới
+      </button>
+      <button class="btn btn-outline-secondary" (click)="loadSessions()" title="Tải lại">
+        <i class="fas fa-sync-alt" [class.fa-spin]="loading"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- KPI Summary Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-4">
+      <div class="stat-card stat-total shadow-sm">
+        <div class="stat-icon"><i class="fas fa-folder-open"></i></div>
+        <div class="stat-content">
+          <div class="stat-label">Tổng Số Đợt Kiểm Kê</div>
+          <div class="stat-value">{{ totalSessions }}</div>
+          <div class="stat-note">Các đợt đã thiết lập trong hệ thống</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="stat-card stat-progress shadow-sm">
+        <div class="stat-icon"><i class="fas fa-qrcode"></i></div>
+        <div class="stat-content">
+          <div class="stat-label">Đang Tiến Hành</div>
+          <div class="stat-value text-warning">{{ inProgressCount }}</div>
+          <div class="stat-note">Sẵn sàng mở phòng quét siêu tốc</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="stat-card stat-completed shadow-sm">
+        <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+        <div class="stat-content">
+          <div class="stat-label">Đã Hoàn Tất & Biên Bản</div>
+          <div class="stat-value text-success">{{ completedCount }}</div>
+          <div class="stat-note">Đã chốt đối soát & sẵn sàng in A4</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter & Search Toolbar -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body p-3">
+      <div class="row g-2 align-items-center">
+        <div class="col-md-5">
+          <div class="input-group">
+            <span class="input-group-text bg-white border-end-0 text-muted"><i class="fas fa-search"></i></span>
+            <input
+              type="text"
+              class="form-control border-start-0 ps-0"
+              placeholder="Tìm theo mã đợt (AUD-...), tên chiến dịch..."
+              [(ngModel)]="searchTerm"
+              (keyup.enter)="onFilterChange()"
+            />
+            <button class="btn btn-outline-primary" (click)="onFilterChange()">Tìm kiếm</button>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <select class="form-select" [(ngModel)]="selectedStatus" (change)="onFilterChange()">
+            <option [ngValue]="null">-- Tất cả trạng thái --</option>
+            <option [ngValue]="AssetAuditStatus.Draft">Bản nháp (Draft)</option>
+            <option [ngValue]="AssetAuditStatus.InProgress">Đang kiểm kê (In Progress)</option>
+            <option [ngValue]="AssetAuditStatus.Completed">Đã hoàn thành (Completed)</option>
+            <option [ngValue]="AssetAuditStatus.Cancelled">Đã hủy (Cancelled)</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <select class="form-select" [(ngModel)]="selectedDepartment" (change)="onFilterChange()">
+            <option value="">-- Tất cả phòng ban --</option>
+            <option *ngFor="let d of departments" [value]="d.name">{{ d.name }}</option>
+          </select>
+        </div>
+        <div class="col-md-1 text-end">
+          <button class="btn btn-light w-100" (click)="searchTerm = ''; selectedStatus = null; selectedDepartment = ''; onFilterChange()" title="Đặt lại bộ lọc">
+            <i class="fas fa-redo text-muted"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sessions List Table -->
+  <div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+      <div *ngIf="loading" class="text-center py-5">
+        <div class="spinner-border text-primary mb-2" role="status"></div>
+        <p class="text-muted">Đang tải danh sách các đợt kiểm kê...</p>
+      </div>
+
+      <div *ngIf="!loading && sessions.length === 0" class="text-center py-5 empty-state">
+        <i class="fas fa-clipboard-list fa-3x text-muted mb-3 opacity-50"></i>
+        <h5 class="text-muted">Chưa có đợt kiểm kê nào</h5>
+        <p class="text-muted small">Hãy bấm nút "Tạo Đợt Kiểm Kê Mới" để bắt đầu kiểm kê theo phòng ban hoặc kho bãi.</p>
+        <button class="btn btn-primary btn-sm" (click)="openCreateModal()">
+          <i class="fas fa-plus me-1"></i> Tạo Đợt Đầu Tiên
+        </button>
+      </div>
+
+      <div *ngIf="!loading && sessions.length > 0" class="table-responsive">
+        <table class="table table-hover align-middle mb-0 custom-audit-table">
+          <thead class="table-light">
+            <tr>
+              <th style="width: 140px;">Mã Đợt</th>
+              <th>Tiêu Đề & Phạm Vi</th>
+              <th style="width: 150px;">Trạng Thái</th>
+              <th style="width: 220px;">Tiến Độ Quét</th>
+              <th style="width: 180px;">Kết Quả So Khớp</th>
+              <th style="width: 140px;">Ngày Bắt Đầu</th>
+              <th style="width: 160px;" class="text-end">Thao Tác</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let s of sessions" [routerLink]="['/assets/audits', s.id]" class="audit-row cursor-pointer">
+              <!-- Mã đợt -->
+              <td>
+                <span class="audit-code-badge">
+                  <i class="fas fa-barcode me-1"></i>{{ s.auditCode }}
+                </span>
+              </td>
+
+              <!-- Tiêu đề & Phạm vi -->
+              <td>
+                <div class="fw-bold text-dark audit-title">{{ s.title }}</div>
+                <div class="d-flex gap-2 align-items-center mt-1 text-muted small">
+                  <span *ngIf="s.scopeDepartment" class="badge bg-light text-dark border">
+                    <i class="fas fa-building me-1 text-primary"></i>{{ s.scopeDepartment }}
+                  </span>
+                  <span *ngIf="!s.scopeDepartment" class="badge bg-light text-secondary border">
+                    <i class="fas fa-globe me-1"></i>Toàn công ty
+                  </span>
+                  <span *ngIf="s.scopeLocation" class="badge bg-light text-dark border">
+                    <i class="fas fa-map-marker-alt me-1 text-danger"></i>{{ s.scopeLocation }}
+                  </span>
+                </div>
+              </td>
+
+              <!-- Trạng thái -->
+              <td>
+                <span class="badge" [ngClass]="getStatusBadgeClass(s.status)">
+                  <i class="fas fa-circle me-1 small"></i>{{ s.statusName }}
+                </span>
+              </td>
+
+              <!-- Tiến độ -->
+              <td>
+                <div class="d-flex justify-content-between small mb-1">
+                  <span class="fw-semibold">{{ s.scannedCount }} / {{ s.totalExpectedCount }} máy</span>
+                  <span class="fw-bold text-primary">{{ s.progressPercentage }}%</span>
+                </div>
+                <div class="progress" style="height: 7px;">
+                  <div
+                    class="progress-bar bg-primary"
+                    role="progressbar"
+                    [style.width.%]="s.progressPercentage"
+                  ></div>
+                </div>
+              </td>
+
+              <!-- Kết quả so khớp -->
+              <td>
+                <div class="d-flex gap-1 flex-wrap">
+                  <span class="badge bg-success-subtle text-success border border-success-subtle" title="Khớp hoàn toàn">
+                    <i class="fas fa-check me-1"></i>{{ s.matchedCount }} Khớp
+                  </span>
+                  <span *ngIf="s.displacedCount > 0" class="badge bg-warning-subtle text-warning border border-warning-subtle" title="Lệch vị trí hoặc người quản lý">
+                    <i class="fas fa-exclamation-triangle me-1"></i>{{ s.displacedCount }} Lệch
+                  </span>
+                  <span *ngIf="s.missingCount > 0" class="badge bg-secondary-subtle text-secondary border border-secondary-subtle" title="Chưa quét thấy">
+                    <i class="fas fa-clock me-1"></i>{{ s.missingCount }} Thiếu
+                  </span>
+                </div>
+              </td>
+
+              <!-- Ngày bắt đầu -->
+              <td>
+                <span class="text-muted small">
+                  {{ s.startDate ? (s.startDate | date:'dd/MM/yyyy HH:mm') : (s.creationTime | date:'dd/MM/yyyy') }}
+                </span>
+              </td>
+
+              <!-- Thao tác -->
+              <td class="text-end" (click)="$event.stopPropagation()">
+                <div class="btn-group btn-group-sm">
+                  <a [routerLink]="['/assets/audits', s.id]" class="btn btn-outline-primary" title="Mở phòng quét siêu tốc & đối soát">
+                    <i class="fas fa-qrcode me-1"></i> Quét
+                  </a>
+                  <button
+                    *ngIf="s.status === AssetAuditStatus.Draft"
+                    class="btn btn-outline-success"
+                    (click)="startAudit(s, $event)"
+                    title="Bắt đầu kiểm kê"
+                  >
+                    <i class="fas fa-play"></i>
+                  </button>
+                  <button
+                    *ngIf="s.status !== AssetAuditStatus.Completed && s.status !== AssetAuditStatus.Cancelled"
+                    class="btn btn-outline-danger"
+                    (click)="cancelAudit(s, $event)"
+                    title="Hủy đợt kiểm kê này"
+                  >
+                    <i class="fas fa-times"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Tạo Đợt Kiểm Kê Mới -->
+<div class="modal fade show d-block modal-backdrop-custom" *ngIf="isCreateModalOpen" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content shadow-lg border-0">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title">
+          <i class="fas fa-folder-plus me-2"></i>Khởi Tạo Đợt Kiểm Kê Tài Sản Định Kỳ Mới
+        </h5>
+        <button type="button" class="btn-close btn-close-white" (click)="closeCreateModal()"></button>
+      </div>
+      <form [formGroup]="createForm" (ngSubmit)="submitCreate()">
+        <div class="modal-body p-4">
+          <div class="alert alert-info d-flex align-items-center mb-3">
+            <i class="fas fa-info-circle fa-2x me-3"></i>
+            <div>
+              <strong>Cơ chế tự động nạp danh mục:</strong> Hệ thống sẽ tự động quét và nạp toàn bộ danh mục tài sản đang hoạt động trong phạm vi bạn chọn. Khi đi kiểm kê thực tế, bạn chỉ cần quét mã QR/mã vạch để so khớp tức thì.
+            </div>
+          </div>
+
+          <!-- Tiêu đề -->
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Tên Đợt Kiểm Kê <span class="text-danger">*</span></label>
+            <input
+              type="text"
+              class="form-control"
+              placeholder="VD: Kiểm kê định kỳ Quý 3/2026 - Khối Kỹ Thuật"
+              formControlName="title"
+              [class.is-invalid]="createForm.get('title')?.touched && createForm.get('title')?.invalid"
+            />
+            <div class="invalid-feedback">Vui lòng nhập tên đợt kiểm kê.</div>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <!-- Phòng ban -->
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Phạm Vi Phòng Ban</label>
+              <select class="form-select" formControlName="scopeDepartment">
+                <option value="">-- Toàn bộ công ty (Tất cả phòng ban) --</option>
+                <option *ngFor="let d of departments" [value]="d.name">{{ d.name }}</option>
+              </select>
+              <small class="text-muted">Chọn phòng ban để giới hạn danh mục máy cần kiểm tra.</small>
+            </div>
+
+            <!-- Vị trí kho / tầng -->
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Phạm Vi Vị Trí / Kho Lưu Trữ</label>
+              <input
+                type="text"
+                class="form-control"
+                placeholder="VD: Kho IT Tầng 3, Phòng Server, Khu A..."
+                formControlName="scopeLocation"
+              />
+              <small class="text-muted">Để trống nếu muốn quét toàn bộ các vị trí.</small>
+            </div>
+          </div>
+
+          <!-- Ghi chú -->
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Ghi Chú & Mục Đích</label>
+            <textarea
+              class="form-control"
+              rows="3"
+              placeholder="VD: Kiểm kê thường niên theo quyết định số 45/QĐ-CNTT..."
+              formControlName="notes"
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="modal-footer bg-light">
+          <button type="button" class="btn btn-secondary" (click)="closeCreateModal()">Hủy</button>
+          <button type="submit" class="btn btn-primary" [disabled]="createForm.invalid || isSaving">
+            <i class="fas fa-spinner fa-spin me-1" *ngIf="isSaving"></i>
+            <i class="fas fa-check-circle me-1" *ngIf="!isSaving"></i>
+            Khởi Tạo & Nạp Toàn Bộ Thiết Bị
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<div class="modal-backdrop fade show" *ngIf="isCreateModalOpen"></div>

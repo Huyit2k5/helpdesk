@@ -9,8 +9,11 @@
       <p class="text-muted mb-0">Theo dõi toàn diện vòng đời phần cứng, bản quyền phần mềm, cấp phát nhân sự và lịch sử sự cố Helpdesk.</p>
     </div>
     <div class="header-actions d-flex gap-2">
+      <a routerLink="/assets/audits" class="btn btn-warning shadow-sm text-dark fw-semibold" title="Đợt kiểm kê định kỳ & quét đối soát hàng loạt">
+        <i class="fas fa-clipboard-check me-1"></i> Đợt Kiểm Kê QR
+      </a>
       <button class="btn btn-outline-primary shadow-sm" (click)="openQrScanner()" title="Quét mã QR bằng camera hoặc tải ảnh tem kiểm kê">
-        <i class="fas fa-qrcode me-1"></i> Quét Mã QR / Kiểm Kê
+        <i class="fas fa-qrcode me-1"></i> Tra Cứu Tem QR
       </button>
       <button class="btn btn-primary shadow-sm" (click)="openCreateModal()">
         <i class="fas fa-plus me-1"></i> Thêm Mới Thiết Bị

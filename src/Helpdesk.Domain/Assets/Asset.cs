@@ -27,7 +27,7 @@ public class Asset : FullAuditedAggregateRoot<Guid>, IMultiTenant
 
     public string? Manufacturer { get; private set; }
 
-    public string? Location { get; private set; }
+    public string? Location { get; set; }
 
     public DateTime? PurchaseDate { get; private set; }
 
@@ -149,6 +149,11 @@ public class Asset : FullAuditedAggregateRoot<Guid>, IMultiTenant
         {
             HandoverNotes = notes;
         }
+    }
+
+    public void UpdateLocation(string? location)
+    {
+        Location = location;
     }
 
     public void ReturnToStock()

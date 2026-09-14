@@ -1,0 +1,599 @@
+<div class="audit-detail-container">
+  <!-- Loading state -->
+  <div *ngIf="loading" class="text-center py-5">
+    <div class="spinner-border text-primary mb-2" role="status"></div>
+    <p class="text-muted">Đang tải thông tin đợt kiểm kê...</p>
+  </div>
+
+  <div *ngIf="!loading && session">
+    <!-- Breadcrumbs & Header -->
+    <div class="page-header d-flex justify-content-between align-items-start mb-4">
+      <div>
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb mb-1">
+            <li class="breadcrumb-item"><a routerLink="/assets" class="text-decoration-none">Tài sản ITAM</a></li>
+            <li class="breadcrumb-item"><a routerLink="/assets/audits" class="text-decoration-none">Kiểm kê định kỳ</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ session.auditCode }}</li>
+          </ol>
+        </nav>
+        <div class="d-flex align-items-center gap-3">
+          <h1 class="page-title mb-0">{{ session.title }}</h1>
+          <span class="audit-code-badge"><i class="fas fa-barcode me-1"></i>{{ session.auditCode }}</span>
+          <span class="badge" [ngClass]="{
+            'bg-secondary': session.status === AssetAuditStatus.Draft,
+            'bg-warning text-dark': session.status === AssetAuditStatus.InProgress,
+            'bg-success': session.status === AssetAuditStatus.Completed,
+            'bg-danger': session.status === AssetAuditStatus.Cancelled
+          }">
+            {{ session.statusName }}
+          </span>
+        </div>
+        <div class="d-flex gap-2 align-items-center mt-2 text-muted small">
+          <span><i class="fas fa-building me-1 text-primary"></i>Phạm vi: <strong>{{ session.scopeDepartment || 'Toàn bộ công ty' }}</strong></span>
+          <span *ngIf="session.scopeLocation" class="ms-3"><i class="fas fa-map-marker-alt me-1 text-danger"></i>Vị trí: <strong>{{ session.scopeLocation }}</strong></span>
+          <span class="ms-3"><i class="fas fa-calendar-alt me-1"></i>Khởi tạo: {{ session.creationTime | date:'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+      </div>
+
+      <div class="header-actions d-flex gap-2">
+        <a routerLink="/assets/audits" class="btn btn-outline-secondary shadow-sm">
+          <i class="fas fa-arrow-left me-1"></i> Danh Sách Đợt
+        </a>
+        <button
+          *ngIf="session.status === AssetAuditStatus.InProgress"
+          class="btn btn-primary shadow-sm"
+          (click)="completeAudit()"
+        >
+          <i class="fas fa-check-double me-1"></i> Hoàn Tất & Chốt Đợt
+        </button>
+        <button class="btn btn-outline-dark shadow-sm" (click)="openReportModal()">
+          <i class="fas fa-file-alt me-1"></i> Biên Bản A4
+        </button>
+        <button class="btn btn-outline-secondary" (click)="loadSessionDetails()" title="Tải lại">
+          <i class="fas fa-sync-alt"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- 4 KPI Stats Cards -->
+    <div class="row g-3 mb-4">
+      <!-- Total Progress Card -->
+      <div class="col-xl-3 col-md-6">
+        <div class="kpi-card kpi-progress shadow-sm cursor-pointer" [class.active-kpi]="activeFilterTab === 'all'" (click)="activeFilterTab = 'all'">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="kpi-label">Tiến Độ Quét Thực Tế</span>
+            <span class="badge bg-primary-subtle text-primary fw-bold">{{ session.progressPercentage }}%</span>
+          </div>
+          <div class="kpi-value text-primary">
+            {{ session.scannedCount }} <span class="kpi-unit">/ {{ session.totalExpectedCount }} thiết bị</span>
+          </div>
+          <div class="progress mt-2" style="height: 6px;">
+            <div class="progress-bar bg-primary" role="progressbar" [style.width.%]="session.progressPercentage"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Matched Card -->
+      <div class="col-xl-3 col-md-6">
+        <div class="kpi-card kpi-matched shadow-sm cursor-pointer" [class.active-kpi]="activeFilterTab === 'matched'" (click)="activeFilterTab = 'matched'">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="kpi-label">Khớp Hoàn Toàn</span>
+            <i class="fas fa-check-circle text-success fs-5"></i>
+          </div>
+          <div class="kpi-value text-success">{{ session.matchedCount }}</div>
+          <div class="kpi-subtext text-muted">Đúng vị trí & đúng người dùng</div>
+        </div>
+      </div>
+
+      <!-- Displaced Card -->
+      <div class="col-xl-3 col-md-6">
+        <div class="kpi-card kpi-displaced shadow-sm cursor-pointer" [class.active-kpi]="activeFilterTab === 'displaced'" (click)="activeFilterTab = 'displaced'">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="kpi-label">Lệch Vị Trí / Nhân Sự</span>
+            <i class="fas fa-exclamation-triangle text-warning fs-5"></i>
+          </div>
+          <div class="kpi-value text-warning">{{ session.displacedCount }}</div>
+          <div class="kpi-subtext text-muted">Có mặt nhưng sai phòng ban/người dùng</div>
+        </div>
+      </div>
+
+      <!-- Missing / Pending Card -->
+      <div class="col-xl-3 col-md-6">
+        <div class="kpi-card kpi-missing shadow-sm cursor-pointer" [class.active-kpi]="activeFilterTab === 'missing'" (click)="activeFilterTab = 'missing'">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="kpi-label">Chưa Quét Thấy</span>
+            <i class="fas fa-clock text-secondary fs-5"></i>
+          </div>
+          <div class="kpi-value text-secondary">{{ session.missingCount }}</div>
+          <div class="kpi-subtext text-muted">Trong phạm vi chưa phát hiện</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Speed-Scanner Operational Cockpit -->
+    <div class="card border-0 shadow-sm mb-4 scanner-cockpit-card">
+      <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center py-3">
+        <div class="d-flex align-items-center gap-3">
+          <i class="fas fa-bolt text-warning fs-4"></i>
+          <div>
+            <h5 class="mb-0 fw-bold">Trung Tâm Quét Siêu Tốc (Continuous Speed-Scanner)</h5>
+            <small class="text-secondary">Quét liên tục camera hoặc súng quét mã vạch - Tự động so khớp thời gian thực</small>
+          </div>
+        </div>
+
+        <div class="d-flex align-items-center gap-2">
+          <!-- Sound toggle -->
+          <button
+            class="btn btn-sm"
+            [ngClass]="isSoundEnabled ? 'btn-outline-success' : 'btn-outline-secondary'"
+            (click)="toggleSound()"
+            title="Bật/Tắt âm thanh thông báo khi quét"
+          >
+            <i class="fas" [ngClass]="isSoundEnabled ? 'fa-volume-up' : 'fa-volume-mute'"></i>
+            {{ isSoundEnabled ? 'Âm thanh: BẬT' : 'Âm thanh: TẮT' }}
+          </button>
+
+          <!-- Mode switcher -->
+          <div class="btn-group btn-group-sm">
+            <button
+              type="button"
+              class="btn"
+              [ngClass]="scannerMode === 'barcode-gun' ? 'btn-primary' : 'btn-outline-light'"
+              (click)="setScannerMode('barcode-gun')"
+            >
+              <i class="fas fa-barcode me-1"></i> Súng Quét / Nhập Nhanh
+            </button>
+            <button
+              type="button"
+              class="btn"
+              [ngClass]="scannerMode === 'camera' ? 'btn-primary' : 'btn-outline-light'"
+              (click)="setScannerMode('camera')"
+            >
+              <i class="fas fa-camera me-1"></i> Camera Trực Tiếp
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-body p-4 bg-light">
+        <!-- Location Context Row -->
+        <div class="row g-3 mb-3 align-items-center">
+          <div class="col-md-7">
+            <div class="input-group input-group-sm">
+              <span class="input-group-text bg-white fw-semibold text-muted">
+                <i class="fas fa-map-pin me-1 text-danger"></i> Vị Trí Đang Đứng Quét:
+              </span>
+              <input
+                type="text"
+                class="form-control"
+                placeholder="VD: Phòng Kỹ Thuật - Bàn 12, Kho Server..."
+                [(ngModel)]="currentScanLocation"
+              />
+              <span class="input-group-text bg-light text-muted small">Tự động gắn vào máy khi phát hiện lệch</span>
+            </div>
+          </div>
+          <div class="col-md-5 text-end text-muted small">
+            <i class="fas fa-info-circle me-1 text-primary"></i>
+            Hỗ trợ: Tem QR code, Barcode 128/39, Mã tài sản (AST-...) hoặc Số Serial.
+          </div>
+        </div>
+
+        <!-- Mode 1: Barcode Gun / Keyboard Input -->
+        <div *ngIf="scannerMode === 'barcode-gun'" class="barcode-gun-box">
+          <div class="input-group input-group-lg shadow-sm">
+            <span class="input-group-text bg-primary text-white border-0">
+              <i class="fas fa-barcode fa-lg"></i>
+            </span>
+            <input
+              #barcodeInput
+              type="text"
+              class="form-control form-control-lg border-0 ps-3 fw-bold"
+              placeholder="Bắn súng quét hoặc gõ AssetTag / Serial rồi bấm Enter..."
+              [(ngModel)]="barcodeInputValue"
+              (keyup.enter)="onBarcodeInputSubmit()"
+              [disabled]="isProcessingScan || session.status === AssetAuditStatus.Completed"
+            />
+            <button
+              class="btn btn-primary px-4 fw-bold"
+              (click)="onBarcodeInputSubmit()"
+              [disabled]="isProcessingScan || !barcodeInputValue.trim()"
+            >
+              <i class="fas fa-spinner fa-spin me-1" *ngIf="isProcessingScan"></i>
+              <i class="fas fa-arrow-right me-1" *ngIf="!isProcessingScan"></i>
+              Quét & So Khớp
+            </button>
+          </div>
+          <div class="d-flex justify-content-between mt-2 px-1 text-muted small">
+            <span><i class="fas fa-keyboard me-1"></i>Súng quét mã vạch USB/Bluetooth tự động gửi phím Enter sau khi quét.</span>
+            <span>Trạng thái: <strong class="text-success">Sẵn sàng nhận tín hiệu</strong></span>
+          </div>
+        </div>
+
+        <!-- Mode 2: Camera Continuous Viewfinder -->
+        <div *ngIf="scannerMode === 'camera'" class="camera-view-container">
+          <div class="row align-items-center">
+            <div class="col-md-6 offset-md-3">
+              <div class="camera-frame shadow-lg">
+                <video #videoElement playsinline class="video-feed"></video>
+                <!-- Laser Scanning Reticle -->
+                <div class="scanning-reticle">
+                  <div class="laser-beam"></div>
+                  <div class="reticle-corner top-left"></div>
+                  <div class="reticle-corner top-right"></div>
+                  <div class="reticle-corner bottom-left"></div>
+                  <div class="reticle-corner bottom-right"></div>
+                </div>
+                <div class="camera-overlay-tag">
+                  <i class="fas fa-circle text-danger blink-dot me-1"></i> Đang quét liên tục...
+                </div>
+              </div>
+              <div class="text-center mt-2 text-muted small">
+                Đưa tem mã QR hoặc mã vạch của thiết bị vào giữa khung ngắm. Hệ thống sẽ tự động nhận diện và phát âm thanh.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Live Scan Result Notification Banner -->
+        <div *ngIf="lastScanResult" class="mt-3">
+          <div
+            class="alert alert-dismissible fade show shadow-sm p-3 mb-0"
+            [ngClass]="{
+              'alert-success border-success': lastScanResult.resultStatus === AuditItemResult.Matched,
+              'alert-warning border-warning': lastScanResult.resultStatus === AuditItemResult.Displaced,
+              'alert-danger border-danger': lastScanResult.resultStatus === AuditItemResult.Unexpected || !lastScanResult.success
+            }"
+            role="alert"
+          >
+            <div class="d-flex align-items-center">
+              <div class="alert-icon-box me-3">
+                <i class="fas fa-check-circle fa-2x text-success" *ngIf="lastScanResult.resultStatus === AuditItemResult.Matched"></i>
+                <i class="fas fa-exclamation-triangle fa-2x text-warning" *ngIf="lastScanResult.resultStatus === AuditItemResult.Displaced"></i>
+                <i class="fas fa-plus-circle fa-2x text-danger" *ngIf="lastScanResult.resultStatus === AuditItemResult.Unexpected"></i>
+                <i class="fas fa-times-circle fa-2x text-danger" *ngIf="!lastScanResult.success"></i>
+              </div>
+              <div class="flex-grow-1">
+                <h6 class="alert-heading mb-1 fw-bold">{{ lastScanResult.message }}</h6>
+                <div *ngIf="lastScanResult.item" class="small text-muted">
+                  <strong>{{ lastScanResult.item.assetName }}</strong> ({{ lastScanResult.item.assetTag }})
+                  <span *ngIf="lastScanResult.item.serialNumber" class="ms-2">| Serial: {{ lastScanResult.item.serialNumber }}</span>
+                  <span *ngIf="lastScanResult.displacedReason" class="d-block text-danger fw-semibold mt-1">
+                    <i class="fas fa-info-circle me-1"></i>{{ lastScanResult.displacedReason }}
+                  </span>
+                </div>
+              </div>
+              <button type="button" class="btn-close" (click)="lastScanResult = null"></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Batch Reconciliation Banner (If displaced items exist) -->
+    <div *ngIf="unreconciledDisplacedCount > 0" class="alert alert-warning border-warning shadow-sm d-flex justify-content-between align-items-center mb-4 p-3">
+      <div class="d-flex align-items-center gap-3">
+        <i class="fas fa-map-marked-alt fa-2x text-warning"></i>
+        <div>
+          <h6 class="mb-0 fw-bold">Phát hiện {{ unreconciledDisplacedCount }} thiết bị đang đặt lệch vị trí so với hồ sơ ITAM!</h6>
+          <small class="text-muted">Bấm nút bên cạnh để 1-click cập nhật vị trí thực tế vào hồ sơ thiết bị và ghi nhật ký kiểm toán.</small>
+        </div>
+      </div>
+      <button class="btn btn-warning fw-bold text-dark shadow-sm" (click)="reconcileAll()" [disabled]="isReconciling">
+        <i class="fas fa-spinner fa-spin me-1" *ngIf="isReconciling"></i>
+        <i class="fas fa-sync-alt me-1" *ngIf="!isReconciling"></i>
+        Áp Dụng Đối Soát Vị Trí & Người Dùng ({{ unreconciledDisplacedCount }})
+      </button>
+    </div>
+
+    <!-- Audit Items Table Card -->
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-header bg-white border-bottom py-3">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <!-- Filter Tabs -->
+          <ul class="nav nav-pills custom-audit-tabs">
+            <li class="nav-item">
+              <button class="nav-link" [class.active]="activeFilterTab === 'all'" (click)="activeFilterTab = 'all'">
+                Tất Cả ({{ session.items.length }})
+              </button>
+            </li>
+            <li class="nav-item">
+              <button class="nav-link text-success" [class.active]="activeFilterTab === 'matched'" (click)="activeFilterTab = 'matched'">
+                <i class="fas fa-check me-1"></i> Khớp ({{ session.matchedCount }})
+              </button>
+            </li>
+            <li class="nav-item">
+              <button class="nav-link text-warning" [class.active]="activeFilterTab === 'displaced'" (click)="activeFilterTab = 'displaced'">
+                <i class="fas fa-exclamation-triangle me-1"></i> Lệch Vị Trí ({{ session.displacedCount }})
+              </button>
+            </li>
+            <li class="nav-item">
+              <button class="nav-link text-secondary" [class.active]="activeFilterTab === 'missing'" (click)="activeFilterTab = 'missing'">
+                <i class="fas fa-clock me-1"></i> Chưa Quét ({{ session.missingCount }})
+              </button>
+            </li>
+            <li class="nav-item" *ngIf="unexpectedCount > 0">
+              <button class="nav-link text-danger" [class.active]="activeFilterTab === 'unexpected'" (click)="activeFilterTab = 'unexpected'">
+                <i class="fas fa-plus-circle me-1"></i> Ngoài Danh Mục ({{ unexpectedCount }})
+              </button>
+            </li>
+          </ul>
+
+          <div class="text-muted small">
+            Đang hiển thị: <strong>{{ filteredItems.length }}</strong> thiết bị
+          </div>
+        </div>
+      </div>
+
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0 custom-detail-table">
+            <thead class="table-light">
+              <tr>
+                <th style="width: 140px;">Mã Tài Sản</th>
+                <th>Tên Thiết Bị & Cấu Hình</th>
+                <th style="width: 220px;">Vị Trí (Hồ Sơ & Thực Tế)</th>
+                <th style="width: 200px;">Người Quản Lý</th>
+                <th style="width: 150px;">Kết Quả</th>
+                <th style="width: 160px;">Thời Điểm Quét</th>
+                <th style="width: 120px;" class="text-end">Chi Tiết</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of filteredItems" [class.table-warning-subtle]="item.resultStatus === AuditItemResult.Displaced">
+                <!-- Mã Tài Sản -->
+                <td>
+                  <span class="fw-bold font-monospace text-primary">{{ item.assetTag }}</span>
+                  <div *ngIf="item.assetTypeName" class="text-muted small">{{ item.assetTypeName }}</div>
+                </td>
+
+                <!-- Tên & Model -->
+                <td>
+                  <div class="fw-semibold text-dark">{{ item.assetName }}</div>
+                  <div class="text-muted small">
+                    <span *ngIf="item.model">Model: {{ item.model }}</span>
+                    <span *ngIf="item.serialNumber" class="ms-2">| Serial: {{ item.serialNumber }}</span>
+                  </div>
+                </td>
+
+                <!-- Vị trí -->
+                <td>
+                  <div class="location-box">
+                    <div class="text-muted small">
+                      <i class="fas fa-file-invoice me-1"></i> Hồ sơ: {{ item.expectedLocation || 'Chưa rõ' }}
+                    </div>
+                    <div *ngIf="item.scannedLocation" class="fw-semibold mt-1" [ngClass]="item.expectedLocation !== item.scannedLocation ? 'text-danger' : 'text-success'">
+                      <i class="fas fa-map-marker-alt me-1"></i> Thực tế: {{ item.scannedLocation }}
+                    </div>
+                  </div>
+                </td>
+
+                <!-- Người quản lý -->
+                <td>
+                  <div class="small">
+                    <span class="text-muted">Hồ sơ: </span>
+                    <span class="fw-semibold">{{ item.expectedAssignedToUserName || 'Trong kho' }}</span>
+                  </div>
+                  <div *ngIf="item.scannedAssignedToUserName" class="small mt-1 text-primary">
+                    <span class="text-muted">Thực tế: </span>
+                    <span class="fw-semibold">{{ item.scannedAssignedToUserName }}</span>
+                  </div>
+                </td>
+
+                <!-- Kết Quả -->
+                <td>
+                  <span class="badge" [ngClass]="getResultBadgeClass(item.resultStatus)">
+                    <i class="fas fa-check me-1" *ngIf="item.resultStatus === AuditItemResult.Matched"></i>
+                    <i class="fas fa-exclamation me-1" *ngIf="item.resultStatus === AuditItemResult.Displaced"></i>
+                    <i class="fas fa-clock me-1" *ngIf="item.resultStatus === AuditItemResult.Pending"></i>
+                    <i class="fas fa-plus me-1" *ngIf="item.resultStatus === AuditItemResult.Unexpected"></i>
+                    {{ item.resultStatusName }}
+                  </span>
+                  <div *ngIf="item.isReconciled" class="badge bg-info-subtle text-info border border-info-subtle mt-1 d-inline-block">
+                    <i class="fas fa-check-double me-1"></i> Đã đối soát
+                  </div>
+                </td>
+
+                <!-- Thời điểm quét -->
+                <td>
+                  <div *ngIf="item.scannedTime" class="small">
+                    <div>{{ item.scannedTime | date:'dd/MM/yyyy HH:mm' }}</div>
+                    <div class="text-muted">{{ item.scannedByUserName || 'IT Admin' }}</div>
+                  </div>
+                  <div *ngIf="!item.scannedTime" class="text-muted small fst-italic">
+                    Chưa quét
+                  </div>
+                </td>
+
+                <!-- Thao tác -->
+                <td class="text-end">
+                  <a [routerLink]="['/assets', item.assetId]" target="_blank" class="btn btn-sm btn-outline-secondary" title="Xem hồ sơ máy trong tab mới">
+                    <i class="fas fa-external-link-alt"></i>
+                  </a>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal In Biên Bản Kiểm Kê Hành Chính A4 -->
+<div class="modal fade show d-block modal-backdrop-custom" *ngIf="isReportModalOpen" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
+    <div class="modal-content shadow-lg border-0">
+      <div class="modal-header bg-dark text-white print-hide">
+        <h5 class="modal-title">
+          <i class="fas fa-file-signature me-2 text-warning"></i>Biên Bản Kiểm Kê Tài Sản Định Kỳ (Chuẩn A4)
+        </h5>
+        <div class="d-flex gap-2">
+          <button class="btn btn-primary btn-sm" (click)="printReport()">
+            <i class="fas fa-print me-1"></i> In Ngay (Print)
+          </button>
+          <button type="button" class="btn-close btn-close-white" (click)="closeReportModal()"></button>
+        </div>
+      </div>
+
+      <div class="modal-body p-5 print-container" id="printable-audit-report">
+        <div *ngIf="loadingReport" class="text-center py-5">
+          <div class="spinner-border text-primary" role="status"></div>
+          <p class="text-muted mt-2">Đang khởi tạo biên bản kiểm kê...</p>
+        </div>
+
+        <div *ngIf="!loadingReport && reportData" class="a4-document">
+          <!-- Quốc hiệu & Tiêu ngữ -->
+          <div class="row text-center mb-4">
+            <div class="col-6 text-start">
+              <div class="fw-bold text-uppercase">TẬP ĐOÀN / DOANH NGHIỆP CNTT</div>
+              <div class="text-muted small">BAN QUẢN LÝ TÀI SẢN & HỆ THỐNG</div>
+              <div class="small">Số: <strong>{{ reportData.session.auditCode }}/BBKK-IT</strong></div>
+            </div>
+            <div class="col-6 text-end">
+              <div class="fw-bold text-uppercase">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</div>
+              <div class="fw-semibold">Độc lập - Tự do - Hạnh phúc</div>
+              <div class="text-muted small fst-italic">Hà Nội, ngày {{ reportData.generatedDate | date:'dd' }} tháng {{ reportData.generatedDate | date:'MM' }} năm {{ reportData.generatedDate | date:'yyyy' }}</div>
+            </div>
+          </div>
+
+          <hr class="my-3"/>
+
+          <!-- Title -->
+          <div class="text-center my-4">
+            <h3 class="fw-bold text-uppercase mb-1">BIÊN BẢN KIỂM KÊ TÀI SẢN & THIẾT BỊ CNTT</h3>
+            <div class="text-muted fst-italic">Đợt kiểm kê: {{ reportData.session.title }}</div>
+            <div class="small text-muted">Phạm vi: {{ reportData.session.scopeDepartment || 'Toàn công ty' }} - {{ reportData.session.scopeLocation || 'Mọi vị trí' }}</div>
+          </div>
+
+          <!-- Section 1: Ban kiểm kê -->
+          <div class="mb-4">
+            <h6 class="fw-bold text-uppercase text-primary mb-2">I. BAN KIỂM KÊ GỒM CÓ:</h6>
+            <table class="table table-bordered table-sm small">
+              <tbody>
+                <tr>
+                  <td style="width: 25%;"><strong>1. Ông/Bà:</strong> {{ reportData.auditorName }}</td>
+                  <td style="width: 25%;"><strong>Chức vụ:</strong> Quản trị viên ITAM</td>
+                  <td style="width: 25%;"><strong>Đơn vị:</strong> Phòng Công Nghệ Thông Tin</td>
+                  <td style="width: 25%;"><strong>Vai trò:</strong> Trưởng ban kiểm kê</td>
+                </tr>
+                <tr>
+                  <td><strong>2. Ông/Bà:</strong> Đại diện bộ phận</td>
+                  <td><strong>Chức vụ:</strong> Trưởng bộ phận / Quản lý</td>
+                  <td><strong>Đơn vị:</strong> {{ reportData.session.scopeDepartment || 'Khối văn phòng' }}</td>
+                  <td><strong>Vai trò:</strong> Thành viên</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Section 2: Tổng hợp kết quả -->
+          <div class="mb-4">
+            <h6 class="fw-bold text-uppercase text-primary mb-2">II. TỔNG HỢP KẾT QUẢ KIỂM KÊ:</h6>
+            <table class="table table-bordered text-center align-middle small">
+              <thead class="table-light">
+                <tr>
+                  <th>Tổng Danh Mục Dự Kiến</th>
+                  <th>Số Thiết Bị Đã Quét</th>
+                  <th>Khớp Hoàn Toàn</th>
+                  <th>Lệch Vị Trí / Nhân Sự</th>
+                  <th>Chưa Quét Thấy (Thiếu)</th>
+                  <th>Ngoài Danh Mục</th>
+                  <th>Tỷ Lệ Hoàn Thành</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="fw-bold">
+                  <td>{{ reportData.session.totalExpectedCount }}</td>
+                  <td>{{ reportData.session.scannedCount }}</td>
+                  <td class="text-success">{{ reportData.session.matchedCount }}</td>
+                  <td class="text-warning">{{ reportData.session.displacedCount }}</td>
+                  <td class="text-danger">{{ reportData.session.missingCount }}</td>
+                  <td class="text-info">{{ reportData.unexpectedItems.length }}</td>
+                  <td class="text-primary">{{ reportData.session.progressPercentage }}%</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Section 3: Chi tiết thiết bị lệch vị trí -->
+          <div class="mb-4" *ngIf="reportData.displacedItems.length > 0">
+            <h6 class="fw-bold text-uppercase text-warning mb-2">III. DANH SÁCH THIẾT BỊ PHÁT HIỆN LỆCH VỊ TRÍ / NGƯỜI DÙNG:</h6>
+            <table class="table table-bordered table-sm small">
+              <thead class="table-light">
+                <tr>
+                  <th>STT</th>
+                  <th>Mã TS</th>
+                  <th>Tên Thiết Bị</th>
+                  <th>Vị Trí Hồ Sơ</th>
+                  <th>Vị Trí Thực Tế Quét</th>
+                  <th>Người Dùng Hồ Sơ</th>
+                  <th>Người Dùng Thực Tế</th>
+                  <th>Trạng Thái Đối Soát</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of reportData.displacedItems; let i = index">
+                  <td class="text-center">{{ i + 1 }}</td>
+                  <td class="fw-bold">{{ item.assetTag }}</td>
+                  <td>{{ item.assetName }}</td>
+                  <td>{{ item.expectedLocation || '---' }}</td>
+                  <td class="text-danger fw-bold">{{ item.scannedLocation }}</td>
+                  <td>{{ item.expectedAssignedToUserName || 'Trong kho' }}</td>
+                  <td class="text-primary fw-bold">{{ item.scannedAssignedToUserName || '---' }}</td>
+                  <td class="text-center">{{ item.isReconciled ? 'Đã chuẩn hóa' : 'Chờ chuẩn hóa' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Section 4: Thiết bị thiếu -->
+          <div class="mb-4" *ngIf="reportData.missingItems.length > 0">
+            <h6 class="fw-bold text-uppercase text-danger mb-2">IV. DANH SÁCH THIẾT BỊ CHƯA QUÉT THẤY (NGHI THẤT LẠC):</h6>
+            <table class="table table-bordered table-sm small">
+              <thead class="table-light">
+                <tr>
+                  <th>STT</th>
+                  <th>Mã TS</th>
+                  <th>Tên Thiết Bị</th>
+                  <th>Serial Number</th>
+                  <th>Vị Trí Hồ Sơ</th>
+                  <th>Người Đang Quản Lý</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of reportData.missingItems; let i = index">
+                  <td class="text-center">{{ i + 1 }}</td>
+                  <td class="fw-bold">{{ item.assetTag }}</td>
+                  <td>{{ item.assetName }}</td>
+                  <td>{{ item.serialNumber || '---' }}</td>
+                  <td>{{ item.expectedLocation || '---' }}</td>
+                  <td>{{ item.expectedAssignedToUserName || 'Trong kho' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Section 5: Chữ ký 3 bên -->
+          <div class="row text-center mt-5 signature-block">
+            <div class="col-4">
+              <div class="fw-bold text-uppercase">CÁN BỘ ITAM THỰC HIỆN</div>
+              <div class="text-muted small fst-italic mb-5">(Ký và ghi rõ họ tên)</div>
+              <div class="fw-bold mt-5">{{ reportData.auditorName }}</div>
+            </div>
+            <div class="col-4">
+              <div class="fw-bold text-uppercase">ĐẠI DIỆN BỘ PHẬN SỬ DỤNG</div>
+              <div class="text-muted small fst-italic mb-5">(Ký và ghi rõ họ tên)</div>
+              <div class="fw-bold mt-5">...................................................</div>
+            </div>
+            <div class="col-4">
+              <div class="fw-bold text-uppercase">TRƯỞNG BAN KIỂM KÊ / GIÁM ĐỐC</div>
+              <div class="text-muted small fst-italic mb-5">(Ký, đóng dấu)</div>
+              <div class="fw-bold mt-5">...................................................</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal-backdrop fade show print-hide" *ngIf="isReportModalOpen"></div>

@@ -72,6 +72,8 @@ public class HelpdeskDbContext :
     public DbSet<Helpdesk.Assets.Asset> Assets { get; set; }
     public DbSet<Helpdesk.Assets.AssetActivity> AssetActivities { get; set; }
     public DbSet<Helpdesk.Assets.AssetMaintenance> AssetMaintenances { get; set; }
+    public DbSet<Helpdesk.Assets.AssetAuditSession> AssetAuditSessions { get; set; }
+    public DbSet<Helpdesk.Assets.AssetAuditItem> AssetAuditItems { get; set; }
 
     #region Entities from the modules
 

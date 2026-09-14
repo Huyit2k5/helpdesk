@@ -379,6 +379,49 @@ public static class HelpdeskDbContextModelCreatingExtensions
             b.HasIndex(x => x.RelatedTicketId);
             b.HasIndex(x => x.StartDate);
         });
+
+        builder.Entity<Helpdesk.Assets.AssetAuditSession>(b =>
+        {
+            b.ToTable(HelpdeskConsts.DbTablePrefix + "AssetAuditSessions", HelpdeskConsts.DbSchema);
+            b.ConfigureByConvention();
+
+            b.Property(x => x.Title).IsRequired().HasMaxLength(256);
+            b.Property(x => x.AuditCode).IsRequired().HasMaxLength(64);
+            b.Property(x => x.ScopeDepartment).HasMaxLength(128);
+            b.Property(x => x.ScopeLocation).HasMaxLength(128);
+            b.Property(x => x.Notes).HasMaxLength(2000);
+
+            b.HasIndex(x => x.Status);
+            b.HasIndex(x => x.AuditCode);
+            b.HasIndex(x => x.CreationTime);
+
+            b.HasMany(x => x.Items)
+                .WithOne(x => x.AuditSession)
+                .HasForeignKey(x => x.AuditSessionId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<Helpdesk.Assets.AssetAuditItem>(b =>
+        {
+            b.ToTable(HelpdeskConsts.DbTablePrefix + "AssetAuditItems", HelpdeskConsts.DbSchema);
+            b.ConfigureByConvention();
+
+            b.Property(x => x.ExpectedLocation).HasMaxLength(128);
+            b.Property(x => x.ExpectedAssignedToUserName).HasMaxLength(128);
+            b.Property(x => x.ScannedLocation).HasMaxLength(128);
+            b.Property(x => x.ScannedAssignedToUserName).HasMaxLength(128);
+            b.Property(x => x.ScannedByUserName).HasMaxLength(128);
+            b.Property(x => x.Notes).HasMaxLength(2000);
+
+            b.HasIndex(x => x.AuditSessionId);
+            b.HasIndex(x => x.AssetId);
+            b.HasIndex(x => x.ResultStatus);
+
+            b.HasOne(x => x.Asset)
+                .WithMany()
+                .HasForeignKey(x => x.AssetId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
     }
 }
 
