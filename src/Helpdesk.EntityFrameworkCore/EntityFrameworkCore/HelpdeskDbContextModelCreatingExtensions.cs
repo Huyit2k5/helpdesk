@@ -321,6 +321,10 @@ public static class HelpdeskDbContextModelCreatingExtensions
             b.Property(x => x.HandoverNotes).HasMaxLength(Helpdesk.Assets.AssetConsts.MaxNotesLength);
 
             b.Property(x => x.PurchaseCost).HasPrecision(18, 2);
+            b.Property(x => x.TotalMaintenanceCost).HasPrecision(18, 2).HasDefaultValue(0);
+            b.Property(x => x.LastMaintenanceDate);
+            b.Property(x => x.NextMaintenanceDate);
+            b.Property(x => x.MaintenanceIntervalMonths);
 
             b.HasMany(x => x.Activities)
                 .WithOne()
@@ -335,6 +339,7 @@ public static class HelpdeskDbContextModelCreatingExtensions
             b.HasIndex(x => x.AssignedToUserId);
             b.HasIndex(x => x.Department);
             b.HasIndex(x => x.WarrantyExpiryDate);
+            b.HasIndex(x => x.NextMaintenanceDate);
         });
 
         builder.Entity<Helpdesk.Assets.AssetActivity>(b =>
@@ -350,6 +355,29 @@ public static class HelpdeskDbContextModelCreatingExtensions
             b.HasIndex(x => x.ActivityType);
             b.HasIndex(x => x.RelatedTicketId);
             b.HasIndex(x => x.CreationTime);
+        });
+
+        builder.Entity<Helpdesk.Assets.AssetMaintenance>(b =>
+        {
+            b.ToTable(HelpdeskConsts.DbTablePrefix + "AssetMaintenances", HelpdeskConsts.DbSchema);
+            b.ConfigureByConvention();
+
+            b.Property(x => x.Title).IsRequired().HasMaxLength(256);
+            b.Property(x => x.Description).HasMaxLength(1000);
+            b.Property(x => x.ServiceProvider).HasMaxLength(256);
+            b.Property(x => x.TrackingNumber).HasMaxLength(128);
+            b.Property(x => x.ReplacedParts).HasMaxLength(1000);
+            b.Property(x => x.Notes).HasMaxLength(2000);
+            b.Property(x => x.PerformedByUserName).HasMaxLength(128);
+
+            b.Property(x => x.EstimatedCost).HasPrecision(18, 2);
+            b.Property(x => x.ActualCost).HasPrecision(18, 2);
+
+            b.HasIndex(x => x.AssetId);
+            b.HasIndex(x => x.Status);
+            b.HasIndex(x => x.MaintenanceType);
+            b.HasIndex(x => x.RelatedTicketId);
+            b.HasIndex(x => x.StartDate);
         });
     }
 }

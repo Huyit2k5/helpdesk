@@ -2,6 +2,7 @@ import { Component, Input, Output, EventEmitter, inject, ViewChild, ElementRef, 
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import jsQR from 'jsqr';
 import { AssetService } from '../../../proxy/assets/asset.service';
 import { AssetDto, AssetStatus, AssetType } from '../../../proxy/assets/models';
 
@@ -38,6 +39,10 @@ export class QrScannerModalComponent implements OnChanges, OnDestroy {
 
   AssetStatus = AssetStatus;
   AssetType = AssetType;
+
+  // Canvas ẩn dùng chung để lấy ImageData cho jsQR (fallback khi BarcodeDetector
+  // không khả dụng trên trình duyệt hiện tại - Firefox/Safari).
+  private decodeCanvas: HTMLCanvasElement | null = null;
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['isOpen']) {
@@ -132,8 +137,52 @@ export class QrScannerModalComponent implements OnChanges, OnDestroy {
         } catch (e) {
           // ignore detection frame errors
         }
+      } else {
+        // Fallback cho trình duyệt không có BarcodeDetector (Firefox/Safari):
+        // vẽ frame video hiện tại lên canvas ẩn rồi giải mã bằng jsQR.
+        try {
+          const imageData = this.captureFrameAsImageData(video, video.videoWidth, video.videoHeight);
+          const decoded = imageData ? this.decodeQrFromImageData(imageData) : null;
+          if (decoded) {
+            this.handleDetectedCode(decoded);
+          }
+        } catch (e) {
+          // ignore detection frame errors
+        }
       }
     }, 400);
+  }
+
+  /**
+   * Vẽ 1 nguồn ảnh (video hiện tại hoặc ảnh upload) lên canvas ẩn dùng chung và
+   * trả về ImageData để đưa vào jsQR giải mã.
+   */
+  private captureFrameAsImageData(
+    source: CanvasImageSource,
+    width: number,
+    height: number
+  ): ImageData | null {
+    if (!width || !height) return null;
+
+    if (!this.decodeCanvas) {
+      this.decodeCanvas = document.createElement('canvas');
+    }
+    this.decodeCanvas.width = width;
+    this.decodeCanvas.height = height;
+
+    const ctx = this.decodeCanvas.getContext('2d', { willReadFrequently: true });
+    if (!ctx) return null;
+
+    ctx.drawImage(source, 0, 0, width, height);
+    return ctx.getImageData(0, 0, width, height);
+  }
+
+  /** Giải mã QR thuần JS bằng jsQR - hoạt động trên mọi trình duyệt, không cần BarcodeDetector. */
+  private decodeQrFromImageData(imageData: ImageData): string | null {
+    const result = jsQR(imageData.data, imageData.width, imageData.height, {
+      inversionAttempts: 'attemptBoth',
+    });
+    return result?.data ?? null;
   }
 
   async onFileSelected(event: Event): Promise<void> {
@@ -145,27 +194,34 @@ export class QrScannerModalComponent implements OnChanges, OnDestroy {
     this.searchError = null;
 
     try {
+      const imageBitmap = await createImageBitmap(file);
+      let decodedText: string | null = null;
+
+      // Đường nhanh: dùng BarcodeDetector của trình duyệt nếu có (Chrome/Edge).
       if ('BarcodeDetector' in window) {
-        const imageBitmap = await createImageBitmap(file);
-        const barcodeDetector = new (window as any).BarcodeDetector({ formats: ['qr_code', 'code_128', 'code_39'] });
-        const barcodes = await barcodeDetector.detect(imageBitmap);
-        if (barcodes && barcodes.length > 0) {
-          this.handleDetectedCode(barcodes[0].rawValue);
-        } else {
-          this.searchError = 'Không nhận diện được mã QR trong hình ảnh tải lên. Vui lòng thử ảnh rõ nét hơn hoặc nhập mã trực tiếp.';
-          this.isSearching = false;
-          this.cdr.detectChanges();
+        try {
+          const barcodeDetector = new (window as any).BarcodeDetector({ formats: ['qr_code', 'code_128', 'code_39'] });
+          const barcodes = await barcodeDetector.detect(imageBitmap);
+          if (barcodes && barcodes.length > 0) {
+            decodedText = barcodes[0].rawValue;
+          }
+        } catch {
+          // BarcodeDetector tồn tại nhưng detect() lỗi (thiếu module barcode nền tảng) - rơi xuống jsQR bên dưới.
         }
+      }
+
+      // Giải mã thật bằng jsQR - hoạt động trên MỌI trình duyệt (Firefox/Safari không có BarcodeDetector).
+      if (!decodedText) {
+        const imageData = this.captureFrameAsImageData(imageBitmap, imageBitmap.width, imageBitmap.height);
+        decodedText = imageData ? this.decodeQrFromImageData(imageData) : null;
+      }
+
+      if (decodedText) {
+        this.handleDetectedCode(decodedText);
       } else {
-        // Fallback: prompt filename if it contains tag
-        const match = file.name.match(/AST-\d{8}-\d{4}/i);
-        if (match) {
-          this.handleDetectedCode(match[0]);
-        } else {
-          this.searchError = 'Trình duyệt hiện tại chưa hỗ trợ quét ảnh QR trực tiếp. Vui lòng chuyển sang tab Nhập mã thủ công.';
-          this.isSearching = false;
-          this.cdr.detectChanges();
-        }
+        this.searchError = 'Không nhận diện được mã QR trong hình ảnh tải lên. Vui lòng thử ảnh rõ nét hơn hoặc nhập mã trực tiếp.';
+        this.isSearching = false;
+        this.cdr.detectChanges();
       }
     } catch (err) {
       console.error('File scan error:', err);
@@ -179,13 +235,22 @@ export class QrScannerModalComponent implements OnChanges, OnDestroy {
     if (!rawText) return;
     this.detectedCode = rawText.trim();
 
-    // Extract AST tag from potential URL or JSON or raw string
-    let assetTag = this.detectedCode;
-    const tagMatch = this.detectedCode.match(/AST-\d{8}-\d{4}/i);
-    if (tagMatch) {
-      assetTag = tagMatch[0];
+    // 1) Tem QR do chính hệ thống in ra mã hoá URL nội bộ dạng {origin}/assets/{guid}
+    //    (xem asset-detail.component.ts:openPrintModal) - tra thẳng theo Id là chính xác
+    //    tuyệt đối, không phụ thuộc định dạng AssetTag.
+    const urlMatch = this.detectedCode.match(
+      /\/assets\/([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})/
+    );
+    if (urlMatch) {
+      this.lookupAssetById(urlMatch[1]);
+      return;
     }
 
+    // 2) Mã thẻ chuẩn AST-yyyyMMdd-#### xuất hiện đâu đó trong chuỗi quét được.
+    const tagMatch = this.detectedCode.match(/AST-\d{8}-\d{4}/i);
+    const assetTag = tagMatch ? tagMatch[0] : this.detectedCode;
+
+    // 3) Súng quét mã vạch Serial/Code128, hoặc fallback: tra theo tag/serial như cũ.
     this.lookupAsset(assetTag);
   }
 
@@ -216,6 +281,31 @@ export class QrScannerModalComponent implements OnChanges, OnDestroy {
     });
   }
 
+  /** Tra cứu chính xác theo Id (GUID) - dùng khi quét được QR tem do hệ thống tự in ra. */
+  lookupAssetById(id: string): void {
+    this.isSearching = true;
+    this.searchError = null;
+    this.scannedAsset = null;
+
+    this.assetService.get(id).subscribe({
+      next: (asset) => {
+        this.isSearching = false;
+        if (asset && asset.id) {
+          this.scannedAsset = asset;
+          this.stopCamera();
+        } else {
+          this.searchError = 'Không tìm thấy thiết bị tương ứng với mã QR này.';
+        }
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.isSearching = false;
+        this.searchError = `Lỗi tra cứu thiết bị: ${err?.error?.message || 'Không tìm thấy dữ liệu'}`;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
   scanAgain(): void {
     this.resetState();
     if (this.scanMode === 'camera') {
@@ -225,7 +315,7 @@ export class QrScannerModalComponent implements OnChanges, OnDestroy {
 
   viewAssetDetail(asset: AssetDto): void {
     this.close();
-    this.router.navigate(['/assets/detail', asset.id]);
+    this.router.navigate(['/assets', asset.id]);
   }
 
   printReceiptForAsset(asset: AssetDto): void {

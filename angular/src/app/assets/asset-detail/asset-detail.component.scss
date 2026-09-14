@@ -136,6 +136,47 @@
     }
   }
 
+  // TCO Analytics Card
+  .tco-analytics-card {
+    border-radius: 18px;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
+
+    .tco-metric-box {
+      border: 1px solid #e2e8f0;
+      transition: all 0.2s ease;
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px -4px rgba(15, 23, 42, 0.08);
+      }
+    }
+  }
+
+  // Maintenance Card in Tab
+  .maintenance-card {
+    transition: all 0.2s ease;
+    &:hover {
+      box-shadow: 0 4px 14px -2px rgba(15, 23, 42, 0.08);
+    }
+  }
+
+  .animate-pulse-glow {
+    animation: pulseGlow 2s infinite;
+  }
+
+  @keyframes pulseGlow {
+    0% {
+      box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6);
+    }
+    70% {
+      box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+    }
+  }
+
   // Detail Cards
   .detail-card {
     border-radius: 16px;
@@ -488,24 +529,88 @@
 }
 
 // Print styles for Asset Decal / Label
+// Khổ giấy in phải khớp CHÍNH XÁC với tem Decal chuẩn 70mm x 40mm đã công bố trong modal
+// (trước đây container dùng width: 320px ~ 84.7mm khi in thật và không có height cố định,
+// khiến nội dung in ra không khớp kích thước tem, dễ bị lệch/tràn khi dán lên máy in tem thật).
 @media print {
-  body * {
-    visibility: hidden !important;
+  // LƯU Ý: Chromium không hỗ trợ CSS Named Pages ("@page <tên>" + "page: <tên>"),
+  // nên không thể khai báo tĩnh @page riêng cho tem QR ở đây khi trang còn có thể
+  // chứa component in Biên Bản (asset-receipt-modal.component.scss) với @page khác.
+  // Khổ giấy 70mm x 40mm được ÁP DỤNG ĐỘNG bằng JS ngay trước khi gọi window.print()
+  // (xem AssetDetailComponent.printTag()) để đảm bảo tại thời điểm in chỉ có đúng 1
+  // quy tắc @page tồn tại, tránh 2 tính năng in trên cùng trang đè khổ giấy của nhau.
+
+  // Ẩn CÁC VÙNG GIAO DIỆN CỤ THỂ (sidebar, topbar, footer, chuông thông báo,
+  // breadcrumb, card thông tin thiết bị đứng sau lưng modal in tem...) bằng
+  // display:none, thay vì kiểu "ẩn toàn bộ body rồi hiện lại đúng 1 vùng"
+  // (::ng-deep body * { visibility: hidden }) đã dùng trước đó.
+  //
+  // Lý do đổi cách tiếp cận (2 vấn đề của cách cũ):
+  // 1) "body *" là 1 rule TOÀN CỤC (::ng-deep bỏ hết scoping) nên khi trang cùng
+  //    chứa component in Biên Bản (asset-receipt-modal.component.scss, cũng đứng
+  //    trong asset-detail-container), rule "ẩn hết" của tính năng in tem QR này vô
+  //    tình ẩn LUÔN cả nội dung biên bản (.receipt-modal-backdrop) - vì nó cũng là
+  //    hậu duệ của <body> - khiến "In Biên Bản" in ra tờ giấy trắng dù không hề mở
+  //    modal in tem. Dùng danh sách selector rõ ràng bên dưới tránh đụng độ này.
+  // 2) visibility:hidden CHỈ ẩn hiển thị, KHÔNG giải phóng khoảng trống layout - các
+  //    phần tử "ẩn" vẫn chiếm chỗ trong luồng tài liệu, có thể đẩy nội dung cần in
+  //    xuống dưới một cách vô ích. display:none giải phóng đúng khoảng trống đó.
+  //
+  // Đã kiểm chứng qua DOM thực tế: #printableAssetTag dùng position:fixed (bên
+  // dưới) nên không bị ảnh hưởng bởi khoảng trống layout của các phần tử bị ẩn;
+  // .asset-header-card/.row.g-4/breadcrumb là CON CÙNG CẤP (sibling) của
+  // .custom-modal-backdrop chứa #printableAssetTag trong asset-detail-container,
+  // không phải tổ tiên - nên display:none cho chúng an toàn tuyệt đối.
+  //
+  // ::ng-deep bắt buộc cho các phần tử thuộc layout shell (không phải template của
+  // AssetDetailComponent) - nếu không sẽ bị Angular tự scope vào
+  // [_ngcontent-<hash-của-component-này>] và không bao giờ khớp được.
+  ::ng-deep .lpx-sidebar-container,
+  ::ng-deep .lpx-topbar-container,
+  ::ng-deep abp-footer,
+  ::ng-deep app-notification-bell,
+  .asset-detail-container > nav[aria-label="breadcrumb"],
+  .asset-header-card,
+  .tco-analytics-card,
+  .asset-detail-container > .row.g-4 {
+    display: none !important;
   }
 
-  #printableAssetTag,
-  #printableAssetTag * {
-    visibility: visible !important;
+  // Trong modal in tem: chỉ hiện #printableAssetTag, ẩn tiêu đề/nút bấm/ghi chú phụ.
+  .custom-modal-backdrop .modal-header,
+  .custom-modal-backdrop .modal-footer,
+  .custom-modal-backdrop .modal-body > *:not(#printableAssetTag) {
+    display: none !important;
   }
 
   #printableAssetTag {
     position: fixed !important;
     left: 0 !important;
     top: 0 !important;
-    width: 320px !important;
-    border: 2px solid #000000 !important;
+    width: 70mm !important;
+    height: 40mm !important;
+    box-sizing: border-box !important;
+    border: 1px solid #000000 !important;
     box-shadow: none !important;
     margin: 0 !important;
-    padding: 12px !important;
+    padding: 2mm !important;
+    overflow: hidden !important;
+  }
+
+  #printableAssetTag .qr-box {
+    width: 24mm !important;
+    height: 24mm !important;
+  }
+
+  #printableAssetTag .tag-header-bar span {
+    font-size: 7pt !important;
+  }
+
+  #printableAssetTag .tag-info-box {
+    font-size: 6.5pt !important;
+  }
+
+  #printableAssetTag .tag-info-box > div:first-child {
+    font-size: 7.5pt !important;
   }
 }

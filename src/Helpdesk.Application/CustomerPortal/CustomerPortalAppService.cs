@@ -643,10 +643,15 @@ public class CustomerPortalAppService : ApplicationService, ICustomerPortalAppSe
     public async Task ConfirmAssetHandoverAsync(Guid assetId, ConfirmAssetHandoverDto input)
     {
         var asset = await _assetRepository.GetAsync(assetId);
-        var currentUserId = CurrentUser.GetId();
+        var currentUserId = CurrentUser.Id;
         var currentUserEmail = CurrentUser.Email;
+        var currentUserName = CurrentUser.UserName;
 
-        if (asset.AssignedToUserId != currentUserId && (string.IsNullOrEmpty(currentUserEmail) || asset.AssignedToUserEmail != currentUserEmail))
+        var isOwner = (currentUserId.HasValue && asset.AssignedToUserId == currentUserId.Value)
+            || (!string.IsNullOrEmpty(currentUserEmail) && string.Equals(asset.AssignedToUserEmail, currentUserEmail, StringComparison.OrdinalIgnoreCase))
+            || (!string.IsNullOrEmpty(currentUserName) && string.Equals(asset.AssignedToUserName, currentUserName, StringComparison.OrdinalIgnoreCase));
+
+        if (!isOwner)
         {
             throw new UserFriendlyException("Bạn không có quyền ký nhận cho thiết bị không thuộc tài khoản của bạn.");
         }
@@ -659,6 +664,58 @@ public class CustomerPortalAppService : ApplicationService, ICustomerPortalAppSe
         );
 
         await _assetRepository.UpdateAsync(asset);
+    }
+
+    public async Task<AssetReceiptDto> GetMyAssetReceiptAsync(Guid assetId, string? type = "handover")
+    {
+        var asset = await _assetRepository.GetAsync(assetId);
+        var currentUserId = CurrentUser.Id;
+        var currentUserEmail = CurrentUser.Email;
+        var currentUserName = CurrentUser.UserName;
+
+        var isOwner = (currentUserId.HasValue && asset.AssignedToUserId == currentUserId.Value)
+            || (!string.IsNullOrEmpty(currentUserEmail) && string.Equals(asset.AssignedToUserEmail, currentUserEmail, StringComparison.OrdinalIgnoreCase))
+            || (!string.IsNullOrEmpty(currentUserName) && string.Equals(asset.AssignedToUserName, currentUserName, StringComparison.OrdinalIgnoreCase));
+
+        if (!isOwner)
+        {
+            throw new UserFriendlyException("Bạn không có quyền xem biên bản của thiết bị không thuộc tài khoản của bạn.");
+        }
+
+        var isReturn = string.Equals(type, "return", StringComparison.OrdinalIgnoreCase);
+
+        return new AssetReceiptDto
+        {
+            AssetId = asset.Id,
+            ReceiptNumber = isReturn ? $"BB-TH/{asset.CreationTime:yyyy}/{asset.AssetTag}" : $"BB-BG/{asset.CreationTime:yyyy}/{asset.AssetTag}",
+            ReceiptType = isReturn ? "return" : "handover",
+            Title = isReturn ? "BIÊN BẢN THU HỒI THIẾT BỊ CÔNG NGHỆ THÔNG TIN" : "BIÊN BẢN BÀN GIAO THIẾT BỊ CÔNG NGHỆ THÔNG TIN",
+            GeneratedDate = DateTime.Now,
+
+            GiverName = "Đại diện Bộ phận Kỹ thuật & CNTT",
+            GiverRole = "Bộ phận Hỗ trợ CNTT (IT Support)",
+            GiverEmail = "it-support@company.com",
+
+            ReceiverName = asset.AssignedToUserName ?? currentUserName ?? "Cán bộ nhân viên",
+            ReceiverEmail = asset.AssignedToUserEmail ?? currentUserEmail ?? string.Empty,
+            ReceiverDepartment = asset.Department ?? "Toàn công ty",
+
+            AssetTag = asset.AssetTag,
+            AssetName = asset.Name,
+            AssetTypeName = GetAssetTypeName(asset.AssetType),
+            Model = asset.Model,
+            SerialNumber = asset.SerialNumber,
+            Manufacturer = asset.Manufacturer,
+            Specifications = asset.Specifications,
+            Location = asset.Location,
+            AssignedDate = asset.AssignedDate,
+            WarrantyExpiryDate = asset.WarrantyExpiryDate,
+            Condition = "Thiết bị hoạt động tốt, đầy đủ linh phụ kiện",
+            Accessories = "01 Máy tính / Thiết bị, 01 Bộ sạc nguồn chính hãng, 01 Chuột máy tính, 01 Túi bảo vệ chống sốc",
+            Notes = asset.HandoverNotes ?? asset.Notes,
+            IsConfirmed = asset.IsHandoverConfirmed,
+            ConfirmedDate = asset.HandoverConfirmedDate
+        };
     }
 
     private static string GetAssetTypeName(AssetType type)

@@ -71,6 +71,7 @@ public class HelpdeskDbContext :
     // IT Asset Management & CMDB
     public DbSet<Helpdesk.Assets.Asset> Assets { get; set; }
     public DbSet<Helpdesk.Assets.AssetActivity> AssetActivities { get; set; }
+    public DbSet<Helpdesk.Assets.AssetMaintenance> AssetMaintenances { get; set; }
 
     #region Entities from the modules
 

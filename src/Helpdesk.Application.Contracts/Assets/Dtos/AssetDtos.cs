@@ -30,6 +30,11 @@ public class AssetDto : FullAuditedEntityDto<Guid>
     public bool IsHandoverConfirmed { get; set; }
     public DateTime? HandoverConfirmedDate { get; set; }
     public string? HandoverNotes { get; set; }
+    public decimal TotalMaintenanceCost { get; set; }
+    public DateTime? LastMaintenanceDate { get; set; }
+    public DateTime? NextMaintenanceDate { get; set; }
+    public int? MaintenanceIntervalMonths { get; set; }
+    public decimal TotalCostOfOwnership => (PurchaseCost ?? 0) + TotalMaintenanceCost;
     public int OpenTicketCount { get; set; }
 }
 
@@ -37,6 +42,8 @@ public class AssetDetailDto : AssetDto
 {
     public List<AssetActivityDto> Activities { get; set; } = new();
     public List<AssetTicketDto> Tickets { get; set; } = new();
+    public List<AssetMaintenanceDto> Maintenances { get; set; } = new();
+    public AssetTcoSummaryDto? TcoSummary { get; set; }
 }
 
 public class AssetActivityDto : CreationAuditedEntityDto<Guid>

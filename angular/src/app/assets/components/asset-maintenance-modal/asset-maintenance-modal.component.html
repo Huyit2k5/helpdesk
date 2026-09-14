@@ -1,0 +1,191 @@
+<div class="maintenance-modal-backdrop" *ngIf="isOpen" (click)="close()">
+  <div class="maintenance-modal-dialog" (click)="$event.stopPropagation()">
+    <div class="maintenance-modal-content">
+      <!-- Modal Header -->
+      <div class="maintenance-modal-header">
+        <div class="d-flex align-items-center gap-3">
+          <div class="maintenance-icon-badge">
+            <i class="fas fa-wrench text-warning"></i>
+          </div>
+          <div>
+            <h5 class="modal-title mb-0 fw-bold text-slate-800">Lập Phiếu Bảo Trì & Sửa Chữa</h5>
+            <div class="text-muted small mt-1">
+              Thiết bị: <strong class="text-slate-700">{{ asset?.name }}</strong> 
+              <span class="badge bg-light text-dark border ms-1 font-monospace">{{ asset?.assetTag }}</span>
+            </div>
+          </div>
+        </div>
+        <button type="button" class="btn-close-custom" (click)="close()" title="Đóng">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="maintenance-modal-body custom-scrollbar">
+        <form [formGroup]="maintenanceForm" (ngSubmit)="save()">
+          <div class="row g-3">
+            <!-- Maintenance Type -->
+            <div class="col-md-6">
+              <label class="form-label fw-semibold text-slate-700">
+                Loại bảo trì / sửa chữa <span class="text-danger">*</span>
+              </label>
+              <select class="form-select custom-select" formControlName="maintenanceType">
+                <option *ngFor="let t of maintenanceTypes" [value]="t.value">
+                  {{ t.label }}
+                </option>
+              </select>
+            </div>
+
+            <!-- Title -->
+            <div class="col-md-6">
+              <label class="form-label fw-semibold text-slate-700">
+                Tiêu đề phiếu <span class="text-danger">*</span>
+              </label>
+              <input
+                type="text"
+                class="form-control"
+                formControlName="title"
+                placeholder="VD: Thay bàn phím và quạt tản nhiệt, Bảo trì 6 tháng..."
+              />
+              <div
+                class="text-danger small mt-1"
+                *ngIf="maintenanceForm.get('title')?.touched && maintenanceForm.get('title')?.invalid"
+              >
+                Vui lòng nhập tiêu đề phiếu bảo trì.
+              </div>
+            </div>
+
+            <!-- Service Provider -->
+            <div class="col-md-6">
+              <label class="form-label fw-semibold text-slate-700">
+                Đơn vị thực hiện / Trung tâm bảo hành
+              </label>
+              <div class="input-group">
+                <span class="input-group-text bg-light text-muted"><i class="fas fa-store"></i></span>
+                <input
+                  type="text"
+                  class="form-control"
+                  formControlName="serviceProvider"
+                  placeholder="VD: FPT Synnex, Phong Vũ, Dell Authorized Care..."
+                />
+              </div>
+            </div>
+
+            <!-- Tracking Number (RMA) -->
+            <div class="col-md-6">
+              <label class="form-label fw-semibold text-slate-700">
+                Mã phiếu nhận / Số RMA
+              </label>
+              <div class="input-group">
+                <span class="input-group-text bg-light text-muted"><i class="fas fa-barcode"></i></span>
+                <input
+                  type="text"
+                  class="form-control font-monospace"
+                  formControlName="trackingNumber"
+                  placeholder="VD: RMA-2026-00892, SC-984..."
+                />
+              </div>
+            </div>
+
+            <!-- Start Date -->
+            <div class="col-md-4">
+              <label class="form-label fw-semibold text-slate-700">
+                Ngày gửi / bắt đầu <span class="text-danger">*</span>
+              </label>
+              <input type="date" class="form-control" formControlName="startDate" />
+            </div>
+
+            <!-- Expected Completion Date -->
+            <div class="col-md-4">
+              <label class="form-label fw-semibold text-slate-700">
+                Ngày hẹn lấy dự kiến
+              </label>
+              <input type="date" class="form-control" formControlName="expectedCompletionDate" />
+            </div>
+
+            <!-- Estimated Cost -->
+            <div class="col-md-4">
+              <label class="form-label fw-semibold text-slate-700">
+                Chi phí ước tính (VNĐ)
+              </label>
+              <div class="input-group">
+                <input
+                  type="number"
+                  class="form-control text-end"
+                  formControlName="estimatedCost"
+                  placeholder="0"
+                  min="0"
+                />
+                <span class="input-group-text bg-light text-muted">₫</span>
+              </div>
+            </div>
+
+            <!-- Description / Symptoms -->
+            <div class="col-12">
+              <label class="form-label fw-semibold text-slate-700">
+                Mô tả lỗi / Hạng mục bảo dưỡng
+              </label>
+              <textarea
+                class="form-control"
+                rows="3"
+                formControlName="description"
+                placeholder="Chi tiết tình trạng hỏng hóc, lỗi gặp phải hoặc các bước cần bảo dưỡng định kỳ..."
+              ></textarea>
+            </div>
+
+            <!-- Switch: Set Under Repair -->
+            <div class="col-12">
+              <div class="alert alert-light border rounded-3 p-3 mb-0 d-flex align-items-center justify-content-between">
+                <div>
+                  <div class="fw-bold text-slate-800 d-flex align-items-center gap-2">
+                    <i class="fas fa-tools text-warning"></i>
+                    Tự động chuyển trạng thái thiết bị sang "Đang sửa chữa / Bảo hành"
+                  </div>
+                  <div class="text-muted small mt-1">
+                    Hệ thống sẽ cập nhật trạng thái của máy để tránh tình trạng bàn giao cho người khác trong khi đang sửa chữa.
+                  </div>
+                </div>
+                <div class="form-check form-switch ms-3">
+                  <input
+                    class="form-check-input switch-custom"
+                    type="checkbox"
+                    id="setAssetUnderRepair"
+                    formControlName="setAssetUnderRepair"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Notes -->
+            <div class="col-12">
+              <label class="form-label fw-semibold text-slate-700">Ghi chú bổ sung</label>
+              <input
+                type="text"
+                class="form-control"
+                formControlName="notes"
+                placeholder="Người liên hệ, địa điểm gửi máy, phụ kiện kèm theo..."
+              />
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="maintenance-modal-footer">
+        <button type="button" class="btn btn-outline-secondary px-3" (click)="close()" [disabled]="saving">
+          Hủy bỏ
+        </button>
+        <button
+          type="button"
+          class="btn btn-primary px-4 fw-semibold d-inline-flex align-items-center gap-2"
+          (click)="save()"
+          [disabled]="saving || maintenanceForm.invalid"
+        >
+          <i class="fas fa-spinner fa-spin" *ngIf="saving"></i>
+          <i class="fas fa-paper-plane" *ngIf="!saving"></i>
+          Lập Phiếu Sửa Chữa
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

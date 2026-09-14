@@ -31,6 +31,22 @@ export enum AssetActivityType {
   TicketLinked = 7,
   NoteAdded = 8,
   HandoverConfirmed = 9,
+  MaintenanceStarted = 10,
+  MaintenanceCompleted = 11,
+}
+
+export enum MaintenanceType {
+  Repair = 1,
+  Preventive = 2,
+  Upgrade = 3,
+  Inspection = 4,
+}
+
+export enum MaintenanceStatus {
+  Draft = 1,
+  InProgress = 2,
+  Completed = 3,
+  Cancelled = 4,
 }
 
 export interface AssetDto extends FullAuditedEntityDto<string> {
@@ -47,6 +63,10 @@ export interface AssetDto extends FullAuditedEntityDto<string> {
   purchaseDate?: string | null;
   warrantyExpiryDate?: string | null;
   purchaseCost?: number | null;
+  totalMaintenanceCost?: number;
+  lastMaintenanceDate?: string | null;
+  nextMaintenanceDate?: string | null;
+  maintenanceIntervalMonths?: number | null;
   assignedToUserId?: string | null;
   assignedToUserName?: string | null;
   assignedToUserEmail?: string | null;
@@ -63,6 +83,8 @@ export interface AssetDto extends FullAuditedEntityDto<string> {
 export interface AssetDetailDto extends AssetDto {
   activities: AssetActivityDto[];
   tickets: AssetTicketDto[];
+  maintenances: AssetMaintenanceDto[];
+  tcoSummary?: AssetTcoSummaryDto | null;
 }
 
 export interface AssetActivityDto extends CreationAuditedEntityDto<string> {
@@ -193,3 +215,81 @@ export interface AssetReceiptDto {
 }
 
 export type AssetLookupDto = AssetDto;
+
+export interface AssetMaintenanceDto extends FullAuditedEntityDto<string> {
+  assetId: string;
+  assetTag: string;
+  assetName: string;
+  maintenanceType: MaintenanceType;
+  maintenanceTypeName: string;
+  status: MaintenanceStatus;
+  statusName: string;
+  title: string;
+  description?: string | null;
+  serviceProvider?: string | null;
+  trackingNumber?: string | null;
+  startDate: string;
+  expectedCompletionDate?: string | null;
+  actualCompletionDate?: string | null;
+  estimatedCost?: number | null;
+  actualCost?: number | null;
+  replacedParts?: string | null;
+  partsWarrantyExpiryDate?: string | null;
+  notes?: string | null;
+  relatedTicketId?: string | null;
+}
+
+export interface CreateAssetMaintenanceDto {
+  assetId: string;
+  maintenanceType: MaintenanceType;
+  title: string;
+  description?: string | null;
+  serviceProvider?: string | null;
+  trackingNumber?: string | null;
+  startDate: string;
+  expectedCompletionDate?: string | null;
+  estimatedCost?: number | null;
+  relatedTicketId?: string | null;
+  notes?: string | null;
+  setAssetUnderRepair?: boolean;
+}
+
+export interface CompleteAssetMaintenanceDto {
+  actualCost: number;
+  actualCompletionDate?: string | null;
+  replacedParts?: string | null;
+  partsWarrantyExpiryDate?: string | null;
+  notes?: string | null;
+  returnToStock?: boolean;
+  nextMaintenanceDate?: string | null;
+}
+
+export interface AssetTcoSummaryDto {
+  assetId: string;
+  assetTag: string;
+  assetName: string;
+  purchaseCost: number;
+  totalMaintenanceCost: number;
+  totalCostOfOwnership: number;
+  repairCostPercentage?: number;
+  maintenanceToPurchaseRatio?: number;
+  maintenanceCount: number;
+  recommendationColor?: string;
+  economicHealth?: string; // 'Good' | 'Warning' | 'Critical'
+  recommendation: string;
+  lastMaintenanceDate?: string | null;
+  nextMaintenanceDate?: string | null;
+  isDueForMaintenance?: boolean;
+}
+
+export interface MaintenanceScheduleAlertDto {
+  assetId: string;
+  assetTag: string;
+  assetName: string;
+  assignedToUserName?: string | null;
+  lastMaintenanceDate?: string | null;
+  nextMaintenanceDate?: string | null;
+  isOverdue: boolean;
+  daysRemainingOrOverdue: number;
+  maintenanceIntervalMonths?: number | null;
+}

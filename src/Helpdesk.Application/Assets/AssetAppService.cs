@@ -23,6 +23,7 @@ public class AssetAppService : HelpdeskAppService, IAssetAppService
     private readonly IRepository<AssetActivity, Guid> _activityRepository;
     private readonly IRepository<Ticket, Guid> _ticketRepository;
     private readonly IRepository<TicketStatus, Guid> _statusRepository;
+    private readonly IRepository<AssetMaintenance, Guid> _maintenanceRepository;
     private readonly AssetManager _assetManager;
     private readonly IClock _clock;
 
@@ -31,6 +32,7 @@ public class AssetAppService : HelpdeskAppService, IAssetAppService
         IRepository<AssetActivity, Guid> activityRepository,
         IRepository<Ticket, Guid> ticketRepository,
         IRepository<TicketStatus, Guid> statusRepository,
+        IRepository<AssetMaintenance, Guid> maintenanceRepository,
         AssetManager assetManager,
         IClock clock)
     {
@@ -38,6 +40,7 @@ public class AssetAppService : HelpdeskAppService, IAssetAppService
         _activityRepository = activityRepository;
         _ticketRepository = ticketRepository;
         _statusRepository = statusRepository;
+        _maintenanceRepository = maintenanceRepository;
         _assetManager = assetManager;
         _clock = clock;
     }
@@ -207,6 +210,81 @@ public class AssetAppService : HelpdeskAppService, IAssetAppService
         }).ToList();
 
         dto.OpenTicketCount = tickets.Count(t => statusDict.TryGetValue(t.StatusId, out var st) && st.StatusGroup != StatusGroup.Closed);
+
+        // Load maintenance records & TCO
+        var maintQuery = await _maintenanceRepository.GetQueryableAsync();
+        var maintenances = await AsyncExecuter.ToListAsync(
+            maintQuery.Where(x => x.AssetId == id).OrderByDescending(x => x.CreationTime)
+        );
+
+        var ticketNums = tickets.ToDictionary(t => t.Id, t => t.TicketNumber);
+
+        dto.Maintenances = maintenances.Select(m => new AssetMaintenanceDto
+        {
+            Id = m.Id,
+            AssetId = m.AssetId,
+            AssetTag = asset.AssetTag,
+            AssetName = asset.Name,
+            MaintenanceType = m.MaintenanceType,
+            MaintenanceTypeName = GetMaintenanceTypeName(m.MaintenanceType),
+            Status = m.Status,
+            StatusName = GetMaintenanceStatusName(m.Status),
+            Title = m.Title,
+            Description = m.Description,
+            ServiceProvider = m.ServiceProvider,
+            TrackingNumber = m.TrackingNumber,
+            StartDate = m.StartDate,
+            ExpectedCompletionDate = m.ExpectedCompletionDate,
+            ActualCompletionDate = m.ActualCompletionDate,
+            EstimatedCost = m.EstimatedCost,
+            ActualCost = m.ActualCost,
+            ReplacedParts = m.ReplacedParts,
+            PartsWarrantyExpiry = m.PartsWarrantyExpiry,
+            Notes = m.Notes,
+            RelatedTicketId = m.RelatedTicketId,
+            RelatedTicketNumber = m.RelatedTicketId.HasValue && ticketNums.TryGetValue(m.RelatedTicketId.Value, out var num) ? num : null,
+            PerformedByUserId = m.PerformedByUserId,
+            PerformedByUserName = m.PerformedByUserName,
+            CreationTime = m.CreationTime
+        }).ToList();
+
+        var purchaseCost = asset.PurchaseCost ?? 0;
+        var totalMaintCost = asset.TotalMaintenanceCost;
+        if (totalMaintCost == 0 && maintenances.Any())
+        {
+            totalMaintCost = maintenances.Where(m => m.ActualCost.HasValue).Sum(m => m.ActualCost!.Value);
+        }
+
+        var repairPct = purchaseCost > 0 ? (double)(totalMaintCost / purchaseCost * 100) : 0;
+        var recommendation = repairPct >= 50
+            ? "Khuyến nghị thanh lý (Chi phí sửa chữa vượt quá 50% giá trị thiết bị)"
+            : repairPct >= 30
+                ? "Cần theo dõi chi phí (Chi phí sửa chữa chiếm trên 30% giá máy)"
+                : "Kinh tế (Thiết bị hoạt động ổn định, chi phí bảo dưỡng tối ưu)";
+
+        var recommendationColor = repairPct >= 50 ? "danger" : repairPct >= 30 ? "warning" : "success";
+
+        dto.TcoSummary = new AssetTcoSummaryDto
+        {
+            AssetId = asset.Id,
+            AssetTag = asset.AssetTag,
+            AssetName = asset.Name,
+            PurchaseCost = purchaseCost,
+            TotalMaintenanceCost = totalMaintCost,
+            TotalCostOfOwnership = purchaseCost + totalMaintCost,
+            MaintenanceCount = maintenances.Count(m => m.Status == MaintenanceStatus.Completed),
+            RepairCostPercentage = Math.Round(repairPct, 1),
+            Recommendation = recommendation,
+            RecommendationColor = recommendationColor,
+            LastMaintenanceDate = asset.LastMaintenanceDate,
+            NextMaintenanceDate = asset.NextMaintenanceDate,
+            IsDueForMaintenance = asset.NextMaintenanceDate.HasValue && asset.NextMaintenanceDate.Value <= DateTime.Now.AddDays(15)
+        };
+
+        dto.TotalMaintenanceCost = totalMaintCost;
+        dto.LastMaintenanceDate = asset.LastMaintenanceDate ?? maintenances.FirstOrDefault(m => m.Status == MaintenanceStatus.Completed)?.ActualCompletionDate;
+        dto.NextMaintenanceDate = asset.NextMaintenanceDate;
+        dto.MaintenanceIntervalMonths = asset.MaintenanceIntervalMonths;
 
         return dto;
     }
@@ -413,6 +491,10 @@ public class AssetAppService : HelpdeskAppService, IAssetAppService
             IsHandoverConfirmed = a.IsHandoverConfirmed,
             HandoverConfirmedDate = a.HandoverConfirmedDate,
             HandoverNotes = a.HandoverNotes,
+            TotalMaintenanceCost = a.TotalMaintenanceCost,
+            LastMaintenanceDate = a.LastMaintenanceDate,
+            NextMaintenanceDate = a.NextMaintenanceDate,
+            MaintenanceIntervalMonths = a.MaintenanceIntervalMonths,
             CreationTime = a.CreationTime,
             CreatorId = a.CreatorId,
             LastModificationTime = a.LastModificationTime,
@@ -461,9 +543,35 @@ public class AssetAppService : HelpdeskAppService, IAssetAppService
             AssetActivityType.SentToRepair => "Gửi đi bảo dưỡng / Sửa chữa",
             AssetActivityType.Repaired => "Hoàn tất bảo dưỡng / Nhập kho",
             AssetActivityType.TicketLinked => "Liên kết yêu cầu hỗ trợ",
-            AssetActivityType.NoteAdded => "Ghi chú kỹ thuật",
-            AssetActivityType.HandoverConfirmed => "Ký nhận bàn giao trực tuyến",
-            _ => "Hoạt động khác"
+            AssetActivityType.NoteAdded => "Thêm ghi chú",
+            AssetActivityType.HandoverConfirmed => "Ký nhận bàn giao thiết bị",
+            AssetActivityType.MaintenanceStarted => "Bắt đầu bảo trì / sửa chữa",
+            AssetActivityType.MaintenanceCompleted => "Hoàn tất bảo trì / sửa chữa",
+            _ => "Hoạt động"
+        };
+    }
+
+    private static string GetMaintenanceTypeName(MaintenanceType type)
+    {
+        return type switch
+        {
+            MaintenanceType.Repair => "Sửa chữa sự cố",
+            MaintenanceType.Preventive => "Bảo trì định kỳ",
+            MaintenanceType.Upgrade => "Nâng cấp linh kiện",
+            MaintenanceType.Inspection => "Kiểm tra kỹ thuật",
+            _ => "Bảo trì"
+        };
+    }
+
+    private static string GetMaintenanceStatusName(MaintenanceStatus status)
+    {
+        return status switch
+        {
+            MaintenanceStatus.Draft => "Dự thảo / Chờ gửi",
+            MaintenanceStatus.InProgress => "Đang sửa chữa",
+            MaintenanceStatus.Completed => "Đã hoàn tất",
+            MaintenanceStatus.Cancelled => "Đã hủy",
+            _ => "Không xác định"
         };
     }
 

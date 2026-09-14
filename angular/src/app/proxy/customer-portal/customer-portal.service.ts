@@ -65,8 +65,7 @@ export class CustomerPortalService {
   submitTicketFeedback = (ticketId: string, input: SubmitTicketFeedbackDto, config?: Partial<Rest.Config>) =>
     this.restService.request<any, CustomerTicketDetailDto>({
       method: 'POST',
-      url: '/api/app/customer-portal/submit-ticket-feedback',
-      params: { ticketId },
+      url: `/api/app/customer-portal/submit-ticket-feedback/${ticketId}`,
       body: input,
     },
     { apiName: this.apiName, ...config });
@@ -81,9 +80,16 @@ export class CustomerPortalService {
   confirmAssetHandover = (assetId: string, input: any, config?: Partial<Rest.Config>) =>
     this.restService.request<any, void>({
       method: 'POST',
-      url: `/api/app/customer-portal/confirm-asset-handover`,
-      params: { assetId },
+      url: `/api/app/customer-portal/confirm-asset-handover/${assetId}`,
       body: input,
+    },
+    { apiName: this.apiName, ...config });
+
+  getMyAssetReceipt = (assetId: string, type: string = 'handover', config?: Partial<Rest.Config>) =>
+    this.restService.request<any, any>({
+      method: 'GET',
+      url: `/api/app/customer-portal/my-asset-receipt/${assetId}`,
+      params: { type },
     },
     { apiName: this.apiName, ...config });
 }

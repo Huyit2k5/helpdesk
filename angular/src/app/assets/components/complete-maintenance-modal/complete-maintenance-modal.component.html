@@ -1,0 +1,183 @@
+<div class="complete-modal-backdrop" *ngIf="isOpen" (click)="close()">
+  <div class="complete-modal-dialog" (click)="$event.stopPropagation()">
+    <div class="complete-modal-content">
+      <!-- Modal Header -->
+      <div class="complete-modal-header">
+        <div class="d-flex align-items-center gap-3">
+          <div class="complete-icon-badge">
+            <i class="fas fa-check-double text-success"></i>
+          </div>
+          <div>
+            <h5 class="modal-title mb-0 fw-bold text-slate-800">Nghiệm Thu & Hoàn Tất Sửa Chữa</h5>
+            <div class="text-muted small mt-1">
+              Phiếu: <strong class="text-slate-700">{{ maintenance?.title }}</strong>
+              <span class="badge bg-light text-dark border ms-1 font-monospace" *ngIf="maintenance?.trackingNumber">
+                {{ maintenance?.trackingNumber }}
+              </span>
+            </div>
+          </div>
+        </div>
+        <button type="button" class="btn-close-custom" (click)="close()" title="Đóng">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="complete-modal-body custom-scrollbar">
+        <form [formGroup]="completeForm" (ngSubmit)="save()">
+          <div class="row g-3">
+            <!-- Cost Highlights Summary -->
+            <div class="col-12">
+              <div class="p-3 rounded-3 bg-light border d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div>
+                  <span class="text-muted small">Chi phí ước tính ban đầu:</span>
+                  <div class="fw-bold text-slate-700">
+                    {{ (maintenance?.estimatedCost || 0) | number }} ₫
+                  </div>
+                </div>
+                <div>
+                  <span class="text-muted small">Đơn vị sửa chữa:</span>
+                  <div class="fw-semibold text-slate-800">
+                    {{ maintenance?.serviceProvider || 'Nội bộ / Chưa xác định' }}
+                  </div>
+                </div>
+                <div>
+                  <span class="text-muted small">Ngày gửi đi:</span>
+                  <div class="fw-semibold text-slate-800">
+                    {{ maintenance?.startDate | date:'dd/MM/yyyy' }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Actual Cost -->
+            <div class="col-md-6">
+              <label class="form-label fw-semibold text-slate-700">
+                Chi phí thực tế (VNĐ) <span class="text-danger">*</span>
+              </label>
+              <div class="input-group">
+                <input
+                  type="number"
+                  class="form-control text-end fw-bold text-primary"
+                  formControlName="actualCost"
+                  placeholder="0"
+                  min="0"
+                />
+                <span class="input-group-text bg-light text-muted">₫</span>
+              </div>
+              <div class="form-text small text-muted">
+                Số tiền này sẽ được cộng dồn vào Tổng chi phí bảo trì (TCO) của tài sản.
+              </div>
+            </div>
+
+            <!-- Actual Completion Date -->
+            <div class="col-md-6">
+              <label class="form-label fw-semibold text-slate-700">
+                Ngày nghiệm thu / hoàn tất <span class="text-danger">*</span>
+              </label>
+              <input type="date" class="form-control" formControlName="actualCompletionDate" />
+            </div>
+
+            <!-- Replaced Parts -->
+            <div class="col-md-8">
+              <label class="form-label fw-semibold text-slate-700">
+                Linh kiện đã thay thế / sửa đổi
+              </label>
+              <input
+                type="text"
+                class="form-control"
+                formControlName="replacedParts"
+                placeholder="VD: Bàn phím Dell XPS zin, Pin 60Wh, Keo tản nhiệt MX-4..."
+              />
+            </div>
+
+            <!-- Parts Warranty Expiry Date -->
+            <div class="col-md-4">
+              <label class="form-label fw-semibold text-slate-700">
+                Hạn BH linh kiện mới
+              </label>
+              <input type="date" class="form-control" formControlName="partsWarrantyExpiryDate" />
+            </div>
+
+            <!-- Next Maintenance Date -->
+            <div class="col-md-6">
+              <label class="form-label fw-semibold text-slate-700">
+                Lịch bảo trì dự phòng tiếp theo
+              </label>
+              <input type="date" class="form-control" formControlName="nextMaintenanceDate" />
+              <div class="form-text small text-muted">
+                Dự kiến ngày cần vệ sinh, tra keo hoặc kiểm tra thiết bị lần tới.
+              </div>
+            </div>
+
+            <!-- Destination Status Radio/Switch -->
+            <div class="col-md-6">
+              <label class="form-label fw-semibold text-slate-700">
+                Trạng thái thiết bị sau nghiệm thu
+              </label>
+              <div class="border rounded-3 p-2 bg-light">
+                <div class="form-check mb-2">
+                  <input
+                    class="form-check-input"
+                    type="radio"
+                    name="returnToStock"
+                    id="statusInStock"
+                    [value]="true"
+                    formControlName="returnToStock"
+                  />
+                  <label class="form-check-label fw-semibold text-success" for="statusInStock">
+                    <i class="fas fa-boxes me-1"></i> Nhập kho sẵn sàng cấp phát (In Stock)
+                  </label>
+                </div>
+                <div class="form-check">
+                  <input
+                    class="form-check-input"
+                    type="radio"
+                    name="returnToStock"
+                    id="statusAssigned"
+                    [value]="false"
+                    formControlName="returnToStock"
+                  />
+                  <label class="form-check-label fw-semibold text-primary" for="statusAssigned">
+                    <i class="fas fa-user-check me-1"></i> Bàn giao lại cho người dùng cũ
+                    <span *ngIf="asset?.assignedToUserName" class="text-muted small">
+                      ({{ asset?.assignedToUserName }})
+                    </span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Notes -->
+            <div class="col-12">
+              <label class="form-label fw-semibold text-slate-700">Ghi chú nghiệm thu / Đánh giá</label>
+              <textarea
+                class="form-control"
+                rows="2"
+                formControlName="notes"
+                placeholder="Tình trạng hoạt động sau sửa chữa, kiểm tra nhiệt độ, hóa đơn VAT đính kèm..."
+              ></textarea>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="complete-modal-footer">
+        <button type="button" class="btn btn-outline-secondary px-3" (click)="close()" [disabled]="saving">
+          Hủy bỏ
+        </button>
+        <button
+          type="button"
+          class="btn btn-success px-4 fw-semibold d-inline-flex align-items-center gap-2"
+          (click)="save()"
+          [disabled]="saving || completeForm.invalid"
+        >
+          <i class="fas fa-spinner fa-spin" *ngIf="saving"></i>
+          <i class="fas fa-check-circle" *ngIf="!saving"></i>
+          Xác Nhận Nghiệm Thu & Cập Nhật TCO
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

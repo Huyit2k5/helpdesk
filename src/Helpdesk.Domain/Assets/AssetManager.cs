@@ -290,4 +290,55 @@ public class AssetManager : DomainService
 
         await _activityRepository.InsertAsync(activity);
     }
+
+    /// <summary>
+    /// Ghi log gửi bảo trì / sửa chữa thiết bị
+    /// </summary>
+    public async Task LogMaintenanceStartedAsync(
+        Asset asset,
+        AssetMaintenance maintenance,
+        Guid? performerId,
+        string? performerName)
+    {
+        var desc = $"Gửi: {maintenance.Title}. Đơn vị: {maintenance.ServiceProvider ?? "N/A"}. Mã phiếu: {maintenance.TrackingNumber ?? "N/A"}. Chi phí dự tính: {(maintenance.EstimatedCost.HasValue ? maintenance.EstimatedCost.Value.ToString("N0") + " VNĐ" : "Chưa xác định")}";
+        var activity = new AssetActivity(
+            GuidGenerator.Create(),
+            asset.Id,
+            AssetActivityType.MaintenanceStarted,
+            title: "Bắt đầu bảo trì / sửa chữa",
+            description: desc,
+            performedByUserId: performerId,
+            performedByUserName: performerName,
+            relatedTicketId: maintenance.RelatedTicketId
+        );
+
+        await _activityRepository.InsertAsync(activity);
+    }
+
+    /// <summary>
+    /// Ghi log hoàn tất bảo trì / nghiệm thu sửa chữa thiết bị
+    /// </summary>
+    public async Task LogMaintenanceCompletedAsync(
+        Asset asset,
+        AssetMaintenance maintenance,
+        Guid? performerId,
+        string? performerName)
+    {
+        var costStr = maintenance.ActualCost.HasValue ? maintenance.ActualCost.Value.ToString("N0") + " VNĐ" : "0 VNĐ";
+        var partsStr = !string.IsNullOrEmpty(maintenance.ReplacedParts) ? $" | Linh kiện thay: {maintenance.ReplacedParts}" : string.Empty;
+        var desc = $"Nghiệm thu hoàn tất: {maintenance.Title}. Chi phí thực tế: {costStr}{partsStr}. Trạng thái máy: {asset.Status}";
+
+        var activity = new AssetActivity(
+            GuidGenerator.Create(),
+            asset.Id,
+            AssetActivityType.MaintenanceCompleted,
+            title: "Hoàn tất bảo trì / sửa chữa",
+            description: desc,
+            performedByUserId: performerId,
+            performedByUserName: performerName,
+            relatedTicketId: maintenance.RelatedTicketId
+        );
+
+        await _activityRepository.InsertAsync(activity);
+    }
 }

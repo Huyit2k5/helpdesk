@@ -55,6 +55,14 @@ public class Asset : FullAuditedAggregateRoot<Guid>, IMultiTenant
 
     public string? HandoverNotes { get; private set; }
 
+    public decimal TotalMaintenanceCost { get; private set; }
+
+    public DateTime? LastMaintenanceDate { get; private set; }
+
+    public DateTime? NextMaintenanceDate { get; private set; }
+
+    public int? MaintenanceIntervalMonths { get; private set; }
+
     public virtual ICollection<AssetActivity> Activities { get; private set; } = new List<AssetActivity>();
 
     protected Asset()
@@ -169,6 +177,56 @@ public class Asset : FullAuditedAggregateRoot<Guid>, IMultiTenant
             IsHandoverConfirmed = false;
             HandoverConfirmedDate = null;
             HandoverNotes = null;
+        }
+    }
+
+    public void SendToMaintenance(string? reason = null)
+    {
+        Status = AssetStatus.UnderRepair;
+        if (!string.IsNullOrEmpty(reason))
+        {
+            Notes = string.IsNullOrEmpty(Notes) ? $"[GỬI BẢO TRÌ/SỬA CHỮA]: {reason}" : $"{Notes}\n[GỬI BẢO TRÌ/SỬA CHỮA]: {reason}";
+        }
+    }
+
+    public void CompleteMaintenance(decimal? cost, bool returnToStock = false, DateTime? nextDate = null)
+    {
+        if (cost.HasValue && cost.Value > 0)
+        {
+            TotalMaintenanceCost += cost.Value;
+        }
+
+        LastMaintenanceDate = DateTime.Now;
+
+        if (nextDate.HasValue)
+        {
+            NextMaintenanceDate = nextDate.Value;
+        }
+        else if (MaintenanceIntervalMonths.HasValue && MaintenanceIntervalMonths.Value > 0)
+        {
+            NextMaintenanceDate = DateTime.Now.AddMonths(MaintenanceIntervalMonths.Value);
+        }
+
+        if (returnToStock)
+        {
+            ReturnToStock();
+        }
+        else if (AssignedToUserId.HasValue)
+        {
+            Status = AssetStatus.Assigned;
+        }
+        else
+        {
+            Status = AssetStatus.InStock;
+        }
+    }
+
+    public void SetMaintenanceInterval(int? intervalMonths)
+    {
+        MaintenanceIntervalMonths = intervalMonths;
+        if (intervalMonths.HasValue && intervalMonths.Value > 0)
+        {
+            NextMaintenanceDate = (LastMaintenanceDate ?? PurchaseDate ?? DateTime.Now).AddMonths(intervalMonths.Value);
         }
     }
 }

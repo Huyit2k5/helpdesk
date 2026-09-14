@@ -135,35 +135,68 @@
 
 // 🖨️ Print Styles
 @media print {
-  @page {
-    size: A4 portrait;
-    margin: 15mm;
-  }
+  // LƯU Ý: khổ giấy A4/15mm được áp dụng ĐỘNG bằng JS ngay trước khi gọi
+  // window.print() (xem AssetReceiptModalComponent.printReceipt()) thay vì khai báo
+  // @page tĩnh ở đây - vì Chromium không hỗ trợ CSS Named Pages để tách biệt với
+  // @page 70mm x 40mm của tính năng in tem QR khi cả 2 cùng có mặt trên trang.
 
-  // Hide non-printable elements
-  .no-print,
-  .receipt-modal-header,
-  .receipt-modal-footer,
-  header,
-  nav,
-  aside,
-  .lpx-sidebar-container,
-  .lpx-header-container,
-  .lpx-brand-logo {
+  // Ẩn CÁC VÙNG GIAO DIỆN CỤ THỂ (sidebar, topbar, footer, chuông thông báo, card chi
+  // tiết thiết bị đứng sau lưng modal...) bằng display:none, thay vì kiểu "ẩn toàn bộ
+  // body rồi hiện lại đúng 1 vùng" (visibility:hidden trên body *) đã dùng trước đó.
+  //
+  // Lý do đổi cách tiếp cận: visibility:hidden CHỈ ẩn hiển thị, KHÔNG giải phóng
+  // khoảng trống layout - các phần tử "ẩn" vẫn chiếm đúng chiều cao của chúng trong
+  // luồng tài liệu. Do đó khi đã bỏ position:fixed khỏi .receipt-modal-backdrop (để
+  // nội dung dài chảy được sang trang 2 thay vì bị cắt), toàn bộ chiều cao "vô hình"
+  // của sidebar/topbar/breadcrumb/router-outlet cha... vẫn đẩy nội dung biên bản
+  // xuống, gây ra 2 trang trắng trước khi biên bản thật sự xuất hiện ở trang 3.
+  //
+  // Đã kiểm chứng qua DOM thực tế: .receipt-modal-backdrop, .asset-header-card,
+  // .row.g-4 đều là CON CÙNG CẤP (sibling) của nhau trong div.asset-detail-container;
+  // .lpx-sidebar-container/.lpx-topbar-container là sibling ở cấp #lpx-wrapper - tức
+  // KHÔNG phần tử nào trong danh sách dưới đây là tổ tiên (ancestor) của modal, nên
+  // display:none cho chúng an toàn tuyệt đối, không làm ẩn theo cả modal.
+  //
+  // ::ng-deep bắt buộc cho mọi selector vì các phần tử này thuộc component KHÁC
+  // (layout shell / asset-detail.component.html), không phải template của chính
+  // asset-receipt-modal - nếu không có ::ng-deep, Angular View Encapsulation sẽ tự
+  // scope selector vào [_ngcontent-<hash-của-modal>] và không bao giờ khớp được.
+  ::ng-deep .lpx-sidebar-container,
+  ::ng-deep .lpx-topbar-container,
+  ::ng-deep abp-footer,
+  ::ng-deep app-notification-bell,
+  ::ng-deep .asset-detail-container > nav[aria-label="breadcrumb"],
+  ::ng-deep .asset-header-card,
+  ::ng-deep .asset-detail-container > .row.g-4 {
     display: none !important;
   }
 
-  body {
+  // Nút bấm/tiêu đề của modal (Đóng, In Ngay...) không nên xuất hiện trên bản in.
+  .receipt-modal-header,
+  .receipt-modal-footer,
+  .no-print {
+    display: none !important;
+  }
+
+  ::ng-deep body {
     background: #ffffff !important;
     color: #000000 !important;
     margin: 0 !important;
     padding: 0 !important;
   }
 
+  // KHÔNG dùng position: fixed ở đây: fixed ghim phần tử vào đúng 1 khung nhìn
+  // (viewport) khi in, khiến nội dung dài hơn 1 trang (bảng thiết bị + cam kết +
+  // khối chữ ký ở cuối) bị cắt mất/không chảy sang trang 2 - đây là nguyên nhân
+  // khiến biên bản in ra nhiều trang nhưng KHÔNG thấy phần ký tên. Dùng static để
+  // nội dung chảy tự nhiên theo flow tài liệu, cho phép ngắt trang bình thường.
   .receipt-modal-backdrop {
     position: static !important;
-    background: transparent !important;
+    width: 100% !important;
+    height: auto !important;
+    background: #ffffff !important;
     backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
     padding: 0 !important;
     display: block !important;
   }
@@ -207,5 +240,62 @@
   .party-box {
     border: 1px solid #666666 !important;
     background: transparent !important;
+  }
+
+  // Tránh trình duyệt tự ngắt trang ngay giữa khối chữ ký (ví dụ tách rời dòng tên
+  // khỏi khoảng trống ký phía trên) - giữ nguyên cả khối trên cùng 1 trang khi có thể.
+  .signatures-section {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    margin-top: 1rem !important;
+    padding-top: 0.5rem !important;
+  }
+
+  // Thu gọn khoảng cách/font: trên màn hình các khoảng trắng (mb-4, p-3, mt-5, dòng
+  // đôi 1.6...) đủ thoáng cho UI, nhưng khi in ra giấy tổng chiều cao vượt xa 1 trang
+  // A4 (từng tràn sang 3-4 trang). Các class Bootstrap utility (.mb-4, .p-3...) chỉ bị
+  // scope trong component này (không ::ng-deep) nên không ảnh hưởng nơi khác.
+  .mb-4 { margin-bottom: 0.6rem !important; }
+  .mb-3 { margin-bottom: 0.4rem !important; }
+  .mb-2 { margin-bottom: 0.3rem !important; }
+  .my-4 { margin: 0.4rem 0 !important; }
+
+  // Thu nhỏ đều toàn bộ nội dung (kể cả các font-size khai báo inline trong HTML như
+  // 13px/12px/11px) bằng "zoom" thay vì "transform: scale()" - zoom thu nhỏ NGAY Ở
+  // BƯỚC TÍNH LAYOUT (nên trình duyệt ngắt trang đúng theo kích thước đã thu nhỏ),
+  // trong khi transform chỉ thu nhỏ phần vẽ (paint) sau khi đã tính ngắt trang theo
+  // kích thước gốc - dùng transform ở đây sẽ không giảm được số trang thực tế.
+  .receipt-sheet {
+    zoom: 0.8 !important;
+    line-height: 1.35 !important;
+  }
+
+  .party-box {
+    padding: 0.5rem 0.75rem !important;
+  }
+
+  .equipment-section .bg-light {
+    padding: 0.5rem 0.75rem !important;
+  }
+
+  .terms-section {
+    line-height: 1.3 !important;
+
+    ol {
+      margin-bottom: 0 !important;
+    }
+
+    li {
+      margin-bottom: 0.15rem !important;
+    }
+  }
+
+  .receipt-table th,
+  .receipt-table td {
+    padding: 0.25rem 0.4rem !important;
+  }
+
+  .sign-space {
+    height: 40px !important;
   }
 }

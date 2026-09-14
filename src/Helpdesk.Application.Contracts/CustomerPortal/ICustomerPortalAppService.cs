@@ -28,4 +28,5 @@ public interface ICustomerPortalAppService : IApplicationService
 
     Task<List<AssetDto>> GetMyAssetsAsync();
     Task ConfirmAssetHandoverAsync(Guid assetId, ConfirmAssetHandoverDto input);
+    Task<AssetReceiptDto> GetMyAssetReceiptAsync(Guid assetId, string? type = "handover");
 }

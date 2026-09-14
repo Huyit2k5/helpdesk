@@ -10,30 +10,45 @@ import { DepartmentDto } from '../../proxy/departments/models';
 import { catchError, of } from 'rxjs';
 import { AssetService } from '../../proxy/assets/asset.service';
 import { QrCodeGenerator } from '../qr-code-helper';
+import { printWithPageSize } from '../print-page-size.helper';
+import { AssetReceiptModalComponent } from '../components/asset-receipt-modal/asset-receipt-modal.component';
+import { AssetMaintenanceModalComponent } from '../components/asset-maintenance-modal/asset-maintenance-modal.component';
+import { CompleteMaintenanceModalComponent } from '../components/complete-maintenance-modal/complete-maintenance-modal.component';
+import { AssetMaintenanceService } from '../../proxy/assets/asset-maintenance.service';
 import {
   AssetActivityDto,
   AssetActivityType,
   AssetDetailDto,
+  AssetMaintenanceDto,
   AssetStatus,
   AssetTicketDto,
   AssetType,
   AssignAssetDto,
   ChangeAssetStatusDto,
+  MaintenanceStatus,
+  MaintenanceType,
   ReturnAssetDto,
   UpdateAssetDto
 } from '../../proxy/assets/models';
 
-import { AssetReceiptModalComponent } from '../components/asset-receipt-modal/asset-receipt-modal.component';
-
 @Component({
   selector: 'app-asset-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterModule, AssetReceiptModalComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    RouterModule,
+    AssetReceiptModalComponent,
+    AssetMaintenanceModalComponent,
+    CompleteMaintenanceModalComponent
+  ],
   templateUrl: './asset-detail.component.html',
   styleUrls: ['./asset-detail.component.scss']
 })
 export class AssetDetailComponent implements OnInit {
   private assetService = inject(AssetService);
+  private maintenanceService = inject(AssetMaintenanceService);
   private userService = inject(IdentityUserService);
   private departmentService = inject(DepartmentService);
   private route = inject(ActivatedRoute);
@@ -52,7 +67,7 @@ export class AssetDetailComponent implements OnInit {
   departments: DepartmentDto[] = [];
   selectedUser: IdentityUserDto | null = null;
 
-  activeTab: 'tickets' | 'activities' = 'tickets';
+  activeTab: 'tickets' | 'activities' | 'maintenances' = 'maintenances';
 
   // Modals state
   isEditModalOpen = false;
@@ -61,6 +76,9 @@ export class AssetDetailComponent implements OnInit {
   isStatusModalOpen = false;
   isPrintModalOpen = false;
   isReceiptModalOpen = false;
+  isMaintenanceModalOpen = false;
+  isCompleteMaintenanceModalOpen = false;
+  selectedMaintenance: AssetMaintenanceDto | null = null;
   receiptType: 'handover' | 'return' = 'handover';
   qrCodeSvg: SafeHtml | null = null;
 
@@ -72,6 +90,8 @@ export class AssetDetailComponent implements OnInit {
   AssetStatus = AssetStatus;
   AssetType = AssetType;
   AssetActivityType = AssetActivityType;
+  MaintenanceType = MaintenanceType;
+  MaintenanceStatus = MaintenanceStatus;
 
   assetTypes = [
     { value: AssetType.Laptop, label: 'Laptop (Máy tính xách tay)' },
@@ -403,6 +423,10 @@ export class AssetDetailComponent implements OnInit {
         return 'fas fa-check-circle text-success';
       case AssetActivityType.TicketLinked:
         return 'fas fa-ticket-alt text-purple';
+      case AssetActivityType.MaintenanceStarted:
+        return 'fas fa-tools text-warning';
+      case AssetActivityType.MaintenanceCompleted:
+        return 'fas fa-check-double text-success';
       default:
         return 'fas fa-dot-circle text-muted';
     }
@@ -422,7 +446,7 @@ export class AssetDetailComponent implements OnInit {
   }
 
   printTag(): void {
-    window.print();
+    printWithPageSize('size: 70mm 40mm; margin: 0;');
   }
 
   openReceiptModal(type: 'handover' | 'return' = 'handover'): void {
@@ -433,4 +457,120 @@ export class AssetDetailComponent implements OnInit {
   closeReceiptModal(): void {
     this.isReceiptModalOpen = false;
   }
+
+  // Maintenance & TCO Methods
+  openMaintenanceModal(): void {
+    this.isMaintenanceModalOpen = true;
+  }
+
+  closeMaintenanceModal(): void {
+    this.isMaintenanceModalOpen = false;
+  }
+
+  openCompleteMaintenanceModal(item?: AssetMaintenanceDto): void {
+    if (item) {
+      this.selectedMaintenance = item;
+    } else {
+      this.selectedMaintenance = this.getLatestActiveMaintenance() || null;
+    }
+    this.isCompleteMaintenanceModalOpen = true;
+  }
+
+  closeCompleteMaintenanceModal(): void {
+    this.isCompleteMaintenanceModalOpen = false;
+    this.selectedMaintenance = null;
+  }
+
+  getLatestActiveMaintenance(): AssetMaintenanceDto | undefined {
+    return this.asset?.maintenances?.find(
+      (m) => m.status === MaintenanceStatus.InProgress || m.status === MaintenanceStatus.Draft
+    );
+  }
+
+  onMaintenanceUpdated(): void {
+    this.loadAsset();
+  }
+
+  cancelMaintenance(maintenance: AssetMaintenanceDto): void {
+    this.confirmation.warn(
+      `Bạn có chắc chắn muốn hủy phiếu bảo trì "${maintenance.title}" không?`,
+      'Xác nhận hủy phiếu'
+    ).subscribe((status: Confirmation.Status) => {
+      if (status === Confirmation.Status.confirm) {
+        this.maintenanceService.cancel(maintenance.id!, 'Hủy bởi người quản lý tài sản').subscribe({
+          next: () => {
+            this.toaster.success('Đã hủy phiếu bảo trì!');
+            this.loadAsset();
+          },
+          error: (err) => {
+            this.toaster.error(err?.error?.error?.message || 'Không thể hủy phiếu bảo trì!');
+          }
+        });
+      }
+    });
+  }
+
+  getMaintenanceTypeBadgeClass(type: MaintenanceType): string {
+    switch (type) {
+      case MaintenanceType.Repair:
+        return 'bg-danger-subtle text-danger border border-danger-subtle';
+      case MaintenanceType.Preventive:
+        return 'bg-success-subtle text-success border border-success-subtle';
+      case MaintenanceType.Upgrade:
+        return 'bg-primary-subtle text-primary border border-primary-subtle';
+      case MaintenanceType.Inspection:
+        return 'bg-warning-subtle text-warning-emphasis border border-warning-subtle';
+      default:
+        return 'bg-light text-dark';
+    }
+  }
+
+  getMaintenanceStatusBadgeClass(status: MaintenanceStatus): string {
+    switch (status) {
+      case MaintenanceStatus.InProgress:
+        return 'bg-warning text-dark';
+      case MaintenanceStatus.Completed:
+        return 'bg-success text-white';
+      case MaintenanceStatus.Draft:
+        return 'bg-secondary text-white';
+      case MaintenanceStatus.Cancelled:
+        return 'bg-danger-subtle text-danger';
+      default:
+        return 'bg-light text-muted';
+    }
+  }
+
+  getEconomicHealthBadgeClass(colorOrHealth?: string): string {
+    const val = (colorOrHealth || '').toLowerCase();
+    if (val === 'success' || val === 'good') {
+      return 'badge bg-success';
+    }
+    if (val === 'warning') {
+      return 'badge bg-warning text-dark';
+    }
+    if (val === 'danger' || val === 'critical') {
+      return 'badge bg-danger';
+    }
+    return 'badge bg-success';
+  }
+
+  getEconomicHealthText(colorOrHealth?: string): string {
+    const val = (colorOrHealth || '').toLowerCase();
+    if (val === 'success' || val === 'good') {
+      return 'Kinh tế & Hiệu quả';
+    }
+    if (val === 'warning') {
+      return 'Cần theo dõi chi phí';
+    }
+    if (val === 'danger' || val === 'critical') {
+      return 'Khuyến nghị thanh lý';
+    }
+    return 'Kinh tế & Hiệu quả';
+  }
+
+  isPreventiveOverdue(): boolean {
+    if (!this.asset?.nextMaintenanceDate) return false;
+    return new Date(this.asset.nextMaintenanceDate) < new Date();
+  }
 }
+
